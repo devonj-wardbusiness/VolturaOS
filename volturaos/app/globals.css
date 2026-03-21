@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-volturaBlue: #1A1F6E;
+  --color-volturaNavy: #2E4BA0;
+  --color-volturaGold: #C9A227;
+  --color-background: #1A1F6E;
+  --color-foreground: #f1f5f9;
+  --color-surface: #232878;
+  --font-sans: 'Inter', sans-serif;
+}
+
+html {
+  background-color: #1A1F6E;
+  color: #f1f5f9;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Large touch targets for mobile price inputs */
+.price-input {
+  min-height: 44px;
+  font-size: 1.25rem;
+}
