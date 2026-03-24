@@ -8,7 +8,7 @@ const tabs = [
   { href: '/jobs', label: 'Jobs', icon: '🔧' },
   { href: '/customers', label: 'Customers', icon: '👤' },
   { href: '/estimates', label: 'Estimates', icon: '📋' },
-  { href: '/settings/pricebook', label: 'More', icon: '⚙️' },
+  { href: '/invoices', label: 'Invoices', icon: '💰' },
 ]
 
 export function BottomNav() {

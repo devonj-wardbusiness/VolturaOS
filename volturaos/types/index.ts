@@ -55,6 +55,10 @@ export interface PricebookEntry {
   includes_permit: boolean
   notes: string | null
   active: boolean
+  category: string
+  per_foot_rate: number | null
+  is_footage_item: boolean
+  footage_group: string | null
 }
 
 export interface LineItem {
@@ -63,6 +67,9 @@ export interface LineItem {
   is_override: boolean
   original_price: number | null
   tier?: TierName
+  category?: string
+  footage?: number | null
+  is_primary?: boolean
 }
 
 export interface Addon {

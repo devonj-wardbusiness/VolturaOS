@@ -18,9 +18,21 @@ export async function getAllPricebook(): Promise<PricebookEntry[]> {
     .from('pricebook')
     .select('*')
     .eq('active', true)
+    .order('category')
     .order('job_type')
   if (error) throw new Error(error.message)
   return data as PricebookEntry[]
+}
+
+export async function getPricebookByCategory(): Promise<Record<string, PricebookEntry[]>> {
+  const entries = await getAllPricebook()
+  const grouped: Record<string, PricebookEntry[]> = {}
+  for (const entry of entries) {
+    const cat = entry.category || 'Uncategorized'
+    if (!grouped[cat]) grouped[cat] = []
+    grouped[cat].push(entry)
+  }
+  return grouped
 }
 
 export async function updatePricebookPrice(
