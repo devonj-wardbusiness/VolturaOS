@@ -7,10 +7,10 @@ import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
 import type { Job, JobStatus } from '@/types'
 
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+async function requireAuth() { // auth disabled
+  // const supabase = await createClient()
+  // const { data: { user } } = await supabase.auth.getUser()
+  // if (!user) redirect("/login")
 }
 
 export async function createJob(input: {

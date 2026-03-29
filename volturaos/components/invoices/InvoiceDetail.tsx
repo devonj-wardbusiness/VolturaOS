@@ -1,10 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import type { Invoice, InvoicePayment } from '@/types'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { PaymentForm } from './PaymentForm'
 import { PaymentHistory } from './PaymentHistory'
+
+const InvoiceDownloadButton = dynamic(
+  () => import('@/components/pdf/InvoiceDownloadButton').then((m) => m.InvoiceDownloadButton),
+  { ssr: false, loading: () => null }
+)
 
 interface InvoiceDetailProps {
   invoice: Invoice & {
@@ -52,6 +58,21 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Download PDF */}
+      <InvoiceDownloadButton
+        invoiceId={invoice.id}
+        customerName={invoice.customer.name}
+        customerPhone={invoice.customer.phone}
+        lineItems={invoice.line_items ?? []}
+        total={invoice.total}
+        amountPaid={invoice.amount_paid}
+        balance={invoice.balance}
+        status={invoice.status}
+        payments={invoice.payments}
+        notes={invoice.notes}
+        createdAt={invoice.created_at}
+      />
 
       {/* Record Payment button */}
       {invoice.status !== 'Paid' && (

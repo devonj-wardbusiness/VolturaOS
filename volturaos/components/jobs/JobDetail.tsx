@@ -2,13 +2,15 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Job, JobStatus } from '@/types'
+import type { Job, JobChecklist, JobStatus } from '@/types'
 import { updateJobStatus, updateJob } from '@/lib/actions/jobs'
 import { StatusStepper } from './StatusStepper'
+import { JobChecklist as JobChecklistUI } from './JobChecklist'
 import { StatusPill } from '@/components/ui/StatusPill'
 
 interface JobDetailProps {
   job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null } }
+  checklist: JobChecklist
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -17,7 +19,7 @@ const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>
   'In Progress': { label: 'Complete Job', next: 'Completed' },
 }
 
-export function JobDetail({ job }: JobDetailProps) {
+export function JobDetail({ job, checklist }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
@@ -105,6 +107,9 @@ export function JobDetail({ job }: JobDetailProps) {
           </button>
         )}
       </div>
+
+      {/* Checklist */}
+      <JobChecklistUI checklist={checklist} />
 
       {/* Notes */}
       <div className="bg-volturaNavy/50 rounded-xl p-4">

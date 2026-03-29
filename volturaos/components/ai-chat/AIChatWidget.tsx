@@ -49,11 +49,14 @@ export function AIChatWidget() {
       ? { ...pageContext, mode }
       : { mode }
 
+    // Capture history before adding the new user message (which was just added above)
+    const history = messages.map((m) => ({ role: m.role, content: m.text }))
+
     try {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, context }),
+        body: JSON.stringify({ message: text, context, history }),
       })
 
       if (!res.ok) {

@@ -29,11 +29,12 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.match(/^\/estimates\/[^/]+\/view/)
 
-  if (!user && !isPublic) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
+  // Auth disabled — skip redirect
+  // if (!user && !isPublic) {
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = '/login'
+  //   return NextResponse.redirect(url)
+  // }
 
   return supabaseResponse
 }

@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { PricebookEntry } from '@/types'
 
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+async function requireAuth() { // auth disabled
+  // const supabase = await createClient()
+  // const { data: { user } } = await supabase.auth.getUser()
+  // if (!user) redirect("/login")
 }
 
 export async function getAllPricebook(): Promise<PricebookEntry[]> {

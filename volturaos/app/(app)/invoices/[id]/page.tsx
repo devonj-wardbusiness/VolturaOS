@@ -16,6 +16,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         <a href="/invoices" className="text-gray-400 text-sm">&larr; Invoices</a>
         <h1 className="text-white font-semibold flex-1 truncate">{invoice.customer.name}</h1>
       </header>
+
       <InvoiceDetail invoice={invoice} />
     </div>
   )
