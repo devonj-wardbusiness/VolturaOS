@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getAllPricebook } from '@/lib/actions/pricebook'
 import { PricebookTable } from '@/components/settings/PricebookTable'
 

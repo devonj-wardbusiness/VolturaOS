@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { searchCustomers } from '@/lib/actions/customers'
 import { CustomerSearch } from '@/components/customers/CustomerSearch'
 import { CustomerCard } from '@/components/customers/CustomerCard'

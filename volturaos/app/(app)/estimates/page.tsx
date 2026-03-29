@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { listEstimates } from '@/lib/actions/estimates'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { EmptyState } from '@/components/ui/EmptyState'

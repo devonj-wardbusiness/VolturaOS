@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Suspense } from 'react'
 import { listInvoices } from '@/lib/actions/invoices'
 import { InvoiceList } from '@/components/invoices/InvoiceList'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Suspense } from 'react'
 import { listJobs } from '@/lib/actions/jobs'
 import { JobBoard } from '@/components/jobs/JobBoard'
