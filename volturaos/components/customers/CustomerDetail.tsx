@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import type { Customer } from '@/types'
-import { updateCustomer } from '@/lib/actions/customers'
+import { updateCustomer, deleteCustomer } from '@/lib/actions/customers'
 import { useRouter } from 'next/navigation'
 
 export function CustomerDetail({ customer }: { customer: Customer }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [form, setForm] = useState({
     name: customer.name,
@@ -28,12 +29,29 @@ export function CustomerDetail({ customer }: { customer: Customer }) {
     })
   }
 
+  async function handleDelete() {
+    if (!window.confirm(`Delete ${customer.name}? This cannot be undone.`)) return
+    setDeleting(true)
+    try {
+      await deleteCustomer(customer.id)
+      router.push('/customers')
+    } catch (err) {
+      alert('Could not delete — customer may have existing estimates or jobs.')
+      setDeleting(false)
+    }
+  }
+
   if (!editing) {
     return (
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-white text-2xl font-bold">{customer.name}</h2>
-          <button onClick={() => setEditing(true)} className="text-volturaGold text-sm">Edit</button>
+          <div className="flex gap-3">
+            <button onClick={() => setEditing(true)} className="text-volturaGold text-sm">Edit</button>
+            <button onClick={handleDelete} disabled={deleting} className="text-red-400 text-sm disabled:opacity-40">
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
         </div>
         {customer.phone && <p className="text-gray-300">{customer.phone}</p>}
         {customer.email && <p className="text-gray-400 text-sm">{customer.email}</p>}

@@ -1,6 +1,6 @@
 'use client'
 
-import type { PricebookEntry, TierName } from '@/types'
+import type { PricebookEntry } from '@/types'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 
 interface CategorySheetProps {
@@ -8,7 +8,13 @@ interface CategorySheetProps {
   onClose: () => void
   category: string
   entries: PricebookEntry[]
-  onAddItem: (entry: PricebookEntry, tier: TierName) => void
+  onAddItem: (entry: PricebookEntry) => void
+}
+
+function formatGroupName(raw: string): string {
+  return raw
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export function CategorySheet({ open, onClose, category, entries, onAddItem }: CategorySheetProps) {
@@ -26,23 +32,19 @@ export function CategorySheet({ open, onClose, category, entries, onAddItem }: C
     }
   }
 
-  function handleAdd(entry: PricebookEntry) {
-    onAddItem(entry, 'better')
-  }
-
   return (
     <BottomSheet open={open} onClose={onClose} title={category}>
-      <div className="max-h-[60vh] overflow-y-auto space-y-1.5 -mx-1 px-1">
+      <div className="space-y-1.5 -mx-1 px-1">
         {/* Regular items */}
         {regularItems.map((entry) => (
           <button
             key={entry.id}
-            onClick={() => handleAdd(entry)}
+            onClick={() => onAddItem(entry)}
             className="w-full flex items-center justify-between bg-volturaNavy/30 rounded-xl px-4 py-3 text-left hover:bg-volturaNavy/50 transition-colors"
           >
             <span className="text-white text-sm flex-1 mr-3">{entry.job_type}</span>
             <span className="text-volturaGold text-sm font-semibold">
-              ${(entry.price_better ?? entry.price_good ?? 0).toLocaleString()}
+              ${(entry.price_good ?? entry.price_better ?? 0).toLocaleString()}
             </span>
           </button>
         ))}
@@ -50,21 +52,21 @@ export function CategorySheet({ open, onClose, category, entries, onAddItem }: C
         {/* Footage groups */}
         {Array.from(footageGroups.entries()).map(([group, groupEntries]) => (
           <div key={group} className="bg-volturaNavy/30 rounded-xl px-4 py-3">
-            <p className="text-white text-sm font-semibold mb-2">{group}</p>
+            <p className="text-white text-sm font-semibold mb-2">{formatGroupName(group)}</p>
             <div className="grid grid-cols-3 gap-2">
               {groupEntries
-                .sort((a, b) => (a.price_better ?? 0) - (b.price_better ?? 0))
+                .sort((a, b) => (a.price_good ?? 0) - (b.price_good ?? 0))
                 .map((entry, i) => {
                   const labels = ['0-25ft', '25-50ft', '50-100ft']
                   return (
                     <button
                       key={entry.id}
-                      onClick={() => handleAdd(entry)}
+                      onClick={() => onAddItem(entry)}
                       className="bg-volturaNavy/50 rounded-lg py-2 px-2 text-center hover:bg-volturaNavy transition-colors"
                     >
                       <span className="text-gray-400 text-xs block">{labels[i] ?? entry.job_type}</span>
                       <span className="text-volturaGold text-xs font-semibold">
-                        ${(entry.price_better ?? 0).toLocaleString()}
+                        ${(entry.price_good ?? 0).toLocaleString()}
                       </span>
                     </button>
                   )

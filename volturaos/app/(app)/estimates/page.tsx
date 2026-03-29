@@ -2,33 +2,69 @@ import { listEstimates } from '@/lib/actions/estimates'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { EmptyState } from '@/components/ui/EmptyState'
 import Link from 'next/link'
+import type { Estimate, EstimateStatus } from '@/types'
+
+type EstimateWithCustomer = Estimate & { customer: { name: string } }
+
+function groupEstimates(estimates: EstimateWithCustomer[]) {
+  const anchors = estimates.filter((e) => !e.proposal_id)
+  const children = estimates.filter((e) => e.proposal_id)
+
+  return anchors.map((anchor) => {
+    const siblings = children.filter((c) => c.proposal_id === anchor.id)
+    const group = [anchor, ...siblings].sort(
+      (a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)
+    )
+    return group
+  })
+}
+
+function groupStatus(group: EstimateWithCustomer[]): EstimateStatus {
+  if (group.some((e) => e.status === 'Approved')) return 'Approved'
+  if (group.some((e) => e.status === 'Sent')) return 'Sent'
+  if (group.some((e) => e.status === 'Viewed')) return 'Viewed'
+  return 'Draft'
+}
 
 export default async function EstimatesPage() {
   const estimates = await listEstimates()
+  const groups = groupEstimates(estimates)
+
   return (
     <div className="px-4 pt-6 pb-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-volturaGold text-xl font-bold">Estimates</h1>
         <Link href="/estimates/new" className="bg-volturaGold text-volturaBlue font-bold px-4 py-2 rounded-xl text-sm">+ New</Link>
       </div>
-      {estimates.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState message="No estimates yet — tap + to create one" ctaLabel="+ New Estimate" ctaHref="/estimates/new" />
       ) : (
         <div className="space-y-2">
-          {estimates.map((est) => (
-            <Link key={est.id} href={`/estimates/${est.id}`} className="block bg-volturaNavy/50 rounded-xl p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-white font-semibold">{est.customer?.name ?? 'Unknown'}</p>
-                  {est.tier_selected && <p className="text-gray-400 text-xs capitalize">{est.tier_selected} tier</p>}
+          {groups.map((group) => {
+            const anchor = group[0]
+            const isGrouped = group.length > 1
+            const status = groupStatus(group)
+            const maxTotal = Math.max(...group.map((e) => e.total ?? 0))
+            const names = group.map((e) => e.name ?? 'Estimate').join(' · ')
+
+            return (
+              <Link key={anchor.id} href={`/estimates/${anchor.id}`} className="block bg-volturaNavy/50 rounded-xl p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1 pr-3">
+                    <p className="text-white font-semibold">{anchor.customer?.name ?? 'Unknown'}</p>
+                    <p className="text-gray-400 text-xs mt-0.5 truncate">{names}</p>
+                    {isGrouped && (
+                      <p className="text-volturaGold/70 text-xs mt-0.5">{group.length} estimates</p>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <StatusPill status={status} />
+                    {maxTotal > 0 && <p className="text-volturaGold font-bold text-sm mt-1">${maxTotal.toLocaleString()}</p>}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <StatusPill status={est.status} />
-                  {est.total && <p className="text-volturaGold font-bold text-sm mt-1">${est.total.toLocaleString()}</p>}
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

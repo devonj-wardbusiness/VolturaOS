@@ -7,23 +7,33 @@ import Anthropic from '@anthropic-ai/sdk'
 const client = new Anthropic()
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return new Response('Unauthorized', { status: 401 })
-  }
+  // auth disabled — matches rest of app
+  // const supabase = await createClient()
+  // const { data: { user } } = await supabase.auth.getUser()
+  // if (!user) {
+  //   return new Response('Unauthorized', { status: 401 })
+  // }
 
-  const { message, context } = (await request.json()) as {
+  const { message, context, history = [] } = (await request.json()) as {
     message: string
     context: AIPageContext
+    history?: { role: 'user' | 'assistant'; content: string }[]
   }
 
   if (!message?.trim()) {
     return new Response('Message required', { status: 400 })
   }
 
+  // Build full conversation thread — cap at 40 turns (20 pairs) to stay within token limits
+  const recentHistory = history.slice(-40)
   const userPrompt = buildUserPrompt(context, message)
-  const messages: Anthropic.MessageParam[] = [{ role: 'user', content: userPrompt }]
+  const messages: Anthropic.MessageParam[] = [
+    ...recentHistory.map((h) => ({
+      role: h.role as 'user' | 'assistant',
+      content: h.content,
+    })),
+    { role: 'user', content: userPrompt },
+  ]
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({

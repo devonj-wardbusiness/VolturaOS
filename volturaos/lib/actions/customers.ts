@@ -7,10 +7,10 @@ import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
 import type { Customer, CustomerEquipment } from '@/types'
 
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+async function requireAuth() { // auth disabled
+  // const supabase = await createClient()
+  // const { data: { user } } = await supabase.auth.getUser()
+  // if (!user) redirect("/login")
 }
 
 export async function createCustomer(input: {
@@ -106,6 +106,13 @@ export async function createEquipment(input: { customer_id: string; type: string
   }).select().single()
   if (error) throw new Error(error.message)
   return data as CustomerEquipment
+}
+
+export async function deleteCustomer(id: string): Promise<void> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { error } = await admin.from('customers').delete().eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 export async function deleteEquipment(id: string): Promise<void> {

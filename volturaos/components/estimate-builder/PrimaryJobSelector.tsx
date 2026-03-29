@@ -10,17 +10,22 @@ interface PrimaryJobSelectorProps {
   onSkip: () => void
 }
 
-const CATEGORIES = [
-  { name: 'Panel & Service', icon: '⚡' },
-  { name: 'Wiring & Circuits', icon: '🔌' },
-  { name: 'Conduit & Feeders', icon: '🔧' },
-  { name: 'Fixtures & Devices', icon: '💡' },
-  { name: 'Troubleshoot', icon: '🔍' },
-  { name: 'Specialty', icon: '⭐' },
-]
+const CATEGORY_ICONS: Record<string, string> = {
+  'Breakers': '⚡',
+  'Panel Rejuvenations': '🔲',
+  'Car Chargers': '🚗',
+  'Dedicated Circuits (Romex)': '🔌',
+  'Dedicated Circuits (Conduit/EMT)': '🔧',
+  'Circuit Extensions': '🔗',
+  'Devices': '💡',
+  'Trenching': '🚧',
+  'Service Calls': '🔍',
+}
 
 export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: PrimaryJobSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
+  const categories = Array.from(new Set(pricebook.filter((p) => !p.is_footage_item).map((p) => p.category).filter(Boolean)))
 
   // Filter non-footage items (footage items are add-ons, not primary jobs)
   const filteredEntries = activeCategory
@@ -48,17 +53,17 @@ export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: Pr
 
       {/* Category pills */}
       <div className="flex gap-1.5 flex-wrap mb-2">
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
-            key={cat.name}
-            onClick={() => setActiveCategory(activeCategory === cat.name ? null : cat.name)}
+            key={cat}
+            onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              activeCategory === cat.name
+              activeCategory === cat
                 ? 'bg-volturaGold text-volturaBlue'
                 : 'bg-volturaNavy/50 text-gray-400'
             }`}
           >
-            {cat.icon} {cat.name}
+            {CATEGORY_ICONS[cat] ?? '📋'} {cat}
           </button>
         ))}
       </div>

@@ -84,6 +84,8 @@ export interface Estimate {
   job_id: string | null
   customer_id: string
   status: EstimateStatus
+  name: string
+  proposal_id: string | null
   tier_selected: TierName | null
   line_items: LineItem[] | null
   addons: Addon[] | null

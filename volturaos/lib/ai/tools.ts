@@ -300,7 +300,8 @@ export async function executeTool(name: string, input: Record<string, unknown>):
         .insert({
           customer_id: customerId,
           status: 'Draft',
-          tier_selected: primaryJobType ? primaryTier : null,
+          tier_selected: null,
+          name: 'Estimate',
           line_items: lineItems,
           subtotal: total,
           total,
@@ -329,7 +330,7 @@ View and edit in the Estimates tab.`
       const limit = (input.limit as number) || 10
       const { data, error } = await admin
         .from('estimates')
-        .select('id, status, tier_selected, total, notes, created_at, customers(name)')
+        .select('id, status, name, total, notes, created_at, customers(name)')
         .order('created_at', { ascending: false })
         .limit(limit)
       if (error) return `Error: ${error.message}`
@@ -339,7 +340,7 @@ View and edit in the Estimates tab.`
         return {
           id: (e.id as string).slice(0, 8) + '...',
           customer: customers?.name || 'Unknown',
-          tier: e.tier_selected || '—',
+          name: (e.name as string) || 'Estimate',
           total: e.total ? `$${(e.total as number).toLocaleString()}` : '—',
           status: e.status,
           created: new Date(e.created_at as string).toLocaleDateString(),
