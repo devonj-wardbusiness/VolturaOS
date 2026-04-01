@@ -40,9 +40,14 @@ export default async function DashboardPage() {
       </div>
 
       {/* Pricebook link */}
-      <Link href="/settings/pricebook" className="block mt-5 text-center text-gray-500 text-xs underline">
-        ⚙️ Pricebook Settings
-      </Link>
+      <div className="flex gap-4 justify-center mt-5">
+        <Link href="/settings/pricebook" className="text-gray-500 text-xs underline">
+          ⚙️ Pricebook
+        </Link>
+        <Link href="/settings/templates" className="text-gray-500 text-xs underline">
+          🔖 Templates
+        </Link>
+      </div>
     </div>
   )
 }

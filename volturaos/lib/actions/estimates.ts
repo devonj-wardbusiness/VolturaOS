@@ -293,7 +293,8 @@ export async function getTemplates(): Promise<Pick<Estimate, 'id' | 'name' | 'to
 
 export async function deleteTemplate(id: string): Promise<void> {
   const admin = createAdminClient()
-  await admin.from('estimates').delete().eq('id', id).eq('is_template', true)
+  const { error } = await admin.from('estimates').delete().eq('id', id).eq('is_template', true)
+  if (error) throw new Error(error.message)
 }
 
 export async function createEstimateFromTemplate(
@@ -328,7 +329,7 @@ export async function createEstimateFromTemplate(
 export async function listEstimates(): Promise<(Estimate & { customer: { name: string } })[]> {
   await requireAuth()
   const admin = createAdminClient()
-  const { data, error } = await admin.from('estimates').select('*, customers(name)').order('created_at', { ascending: false }).limit(100)
+  const { data, error } = await admin.from('estimates').select('*, customers(name)').eq('is_template', false).order('created_at', { ascending: false }).limit(100)
   if (error) throw new Error(error.message)
   return (data as Record<string, unknown>[]).map(({ customers, ...e }) => ({ ...e, customer: customers })) as (Estimate & { customer: { name: string } })[]
 }
