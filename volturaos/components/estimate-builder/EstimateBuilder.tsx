@@ -21,7 +21,7 @@ import { CustomLineItems } from './CustomLineItems'
 import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
-import { saveEstimate, duplicateEstimate, deleteEstimate } from '@/lib/actions/estimates'
+import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate } from '@/lib/actions/estimates'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 
 interface EstimateBuilderProps {
@@ -185,6 +185,17 @@ export function EstimateBuilder({
     }
   }
 
+  async function handleSaveAsTemplate() {
+    const templateName = window.prompt('Template name:', estimateName)
+    if (!templateName?.trim()) return
+    try {
+      await saveAsTemplate(estimateId, templateName.trim())
+      alert('Template saved!')
+    } catch {
+      alert('Failed to save template.')
+    }
+  }
+
   async function handleDelete() {
     if (!window.confirm('Delete this estimate? This cannot be undone.')) return
     setDeleting(true)
@@ -245,6 +256,13 @@ export function EstimateBuilder({
             placeholder="Name this estimate…"
             className="bg-transparent text-white font-semibold text-lg flex-1 focus:outline-none placeholder:text-gray-600"
           />
+          <button
+            onClick={handleSaveAsTemplate}
+            title="Save as template"
+            className="text-gray-500 hover:text-volturaGold text-lg px-2 flex-shrink-0"
+          >
+            🔖
+          </button>
           <button
             onClick={handleDuplicate}
             disabled={duplicating || proposalCount >= 3 || saving}

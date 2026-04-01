@@ -256,6 +256,75 @@ export async function deleteEstimate(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+export async function saveAsTemplate(estimateId: string, name: string): Promise<void> {
+  const admin = createAdminClient()
+  const { data: src, error: srcErr } = await admin
+    .from('estimates')
+    .select('*')
+    .eq('id', estimateId)
+    .single()
+  if (srcErr || !src) throw new Error('Estimate not found')
+  const { error } = await admin.from('estimates').insert({
+    name,
+    is_template: true,
+    line_items: src.line_items,
+    addons: src.addons,
+    includes_permit: src.includes_permit,
+    includes_cleanup: src.includes_cleanup,
+    includes_warranty: src.includes_warranty,
+    customer_id: src.customer_id,
+    status: 'Draft',
+    total: src.total,
+    subtotal: src.subtotal,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function getTemplates(): Promise<Pick<Estimate, 'id' | 'name' | 'total' | 'line_items'>[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('estimates')
+    .select('id, name, total, line_items')
+    .eq('is_template', true)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as Pick<Estimate, 'id' | 'name' | 'total' | 'line_items'>[]
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const admin = createAdminClient()
+  await admin.from('estimates').delete().eq('id', id).eq('is_template', true)
+}
+
+export async function createEstimateFromTemplate(
+  templateId: string,
+  customerId: string,
+): Promise<string> {
+  const admin = createAdminClient()
+  const { data: tpl, error: tplErr } = await admin
+    .from('estimates')
+    .select('*')
+    .eq('id', templateId)
+    .eq('is_template', true)
+    .single()
+  if (tplErr || !tpl) throw new Error('Template not found')
+  const { data, error } = await admin.from('estimates').insert({
+    name: tpl.name,
+    customer_id: customerId,
+    line_items: tpl.line_items,
+    addons: tpl.addons,
+    includes_permit: tpl.includes_permit,
+    includes_cleanup: tpl.includes_cleanup,
+    includes_warranty: tpl.includes_warranty,
+    total: tpl.total,
+    subtotal: tpl.subtotal,
+    status: 'Draft',
+    is_template: false,
+  }).select('id').single()
+  if (error) throw new Error(error.message)
+  return (data as { id: string }).id
+}
+
 export async function listEstimates(): Promise<(Estimate & { customer: { name: string } })[]> {
   await requireAuth()
   const admin = createAdminClient()

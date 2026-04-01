@@ -101,6 +101,7 @@ export interface Estimate {
   approved_at: string | null
   declined_at: string | null
   created_at: string
+  is_template: boolean
 }
 
 export interface Invoice {
