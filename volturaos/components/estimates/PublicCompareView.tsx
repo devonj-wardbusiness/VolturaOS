@@ -4,6 +4,33 @@ import { useState } from 'react'
 import { approvePublicEstimate } from '@/lib/actions/estimates'
 import type { Estimate, Addon, LineItem } from '@/types'
 
+function ExpandableLineItem({ item }: { item: LineItem }) {
+  const [open, setOpen] = useState(false)
+  const hasDesc = !!item.pricebook_description
+  return (
+    <div>
+      <button
+        className="w-full flex items-center justify-between py-2 text-left min-h-[44px]"
+        onClick={() => hasDesc && setOpen(o => !o)}
+        style={{ cursor: hasDesc ? 'pointer' : 'default' }}
+      >
+        <span className="text-white/80 text-sm">
+          {item.description}{item.footage ? ` (${item.footage}ft)` : ''}
+        </span>
+        <span className="flex items-center gap-2 shrink-0">
+          <span className="text-volturaGold text-sm">${item.price.toLocaleString()}</span>
+          {hasDesc && (
+            <span className={`text-gray-500 text-xs transition-transform inline-block ${open ? 'rotate-90' : ''}`}>›</span>
+          )}
+        </span>
+      </button>
+      {open && item.pricebook_description && (
+        <p className="text-gray-400 text-xs pb-2 pr-6 leading-relaxed">{item.pricebook_description}</p>
+      )}
+    </div>
+  )
+}
+
 interface PublicCompareViewProps {
   estimates: Estimate[]
   customerName: string
@@ -56,10 +83,7 @@ export function PublicCompareView({ estimates, customerName }: PublicCompareView
               </div>
               <div className="flex-1 px-5 py-3 space-y-2">
                 {items.map((item: LineItem, i: number) => (
-                  <div key={i} className="flex justify-between gap-3">
-                    <p className="text-gray-300 text-sm flex-1">{item.description}</p>
-                    <p className="text-white text-sm shrink-0">${item.price.toLocaleString()}</p>
-                  </div>
+                  <ExpandableLineItem key={i} item={item} />
                 ))}
                 {addons.map((addon: Addon, i: number) => (
                   <div key={`a-${i}`} className="flex justify-between gap-3">

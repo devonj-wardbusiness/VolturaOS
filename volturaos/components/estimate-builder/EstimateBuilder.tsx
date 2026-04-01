@@ -105,6 +105,7 @@ export function EstimateBuilder({
       price,
       is_override: false,
       original_price: price,
+      pricebook_description: entry.description_good ?? entry.description_better ?? entry.description_best ?? undefined,
       category: entry.category,
       footage: entry.is_footage_item ? null : undefined,
     }])

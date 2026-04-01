@@ -5,6 +5,33 @@ import { updateEstimateStatus } from '@/lib/actions/estimates'
 import { calculateTotal } from '@/components/estimate-builder/LiveTotal'
 import type { LineItem, Addon, Estimate } from '@/types'
 
+function ExpandableLineItem({ item }: { item: LineItem }) {
+  const [open, setOpen] = useState(false)
+  const hasDesc = !!item.pricebook_description
+  return (
+    <div>
+      <button
+        className="w-full flex items-center justify-between py-2 text-left min-h-[44px]"
+        onClick={() => hasDesc && setOpen(o => !o)}
+        style={{ cursor: hasDesc ? 'pointer' : 'default' }}
+      >
+        <span className="text-white/80 text-sm">
+          {item.description}{item.footage ? ` (${item.footage}ft)` : ''}
+        </span>
+        <span className="flex items-center gap-2 shrink-0">
+          <span className="text-volturaGold text-sm">${item.price.toLocaleString()}</span>
+          {hasDesc && (
+            <span className={`text-gray-500 text-xs transition-transform inline-block ${open ? 'rotate-90' : ''}`}>›</span>
+          )}
+        </span>
+      </button>
+      {open && item.pricebook_description && (
+        <p className="text-gray-400 text-xs pb-2 pr-6 leading-relaxed">{item.pricebook_description}</p>
+      )}
+    </div>
+  )
+}
+
 interface PresentModeProps {
   estimateId: string
   customerName: string | null
@@ -123,10 +150,7 @@ export function PresentMode({
                   </div>
                   <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
                     {estItems.map((item: LineItem, i: number) => (
-                      <div key={i} className="flex justify-between gap-3">
-                        <p className="text-gray-300 text-sm flex-1">{item.description}</p>
-                        <p className="text-white text-sm shrink-0">${item.price.toLocaleString()}</p>
-                      </div>
+                      <ExpandableLineItem key={i} item={item} />
                     ))}
                     {estAddons.map((addon: Addon, i: number) => (
                       <div key={`addon-${i}`} className="flex justify-between gap-3">
@@ -174,15 +198,9 @@ export function PresentMode({
             {allSoloItems.length > 0 && (
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Scope of Work</p>
-                <div className="bg-volturaNavy rounded-xl overflow-hidden divide-y divide-white/5">
+                <div className="bg-volturaNavy rounded-xl overflow-hidden divide-y divide-white/5 px-4">
                   {allSoloItems.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-3 gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-300 text-sm">{item.description}</p>
-                        {item.footage && <p className="text-gray-500 text-xs">{item.footage}ft</p>}
-                      </div>
-                      <p className="text-white font-semibold shrink-0">${item.price.toLocaleString()}</p>
-                    </div>
+                    <ExpandableLineItem key={i} item={item} />
                   ))}
                 </div>
               </div>

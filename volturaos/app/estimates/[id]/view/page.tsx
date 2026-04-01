@@ -1,7 +1,8 @@
 import { getPublicEstimate } from '@/lib/actions/estimates'
 import { PublicCompareView } from '@/components/estimates/PublicCompareView'
+import { LineItemsList } from '@/components/estimates/LineItemsList'
 import { notFound } from 'next/navigation'
-import type { LineItem, Addon } from '@/types'
+import type { Addon } from '@/types'
 
 export default async function PublicEstimateView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -41,18 +42,8 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
       {!isProposal && (
         <>
           {lineItems.length > 0 && (
-            <div className="space-y-1.5 mb-4">
-              {lineItems.map((item: LineItem, i: number) => (
-                <div key={i} className="flex justify-between items-start bg-volturaNavy/50 rounded-xl px-4 py-3">
-                  <div className="flex-1 mr-4">
-                    <span className="text-white text-sm">{item.description}</span>
-                    {item.footage && (
-                      <span className="text-gray-400 text-xs block">{item.footage}ft</span>
-                    )}
-                  </div>
-                  <span className="text-volturaGold font-semibold whitespace-nowrap">${item.price.toLocaleString()}</span>
-                </div>
-              ))}
+            <div className="bg-volturaNavy/50 rounded-xl px-4 mb-4">
+              <LineItemsList items={lineItems} />
             </div>
           )}
 

@@ -66,6 +66,7 @@ export interface LineItem {
   price: number
   is_override: boolean
   original_price: number | null
+  pricebook_description?: string  // plain-English explanation for customer
   tier?: TierName
   category?: string
   footage?: number | null
