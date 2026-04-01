@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { uploadJobPhoto, deleteJobPhoto } from '@/lib/actions/job-photos'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 export function JobPhotos({ jobId, initialPhotos }: { jobId: string; initialPhotos: JobPhotoRecord[] }) {
+  const router = useRouter()
   const [photos, setPhotos] = useState<JobPhotoRecord[]>(initialPhotos)
   const [lightbox, setLightbox] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -31,8 +33,8 @@ export function JobPhotos({ jobId, initialPhotos }: { jobId: string; initialPhot
     startTransition(async () => {
       try {
         await uploadJobPhoto(jobId, fd)
-        // Remove temp, server revalidation will refresh with real data on next load
         setPhotos(p => p.filter(x => x.id !== tempPhoto.id))
+        router.refresh()  // re-fetch server data so real photo appears
       } catch {
         setPhotos(p => p.filter(x => x.id !== tempPhoto.id))
         setError('Upload failed. Please try again.')

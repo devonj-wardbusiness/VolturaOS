@@ -1,4 +1,6 @@
 import { getJobById } from '@/lib/actions/jobs'
+
+export const dynamic = 'force-dynamic'
 import { getOrCreateChecklist } from '@/lib/actions/checklists'
 import { getJobPhotos } from '@/lib/actions/job-photos'
 import { JobDetail } from '@/components/jobs/JobDetail'

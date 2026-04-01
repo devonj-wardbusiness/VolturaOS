@@ -56,7 +56,8 @@ export async function uploadJobPhoto(jobId: string, formData: FormData): Promise
 
 export async function deleteJobPhoto(photoId: string, storagePath: string, jobId: string): Promise<void> {
   const admin = createAdminClient()
-  await admin.storage.from('job-photos').remove([storagePath])
+  const { error: storageErr } = await admin.storage.from('job-photos').remove([storagePath])
+  if (storageErr) throw new Error(storageErr.message)
   await admin.from('job_photos').delete().eq('id', photoId)
   revalidatePath(`/jobs/${jobId}`)
 }
