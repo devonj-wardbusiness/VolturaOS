@@ -99,6 +99,9 @@ export async function duplicateEstimate(sourceId: string): Promise<Estimate> {
       proposal_id: anchorId,
       status: 'Draft',
       tier_selected: null,
+      includes_permit: (source as Record<string, unknown>).includes_permit ?? false,
+      includes_cleanup: (source as Record<string, unknown>).includes_cleanup ?? true,
+      includes_warranty: (source as Record<string, unknown>).includes_warranty ?? true,
     })
     .select()
     .single()
