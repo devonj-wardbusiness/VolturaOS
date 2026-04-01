@@ -22,6 +22,7 @@ import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate } from '@/lib/actions/estimates'
+import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 
 interface EstimateBuilderProps {
   estimateId: string
@@ -31,8 +32,10 @@ interface EstimateBuilderProps {
   estimateCreatedAt?: string
   proposalCount: number
   proposalEstimates: Estimate[]
+  linkedInvoiceId?: string | null
   initialEstimate?: {
     name: string
+    status?: string
     line_items: LineItem[] | null
     addons: Addon[] | null
     notes: string | null
@@ -50,6 +53,7 @@ export function EstimateBuilder({
   estimateCreatedAt,
   proposalCount,
   proposalEstimates,
+  linkedInvoiceId,
   initialEstimate,
 }: EstimateBuilderProps) {
   const router = useRouter()
@@ -204,6 +208,16 @@ export function EstimateBuilder({
     }
   }
 
+  async function handleCreateInvoice() {
+    setSaving(true)
+    try {
+      const inv = await createInvoiceFromEstimate(estimateId)
+      router.push(`/invoices/${inv.id}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const aiContext: AIPageContext = {
     mode: 'estimate',
     jobType: primaryJobType ?? undefined,
@@ -337,6 +351,24 @@ export function EstimateBuilder({
             Send
           </button>
         </div>
+        {initialEstimate?.status === 'Approved' && (
+          linkedInvoiceId ? (
+            <button
+              onClick={() => router.push(`/invoices/${linkedInvoiceId}`)}
+              className="w-full bg-green-700 text-white font-bold py-3 rounded-xl mt-2"
+            >
+              View Invoice
+            </button>
+          ) : (
+            <button
+              onClick={handleCreateInvoice}
+              disabled={saving}
+              className="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:opacity-50 mt-2"
+            >
+              💰 Create Invoice
+            </button>
+          )
+        )}
         {hasItems && estimateCreatedAt && (
           <div className="mt-2">
             <EstimateDownloadButton

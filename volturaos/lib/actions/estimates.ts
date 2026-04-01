@@ -239,6 +239,16 @@ export async function getPublicEstimate(id: string): Promise<{ estimates: Estima
   return { estimates: group, customer: customers }
 }
 
+export async function getLinkedInvoice(estimateId: string): Promise<{ id: string } | null> {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('invoices')
+    .select('id')
+    .eq('estimate_id', estimateId)
+    .maybeSingle()
+  return data ? { id: data.id as string } : null
+}
+
 export async function deleteEstimate(id: string): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()

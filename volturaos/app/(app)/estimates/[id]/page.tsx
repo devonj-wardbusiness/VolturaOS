@@ -1,4 +1,4 @@
-import { getEstimateById, getProposalEstimates } from '@/lib/actions/estimates'
+import { getEstimateById, getProposalEstimates, getLinkedInvoice } from '@/lib/actions/estimates'
 import { getAllPricebook } from '@/lib/actions/pricebook'
 import { EstimateBuilder } from '@/components/estimate-builder/EstimateBuilder'
 import { EstimateActions } from '@/components/estimates/EstimateActions'
@@ -8,12 +8,13 @@ import { notFound } from 'next/navigation'
 
 export default async function EstimatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  let estimate, pricebook, proposal
+  let estimate, pricebook, proposal, linkedInvoice
   try {
-    ;[estimate, pricebook, proposal] = await Promise.all([
+    ;[estimate, pricebook, proposal, linkedInvoice] = await Promise.all([
       getEstimateById(id),
       getAllPricebook(),
       getProposalEstimates(id),
+      getLinkedInvoice(id),
     ])
   } catch {
     notFound()
@@ -49,8 +50,10 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
         estimateCreatedAt={estimate.created_at}
         proposalCount={proposal.length}
         proposalEstimates={proposal}
+        linkedInvoiceId={linkedInvoice?.id ?? null}
         initialEstimate={{
           name: estimate.name ?? 'Estimate',
+          status: estimate.status,
           line_items: estimate.line_items,
           addons: estimate.addons,
           notes: estimate.notes,
