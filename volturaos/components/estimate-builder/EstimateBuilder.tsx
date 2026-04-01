@@ -95,6 +95,7 @@ export function EstimateBuilder({
   const [presenting, setPresenting] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [invoicing, setInvoicing] = useState(false)
 
   // Primary job handler (adds as flat line item, no tier)
   const handlePrimaryJobSelect = useCallback((jobType: string) => {
@@ -209,12 +210,15 @@ export function EstimateBuilder({
   }
 
   async function handleCreateInvoice() {
-    setSaving(true)
+    if (invoicing) return
+    setInvoicing(true)
     try {
       const inv = await createInvoiceFromEstimate(estimateId)
       router.push(`/invoices/${inv.id}`)
+    } catch {
+      alert('Failed to create invoice. Please try again.')
     } finally {
-      setSaving(false)
+      setInvoicing(false)
     }
   }
 
@@ -362,10 +366,10 @@ export function EstimateBuilder({
           ) : (
             <button
               onClick={handleCreateInvoice}
-              disabled={saving}
+              disabled={invoicing}
               className="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:opacity-50 mt-2"
             >
-              💰 Create Invoice
+              {invoicing ? 'Creating...' : '💰 Create Invoice'}
             </button>
           )
         )}
