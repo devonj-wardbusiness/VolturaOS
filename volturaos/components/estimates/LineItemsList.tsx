@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import type { LineItem } from '@/types'
 
-function ExpandableItem({ item }: { item: LineItem }) {
+export function ExpandableLineItem({ item }: { item: LineItem }) {
   const [open, setOpen] = useState(false)
   const hasDesc = !!item.pricebook_description
   return (
@@ -32,7 +32,7 @@ function ExpandableItem({ item }: { item: LineItem }) {
 export function LineItemsList({ items }: { items: LineItem[] }) {
   return (
     <div>
-      {items.map((item, i) => <ExpandableItem key={i} item={item} />)}
+      {items.map((item, i) => <ExpandableLineItem key={i} item={item} />)}
     </div>
   )
 }

@@ -92,7 +92,7 @@ export function EstimateBuilder({
     if (!entry) return
     const price = entry.price_good ?? 0
     setLineItems((prev) => [
-      { description: entry.job_type, price, is_override: false, original_price: price, category: entry.category },
+      { description: entry.job_type, price, is_override: false, original_price: price, pricebook_description: entry.description_good ?? entry.description_better ?? entry.description_best ?? undefined, category: entry.category },
       ...prev,
     ])
   }, [pricebook])
