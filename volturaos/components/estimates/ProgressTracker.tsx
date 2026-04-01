@@ -1,14 +1,24 @@
+import type { EstimateStatus } from '@/types'
+
 const STEPS = ['Created', 'Sent', 'Viewed', 'Approved', 'Scheduled', 'Complete']
 
 interface ProgressTrackerProps {
   sentAt: string | null
   viewedAt: string | null
-  status: string  // EstimateStatus: 'Draft' | 'Sent' | 'Viewed' | 'Approved' | 'Declined'
+  status: EstimateStatus
   hasLinkedJob?: boolean
   jobCompleted?: boolean
 }
 
 export function ProgressTracker({ sentAt, viewedAt, status, hasLinkedJob = false, jobCompleted = false }: ProgressTrackerProps) {
+  if (status === 'Declined') {
+    return (
+      <div className="px-4 py-3">
+        <span className="text-red-400 text-xs font-semibold">✕ Estimate Declined</span>
+      </div>
+    )
+  }
+
   // Determine which step is "current" (1-indexed)
   let current = 1
   if (sentAt) current = 2
