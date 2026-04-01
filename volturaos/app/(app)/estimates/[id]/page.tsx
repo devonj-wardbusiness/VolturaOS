@@ -3,6 +3,7 @@ import { getAllPricebook } from '@/lib/actions/pricebook'
 import { EstimateBuilder } from '@/components/estimate-builder/EstimateBuilder'
 import { EstimateActions } from '@/components/estimates/EstimateActions'
 import { StatusPill } from '@/components/ui/StatusPill'
+import { ProgressTracker } from '@/components/estimates/ProgressTracker'
 import { notFound } from 'next/navigation'
 
 export default async function EstimatePage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,6 +32,8 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
           + New
         </a>
       </header>
+
+      <ProgressTracker sentAt={estimate.sent_at} viewedAt={estimate.viewed_at} status={estimate.status} />
 
       <EstimateActions
         estimateId={id}

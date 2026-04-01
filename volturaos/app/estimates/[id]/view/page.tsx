@@ -2,6 +2,7 @@ import { getPublicEstimate } from '@/lib/actions/estimates'
 import { PublicCompareView } from '@/components/estimates/PublicCompareView'
 import { LineItemsList } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
+import { ProgressTracker } from '@/components/estimates/ProgressTracker'
 import { notFound } from 'next/navigation'
 import type { Addon } from '@/types'
 
@@ -34,14 +35,22 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
 
       {/* Multi-estimate proposal: swipeable comparison */}
       {isProposal && (
-        <div className="mb-6">
-          <PublicCompareView estimates={estimates} customerName={customer.name} />
-        </div>
+        <>
+          <div className="bg-volturaNavy rounded-2xl mb-4">
+            <ProgressTracker sentAt={estimates[0].sent_at} viewedAt={estimates[0].viewed_at} status={estimates[0].status} />
+          </div>
+          <div className="mb-6">
+            <PublicCompareView estimates={estimates} customerName={customer.name} />
+          </div>
+        </>
       )}
 
       {/* Solo estimate: flat list */}
       {!isProposal && (
         <>
+          <div className="bg-volturaNavy rounded-2xl mb-4">
+            <ProgressTracker sentAt={solo.sent_at} viewedAt={solo.viewed_at} status={solo.status} />
+          </div>
           <BadgeRow includesPermit={solo.includes_permit} includesCleanup={solo.includes_cleanup} includesWarranty={solo.includes_warranty} />
           {lineItems.length > 0 && (
             <div className="bg-volturaNavy/50 rounded-xl px-4 mb-4">
