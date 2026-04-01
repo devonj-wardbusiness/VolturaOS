@@ -7,10 +7,13 @@ import { updateJobStatus, updateJob } from '@/lib/actions/jobs'
 import { StatusStepper } from './StatusStepper'
 import { JobChecklist as JobChecklistUI } from './JobChecklist'
 import { StatusPill } from '@/components/ui/StatusPill'
+import { JobPhotos } from './JobPhotos'
+import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
   job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null } }
   checklist: JobChecklist
+  photos: JobPhotoRecord[]
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -19,7 +22,7 @@ const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>
   'In Progress': { label: 'Complete Job', next: 'Completed' },
 }
 
-export function JobDetail({ job, checklist }: JobDetailProps) {
+export function JobDetail({ job, checklist, photos }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
@@ -134,6 +137,9 @@ export function JobDetail({ job, checklist }: JobDetailProps) {
           <p className="text-white/80 text-sm whitespace-pre-wrap">{notes || 'No notes'}</p>
         )}
       </div>
+
+      {/* Site Photos */}
+      <JobPhotos jobId={job.id} initialPhotos={photos} />
     </div>
   )
 }

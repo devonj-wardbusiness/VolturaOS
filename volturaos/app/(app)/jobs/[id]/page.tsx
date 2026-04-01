@@ -1,5 +1,6 @@
 import { getJobById } from '@/lib/actions/jobs'
 import { getOrCreateChecklist } from '@/lib/actions/checklists'
+import { getJobPhotos } from '@/lib/actions/job-photos'
 import { JobDetail } from '@/components/jobs/JobDetail'
 import { JobChecklist } from '@/components/jobs/JobChecklist'
 import { notFound } from 'next/navigation'
@@ -12,7 +13,10 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   } catch {
     notFound()
   }
-  const checklist = await getOrCreateChecklist(job.id, job.job_type)
+  const [checklist, photos] = await Promise.all([
+    getOrCreateChecklist(job.id, job.job_type),
+    getJobPhotos(job.id),
+  ])
 
   return (
     <div className="min-h-dvh bg-volturaBlue">
@@ -20,7 +24,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         <a href="/jobs" className="text-gray-400 text-sm">&larr; Jobs</a>
         <h1 className="text-white font-semibold flex-1 truncate">{job.customer.name}</h1>
       </header>
-      <JobDetail job={job} checklist={checklist} />
+      <JobDetail job={job} checklist={checklist} photos={photos} />
     </div>
   )
 }
