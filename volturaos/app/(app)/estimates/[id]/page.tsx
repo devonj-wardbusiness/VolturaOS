@@ -51,6 +51,9 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
           line_items: estimate.line_items,
           addons: estimate.addons,
           notes: estimate.notes,
+          includes_permit: estimate.includes_permit,
+          includes_cleanup: estimate.includes_cleanup,
+          includes_warranty: estimate.includes_warranty,
         }}
       />
     </div>

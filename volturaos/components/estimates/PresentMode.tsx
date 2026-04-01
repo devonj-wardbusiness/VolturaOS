@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { updateEstimateStatus } from '@/lib/actions/estimates'
 import { calculateTotal } from '@/components/estimate-builder/LiveTotal'
 import { ExpandableLineItem } from '@/components/estimates/LineItemsList'
+import { BadgeRow } from '@/components/estimates/BadgeRow'
 import type { LineItem, Addon, Estimate } from '@/types'
 
 interface PresentModeProps {
@@ -13,6 +14,9 @@ interface PresentModeProps {
   lineItems: LineItem[]
   addons: Addon[]
   customItems: LineItem[]
+  includesPermit: boolean
+  includesCleanup: boolean
+  includesWarranty: boolean
   onClose: () => void
   onApproved: () => void
 }
@@ -24,6 +28,9 @@ export function PresentMode({
   lineItems,
   addons,
   customItems,
+  includesPermit,
+  includesCleanup,
+  includesWarranty,
   onClose,
   onApproved,
 }: PresentModeProps) {
@@ -123,6 +130,7 @@ export function PresentMode({
                     <p className="text-white text-3xl font-bold mt-1">${estTotal.toLocaleString()}</p>
                   </div>
                   <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
+                    <BadgeRow includesPermit={est.includes_permit} includesCleanup={est.includes_cleanup} includesWarranty={est.includes_warranty} />
                     {estItems.map((item: LineItem, i: number) => (
                       <ExpandableLineItem key={i} item={item} />
                     ))}
@@ -168,6 +176,8 @@ export function PresentMode({
               <p className="text-gray-400 text-sm">{customerName}</p>
               <h1 className="text-white text-2xl font-bold mt-1">Your Estimate</h1>
             </div>
+
+            <BadgeRow includesPermit={includesPermit} includesCleanup={includesCleanup} includesWarranty={includesWarranty} />
 
             {allSoloItems.length > 0 && (
               <div>

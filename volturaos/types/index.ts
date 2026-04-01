@@ -93,6 +93,9 @@ export interface Estimate {
   subtotal: number | null
   total: number | null
   notes: string | null
+  includes_permit: boolean
+  includes_cleanup: boolean
+  includes_warranty: boolean
   sent_at: string | null
   viewed_at: string | null
   approved_at: string | null

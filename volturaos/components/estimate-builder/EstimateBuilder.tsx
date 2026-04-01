@@ -36,6 +36,9 @@ interface EstimateBuilderProps {
     line_items: LineItem[] | null
     addons: Addon[] | null
     notes: string | null
+    includes_permit: boolean
+    includes_cleanup: boolean
+    includes_warranty: boolean
   }
 }
 
@@ -75,6 +78,11 @@ export function EstimateBuilder({
   )
   const [customItems, setCustomItems] = useState<LineItem[]>([])
   const [notes, setNotes] = useState(initialEstimate?.notes ?? '')
+
+  // Badge toggles
+  const [includesPermit, setIncludesPermit] = useState(initialEstimate?.includes_permit ?? false)
+  const [includesCleanup, setIncludesCleanup] = useState(initialEstimate?.includes_cleanup ?? true)
+  const [includesWarranty, setIncludesWarranty] = useState(initialEstimate?.includes_warranty ?? true)
 
   // UI state
   const [sendOpen, setSendOpen] = useState(false)
@@ -161,6 +169,9 @@ export function EstimateBuilder({
         subtotal: total,
         total,
         notes,
+        includesPermit,
+        includesCleanup,
+        includesWarranty,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -273,6 +284,27 @@ export function EstimateBuilder({
           onRemove={handleRemoveItem}
         />
 
+        {/* Badge toggles */}
+        <div className="flex gap-2 flex-wrap mt-3 mb-2">
+          {([
+            { key: 'permit', label: '📋 Permit', value: includesPermit, set: setIncludesPermit },
+            { key: 'cleanup', label: '🧹 Cleanup', value: includesCleanup, set: setIncludesCleanup },
+            { key: 'warranty', label: '🛡 Warranty', value: includesWarranty, set: setIncludesWarranty },
+          ] as const).map(({ key, label, value, set }) => (
+            <button
+              key={key}
+              onClick={() => set(v => !v)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                value
+                  ? 'bg-volturaGold text-volturaBlue border-volturaGold'
+                  : 'bg-transparent text-gray-500 border-gray-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <AddOnsPanel addons={addons} onToggle={handleAddonToggle} onPriceChange={handleAddonPriceChange} />
         <CustomLineItems items={customItems} onAdd={addCustomItem} onUpdate={updateCustomItem} onRemove={removeCustomItem} />
 
@@ -328,12 +360,15 @@ export function EstimateBuilder({
           customerName={customerName}
           proposalEstimates={proposalEstimates.map((e) =>
             e.id === estimateId
-              ? { ...e, name: estimateName, line_items: allLineItems, addons, total }
+              ? { ...e, name: estimateName, line_items: allLineItems, addons, total, includes_permit: includesPermit, includes_cleanup: includesCleanup, includes_warranty: includesWarranty }
               : e
           )}
           lineItems={lineItems}
           addons={addons}
           customItems={customItems}
+          includesPermit={includesPermit}
+          includesCleanup={includesCleanup}
+          includesWarranty={includesWarranty}
           onClose={() => setPresenting(false)}
           onApproved={() => {
             setPresenting(false)

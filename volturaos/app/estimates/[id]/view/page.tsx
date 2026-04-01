@@ -1,6 +1,7 @@
 import { getPublicEstimate } from '@/lib/actions/estimates'
 import { PublicCompareView } from '@/components/estimates/PublicCompareView'
 import { LineItemsList } from '@/components/estimates/LineItemsList'
+import { BadgeRow } from '@/components/estimates/BadgeRow'
 import { notFound } from 'next/navigation'
 import type { Addon } from '@/types'
 
@@ -41,6 +42,7 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
       {/* Solo estimate: flat list */}
       {!isProposal && (
         <>
+          <BadgeRow includesPermit={solo.includes_permit} includesCleanup={solo.includes_cleanup} includesWarranty={solo.includes_warranty} />
           {lineItems.length > 0 && (
             <div className="bg-volturaNavy/50 rounded-xl px-4 mb-4">
               <LineItemsList items={lineItems} />

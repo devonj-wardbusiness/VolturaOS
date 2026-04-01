@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { approvePublicEstimate } from '@/lib/actions/estimates'
 import { ExpandableLineItem } from '@/components/estimates/LineItemsList'
+import { BadgeRow } from '@/components/estimates/BadgeRow'
 import type { Estimate, Addon, LineItem } from '@/types'
 
 interface PublicCompareViewProps {
@@ -56,6 +57,7 @@ export function PublicCompareView({ estimates, customerName }: PublicCompareView
                 <p className="text-white text-3xl font-bold mt-1">${total.toLocaleString()}</p>
               </div>
               <div className="flex-1 px-5 py-3 space-y-2">
+                <BadgeRow includesPermit={est.includes_permit} includesCleanup={est.includes_cleanup} includesWarranty={est.includes_warranty} />
                 {items.map((item: LineItem, i: number) => (
                   <ExpandableLineItem key={i} item={item} />
                 ))}

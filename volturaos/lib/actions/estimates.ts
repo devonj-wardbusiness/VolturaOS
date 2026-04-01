@@ -35,6 +35,9 @@ export async function saveEstimate(id: string, updates: {
   subtotal?: number
   total?: number
   notes?: string
+  includesPermit?: boolean
+  includesCleanup?: boolean
+  includesWarranty?: boolean
 }): Promise<Estimate> {
   await requireAuth()
   const admin = createAdminClient()
@@ -48,6 +51,9 @@ export async function saveEstimate(id: string, updates: {
       subtotal: updates.subtotal,
       total: updates.total,
       notes: updates.notes,
+      includes_permit: updates.includesPermit ?? false,
+      includes_cleanup: updates.includesCleanup ?? true,
+      includes_warranty: updates.includesWarranty ?? true,
     })
     .eq('id', id)
     .select()
