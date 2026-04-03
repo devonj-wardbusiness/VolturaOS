@@ -23,6 +23,7 @@ import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate } from '@/lib/actions/estimates'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
+import { DiscountsSection } from './DiscountsSection'
 
 interface EstimateBuilderProps {
   estimateId: string
@@ -161,8 +162,14 @@ export function EstimateBuilder({
     setCustomItems((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
+  const addDiscount = useCallback((description: string, amount: number) => {
+    setCustomItems((prev) => [...prev, { description, price: amount, is_override: false, original_price: null }])
+  }, [])
+
   const allLineItems = [...lineItems, ...customItems]
   const total = calculateTotal([], lineItems, addons, customItems)
+  // Subtotal of positive items only — used as base for discount calculations
+  const positiveSubtotal = calculateTotal([], lineItems, addons, customItems.filter((i) => i.price > 0))
 
   async function handleSave() {
     setSaving(true)
@@ -343,6 +350,7 @@ export function EstimateBuilder({
 
         <AddOnsPanel addons={addons} onToggle={handleAddonToggle} onPriceChange={handleAddonPriceChange} />
         <CustomLineItems items={customItems} onAdd={addCustomItem} onUpdate={updateCustomItem} onRemove={removeCustomItem} />
+        <DiscountsSection subtotal={positiveSubtotal} onAddDiscount={addDiscount} />
 
         <div>
           <label className="block text-gray-400 text-sm mb-1">Notes</label>

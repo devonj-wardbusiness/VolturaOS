@@ -1,4 +1,11 @@
-# Session Handoff — 2026-04-01
+# Session Handoff — 2026-04-02
+
+## Done Today (2026-04-02)
+- **Fixed "+ New" estimate flow** — no longer redirects to customers page; now shows inline customer picker (`NewEstimateFlow.tsx`)
+- **Added Discounts section** to EstimateBuilder — Military/Senior 5%, Cash 6%, custom % or $ amount (`DiscountsSection.tsx`)
+  - Discounts are stored as negative-price custom line items, so they subtract from the total automatically
+- **UI Redesign spec** reviewed and approved (from last session) — ready to execute
+
 
 ## Where We Left Off
 
