@@ -11,6 +11,7 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [agreementPending, startAgreementTransition] = useTransition()
   const [form, setForm] = useState({
     name: customer.name,
     phone: customer.phone ?? '',
@@ -67,7 +68,7 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
             <div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-400 text-sm font-semibold">🛡 Active — $199/yr</p>
+                  <p className="text-green-400 text-sm font-semibold">🛡 {agreement.status} — ${agreement.price}/yr</p>
                   <p className="text-gray-400 text-xs mt-1">
                     Renews {new Date(agreement.renewal_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
@@ -75,12 +76,12 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
                 <button
                   onClick={async () => {
                     if (!window.confirm('Cancel maintenance plan?')) return
-                    startTransition(async () => {
+                    startAgreementTransition(async () => {
                       await cancelAgreement(agreement.id, customer.id)
                       router.refresh()
                     })
                   }}
-                  disabled={isPending}
+                  disabled={agreementPending}
                   className="text-red-400 text-xs disabled:opacity-50"
                 >
                   Cancel
@@ -98,15 +99,15 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
             <button
               onClick={async () => {
                 if (!window.confirm('Add annual maintenance plan for $199?')) return
-                startTransition(async () => {
+                startAgreementTransition(async () => {
                   await createAgreement(customer.id)
                   router.refresh()
                 })
               }}
-              disabled={isPending}
+              disabled={agreementPending}
               className="w-full bg-volturaGold/10 border border-volturaGold/30 text-volturaGold rounded-xl py-3 text-sm font-semibold disabled:opacity-50"
             >
-              {isPending ? 'Adding...' : '🛡 Add Maintenance Plan — $199/yr'}
+              {agreementPending ? 'Adding...' : '🛡 Add Maintenance Plan — $199/yr'}
             </button>
           )}
         </div>

@@ -42,7 +42,11 @@ export async function createAgreement(customerId: string): Promise<void> {
     renewal_date: renewalDate.toISOString().split('T')[0],
     invoice_id: invoice.id,
   })
-  if (error) throw new Error(error.message)
+  if (error) {
+    // Rollback: delete the invoice to avoid orphan
+    await admin.from('invoices').delete().eq('id', invoice.id)
+    throw new Error(error.message)
+  }
 
   void sendTelegram(`🛡 New maintenance agreement: ${name} — $199/yr`)
   revalidatePath(`/customers/${customerId}`)

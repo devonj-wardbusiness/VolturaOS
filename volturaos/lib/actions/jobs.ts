@@ -108,7 +108,7 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
       void sendTelegram(`🔧 Job started: ${customerName} — ${jobType}`)
       try {
         const phone = (customers?.phone as string | null) ?? null
-        const optOut = (customers?.sms_opt_out as boolean) ?? false
+        const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
         if (phone) {
           await sendSMS(
             phone,
