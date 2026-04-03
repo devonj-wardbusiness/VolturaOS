@@ -20,7 +20,7 @@ export function KPICards(props: KPICardsProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {cards.map((card) => (
-        <div key={card.label} className="bg-volturaNavy/50 rounded-xl p-3">
+        <div key={card.label} className="bg-volturaNavy/50 border border-white/5 rounded-2xl p-3">
           <p className="text-gray-400 text-xs mb-1">{card.label}</p>
           <p className={`${card.color} text-xl font-bold`}>{card.value}</p>
         </div>
