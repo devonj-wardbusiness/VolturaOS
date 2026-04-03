@@ -1,6 +1,6 @@
 export async function sendSMS(to: string, body: string, optOut: boolean): Promise<void> {
   if (optOut) return
-  if (!to || !process.env.TWILIO_ACCOUNT_SID) return
+  if (!to || !process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_FROM_NUMBER) return
 
   const message = body.includes('Reply STOP') ? body : `${body} Reply STOP to opt out.`
 
