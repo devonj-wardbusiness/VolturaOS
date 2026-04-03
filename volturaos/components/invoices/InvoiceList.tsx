@@ -60,7 +60,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       ) : (
         <div className="space-y-2">
           {filtered.map((inv) => (
-            <Link key={inv.id} href={`/invoices/${inv.id}`} className="block bg-volturaNavy/50 rounded-xl p-4">
+            <Link key={inv.id} href={`/invoices/${inv.id}`} className="block bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-white font-semibold">{inv.customer.name}</p>

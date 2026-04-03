@@ -10,12 +10,13 @@ export function JobCard({ job }: JobCardProps) {
   const dateStr = job.scheduled_date
     ? new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null
-  const timeStr = job.scheduled_time
-    ? job.scheduled_time.slice(0, 5)
-    : null
+  const timeStr = job.scheduled_time ? job.scheduled_time.slice(0, 5) : null
 
   return (
-    <Link href={`/jobs/${job.id}`} className="block bg-volturaNavy/50 rounded-xl p-4">
+    <Link
+      href={`/jobs/${job.id}`}
+      className="block bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100"
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-white font-semibold truncate">{job.customer.name}</p>
