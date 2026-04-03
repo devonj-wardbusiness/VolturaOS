@@ -132,6 +132,19 @@ export interface InvoicePayment {
   notes: string | null
 }
 
+export interface MaintenanceAgreement {
+  id: string
+  customer_id: string
+  price: number
+  status: string  // 'Active' | 'Expired' | 'Cancelled'
+  start_date: string
+  renewal_date: string
+  renewal_reminder_sent: boolean
+  invoice_id: string | null
+  notes: string | null
+  created_at: string
+}
+
 export interface ChecklistItem {
   label: string
   checked: boolean
