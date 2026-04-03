@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-volturaBlue: #1A1F6E;
-  --color-volturaNavy: #2E4BA0;
-  --color-volturaGold: #C9A227;
-  --color-background: #1A1F6E;
+  --color-volturaBlue: #0D0F1A;
+  --color-volturaNavy: #161B2E;
+  --color-volturaGold: #D4AF37;
+  --color-background: #0D0F1A;
   --color-foreground: #f1f5f9;
-  --color-surface: #232878;
+  --color-surface: #161B2E;
   --font-sans: 'Inter', sans-serif;
 }
 
 html {
-  background-color: #1A1F6E;
+  background-color: #0D0F1A;
   color: #f1f5f9;
 }
 
