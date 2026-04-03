@@ -60,8 +60,11 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       ) : (
         <div className="space-y-2">
           {filtered.map((inv) => (
-            <Link key={inv.id} href={`/invoices/${inv.id}`} className="block bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100">
-              <div className="flex items-start justify-between">
+            <Link key={inv.id} href={`/invoices/${inv.id}`} className="relative flex items-stretch bg-volturaNavy/50 border border-white/5 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform duration-100">
+              {/* Left status strip */}
+              <div className="w-[3px] flex-shrink-0" style={{ backgroundColor: inv.status === 'Paid' ? '#4ade80' : inv.status === 'Partial' ? '#facc15' : '#f87171' }} />
+              {/* Content */}
+              <div className="flex-1 flex items-start justify-between p-4">
                 <div>
                   <p className="text-white font-semibold">{inv.customer.name}</p>
                   <p className="text-gray-500 text-xs mt-1">
