@@ -4,8 +4,8 @@ export const dynamic = 'force-dynamic'
 import { getOrCreateChecklist } from '@/lib/actions/checklists'
 import { getJobPhotos } from '@/lib/actions/job-photos'
 import { JobDetail } from '@/components/jobs/JobDetail'
-import { JobChecklist } from '@/components/jobs/JobChecklist'
 import { notFound } from 'next/navigation'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function JobPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,12 +21,11 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   ])
 
   return (
-    <div className="min-h-dvh bg-volturaBlue">
-      <header className="px-4 pt-4 pb-2 flex items-center gap-3">
-        <a href="/jobs" className="text-gray-400 text-sm">&larr; Jobs</a>
-        <h1 className="text-white font-semibold flex-1 truncate">{job.customer.name}</h1>
-      </header>
-      <JobDetail job={job} checklist={checklist} photos={photos} />
-    </div>
+    <>
+      <PageHeader title={job.customer.name} backHref="/jobs" />
+      <div className="min-h-dvh pt-14">
+        <JobDetail job={job} checklist={checklist} photos={photos} />
+      </div>
+    </>
   )
 }

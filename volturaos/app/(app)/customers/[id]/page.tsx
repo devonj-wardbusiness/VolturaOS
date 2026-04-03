@@ -3,6 +3,7 @@ import { getActiveAgreement } from '@/lib/actions/agreements'
 import { notFound } from 'next/navigation'
 import { EquipmentSection } from '@/components/customers/EquipmentSection'
 import { CustomerDetail } from '@/components/customers/CustomerDetail'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,10 +19,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   }
 
   return (
-    <div className="px-4 pt-6 pb-6">
-      <a href="/customers" className="text-gray-400 text-sm">&larr; Customers</a>
-      <CustomerDetail customer={customer} agreement={agreement} />
-      <EquipmentSection customerId={customer.id} equipment={customer.equipment} />
-    </div>
+    <>
+      <PageHeader title={customer.name} backHref="/customers" />
+      <div className="px-4 pt-14 pb-6">
+        <CustomerDetail customer={customer} agreement={agreement} />
+        <EquipmentSection customerId={customer.id} equipment={customer.equipment} />
+      </div>
+    </>
   )
 }

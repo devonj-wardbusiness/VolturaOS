@@ -1,6 +1,7 @@
 import { getInvoiceById } from '@/lib/actions/invoices'
 import { InvoiceDetail } from '@/components/invoices/InvoiceDetail'
 import { notFound } from 'next/navigation'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -11,13 +12,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     notFound()
   }
   return (
-    <div className="min-h-dvh bg-volturaBlue">
-      <header className="px-4 pt-4 pb-2 flex items-center gap-3">
-        <a href="/invoices" className="text-gray-400 text-sm">&larr; Invoices</a>
-        <h1 className="text-white font-semibold flex-1 truncate">{invoice.customer.name}</h1>
-      </header>
-
-      <InvoiceDetail invoice={invoice} />
-    </div>
+    <>
+      <PageHeader title={invoice.customer.name} backHref="/invoices" />
+      <div className="min-h-dvh pt-14">
+        <InvoiceDetail invoice={invoice} />
+      </div>
+    </>
   )
 }
