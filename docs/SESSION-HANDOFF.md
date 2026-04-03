@@ -1,10 +1,28 @@
 # Session Handoff — 2026-04-02
 
-## Done Today (2026-04-02)
+## Done Today (2026-04-02 / 2026-04-03)
 - **Fixed "+ New" estimate flow** — no longer redirects to customers page; now shows inline customer picker (`NewEstimateFlow.tsx`)
 - **Added Discounts section** to EstimateBuilder — Military/Senior 5%, Cash 6%, custom % or $ amount (`DiscountsSection.tsx`)
   - Discounts are stored as negative-price custom line items, so they subtract from the total automatically
 - **UI Redesign spec** reviewed and approved (from last session) — ready to execute
+- **Phase 4 COMPLETE** — all 8 tasks shipped + 10 code review issues fixed (see below)
+
+### Phase 4 — What was built
+1. `lib/sms.ts` — Twilio SMS helper (no-ops gracefully without credentials)
+2. `app/api/sms/webhook/route.ts` — STOP/UNSTOP opt-out webhook with HMAC-SHA1 Twilio signature validation
+3. Dispatch SMS when job → "In Progress" (`lib/actions/jobs.ts`)
+4. Estimate follow-up: days input per estimate, 🔔 badge on list, dismiss banner (`EstimateBuilder`, `estimates/page.tsx`)
+5. Daily follow-up cron: `app/api/cron/follow-ups/route.ts` — sends Telegram + SMS per overdue sent estimate
+6. `lib/actions/agreements.ts` — createAgreement, cancelAgreement, getActiveAgreement, listAgreements
+7. Maintenance agreement UI on customer detail — Add Plan button, active plan with benefits + cancel
+8. `/agreements` page with All/Active/Expiring/Expired/Cancelled filter tabs
+9. Dashboard quick link → 🛡 Agreements
+10. Daily renewal cron: sends 30-day reminder, auto-expires overdue agreements
+11. `vercel.json` — both crons scheduled `0 14 * * *` (2 PM UTC)
+
+### Phase 4 — Still needs before SMS works
+- Add Twilio credentials to `.env.local` and Vercel env vars (see below)
+- Run the DB migrations SQL in Supabase if not already done
 
 
 ## Where We Left Off
