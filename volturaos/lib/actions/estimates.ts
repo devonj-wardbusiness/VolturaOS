@@ -38,6 +38,7 @@ export async function saveEstimate(id: string, updates: {
   includesPermit?: boolean
   includesCleanup?: boolean
   includesWarranty?: boolean
+  followUpDays?: number
 }): Promise<Estimate> {
   await requireAuth()
   const admin = createAdminClient()
@@ -54,6 +55,7 @@ export async function saveEstimate(id: string, updates: {
       includes_permit: updates.includesPermit ?? false,
       includes_cleanup: updates.includesCleanup ?? true,
       includes_warranty: updates.includesWarranty ?? true,
+      follow_up_days: updates.followUpDays ?? 3,
     })
     .eq('id', id)
     .select()
@@ -294,6 +296,15 @@ export async function getTemplates(): Promise<Pick<Estimate, 'id' | 'name' | 'to
 export async function deleteTemplate(id: string): Promise<void> {
   const admin = createAdminClient()
   const { error } = await admin.from('estimates').delete().eq('id', id).eq('is_template', true)
+  if (error) throw new Error(error.message)
+}
+
+export async function dismissFollowUp(estimateId: string): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('estimates')
+    .update({ follow_up_dismissed: true })
+    .eq('id', estimateId)
   if (error) throw new Error(error.message)
 }
 

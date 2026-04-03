@@ -21,7 +21,7 @@ import { CustomLineItems } from './CustomLineItems'
 import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
-import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate } from '@/lib/actions/estimates'
+import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 import { DiscountsSection } from './DiscountsSection'
 
@@ -43,6 +43,9 @@ interface EstimateBuilderProps {
     includes_permit: boolean
     includes_cleanup: boolean
     includes_warranty: boolean
+    follow_up_days?: number
+    follow_up_sent_at?: string | null
+    follow_up_dismissed?: boolean
   }
 }
 
@@ -88,6 +91,8 @@ export function EstimateBuilder({
   const [includesPermit, setIncludesPermit] = useState(initialEstimate?.includes_permit ?? false)
   const [includesCleanup, setIncludesCleanup] = useState(initialEstimate?.includes_cleanup ?? true)
   const [includesWarranty, setIncludesWarranty] = useState(initialEstimate?.includes_warranty ?? true)
+
+  const [followUpDays, setFollowUpDays] = useState(initialEstimate?.follow_up_days ?? 3)
 
   // UI state
   const [sendOpen, setSendOpen] = useState(false)
@@ -184,6 +189,7 @@ export function EstimateBuilder({
         includesPermit,
         includesCleanup,
         includesWarranty,
+        followUpDays,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -254,15 +260,29 @@ export function EstimateBuilder({
 
         {/* Estimate name + duplicate button */}
         <div className="flex items-center justify-between">
-          <input
-            type="text"
-            value={estimateName}
-            onChange={(e) => setEstimateName(e.target.value)}
-            onBlur={() => { if (!estimateName.trim()) setEstimateName('Estimate') }}
-            maxLength={100}
-            placeholder="Name this estimate…"
-            className="bg-transparent text-white font-semibold text-lg flex-1 focus:outline-none placeholder:text-gray-600"
-          />
+          <div className="flex-1 min-w-0">
+            <input
+              type="text"
+              value={estimateName}
+              onChange={(e) => setEstimateName(e.target.value)}
+              onBlur={() => { if (!estimateName.trim()) setEstimateName('Estimate') }}
+              maxLength={100}
+              placeholder="Name this estimate…"
+              className="bg-transparent text-white font-semibold text-lg w-full focus:outline-none placeholder:text-gray-600"
+            />
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-gray-500 text-xs">Follow up in</span>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={followUpDays}
+                onChange={e => setFollowUpDays(Number(e.target.value))}
+                className="w-12 bg-volturaNavy text-white text-xs rounded px-2 py-1 text-center"
+              />
+              <span className="text-gray-500 text-xs">days</span>
+            </div>
+          </div>
           <button
             onClick={handleSaveAsTemplate}
             title="Save as template"
@@ -286,6 +306,23 @@ export function EstimateBuilder({
             {deleting ? '…' : 'Delete'}
           </button>
         </div>
+
+        {initialEstimate?.follow_up_sent_at && !initialEstimate?.follow_up_dismissed && (
+          <div className="flex items-center justify-between bg-volturaNavy/80 rounded-xl px-4 py-2">
+            <span className="text-yellow-400 text-xs">
+              🔔 Follow-up sent {new Date(initialEstimate.follow_up_sent_at!).toLocaleDateString()}
+            </span>
+            <button
+              onClick={async () => {
+                await dismissFollowUp(estimateId)
+                router.refresh()
+              }}
+              className="text-gray-500 text-xs ml-3"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <CustomerSelector
           selectedId={customerId}

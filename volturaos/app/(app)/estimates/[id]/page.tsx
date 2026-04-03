@@ -60,6 +60,9 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
           includes_permit: estimate.includes_permit,
           includes_cleanup: estimate.includes_cleanup,
           includes_warranty: estimate.includes_warranty,
+          follow_up_days: estimate.follow_up_days,
+          follow_up_sent_at: estimate.follow_up_sent_at,
+          follow_up_dismissed: estimate.follow_up_dismissed,
         }}
       />
     </div>

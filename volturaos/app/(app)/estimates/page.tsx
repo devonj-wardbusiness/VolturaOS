@@ -48,13 +48,14 @@ export default async function EstimatesPage() {
             const status = groupStatus(group)
             const maxTotal = Math.max(...group.map((e) => e.total ?? 0))
             const names = group.map((e) => e.name ?? 'Estimate').join(' · ')
+            const hasFollowUp = anchor.follow_up_sent_at && !anchor.follow_up_dismissed && anchor.status === 'Sent'
 
             return (
               <Link key={anchor.id} href={`/estimates/${anchor.id}`} className="block bg-volturaNavy/50 rounded-xl p-4">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1 pr-3">
                     <p className="text-white font-semibold">{anchor.customer?.name ?? 'Unknown'}</p>
-                    <p className="text-gray-400 text-xs mt-0.5 truncate">{names}</p>
+                    <p className="text-gray-400 text-xs mt-0.5 truncate">{names}{hasFollowUp && <span className="text-yellow-400 text-xs ml-1">🔔</span>}</p>
                     {isGrouped && (
                       <p className="text-volturaGold/70 text-xs mt-0.5">{group.length} estimates</p>
                     )}

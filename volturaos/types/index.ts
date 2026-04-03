@@ -98,6 +98,9 @@ export interface Estimate {
   includes_cleanup: boolean
   includes_warranty: boolean
   sent_at: string | null
+  follow_up_days: number
+  follow_up_sent_at: string | null
+  follow_up_dismissed: boolean
   viewed_at: string | null
   approved_at: string | null
   declined_at: string | null
