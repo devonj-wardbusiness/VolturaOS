@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import type { Customer } from '@/types'
+import type { Customer, MaintenanceAgreement } from '@/types'
 import { updateCustomer, deleteCustomer } from '@/lib/actions/customers'
+import { createAgreement, cancelAgreement } from '@/lib/actions/agreements'
 import { useRouter } from 'next/navigation'
 
-export function CustomerDetail({ customer }: { customer: Customer }) {
+export function CustomerDetail({ customer, agreement }: { customer: Customer; agreement: MaintenanceAgreement | null }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -58,6 +59,57 @@ export function CustomerDetail({ customer }: { customer: Customer }) {
         {customer.address && <p className="text-gray-400 text-sm">{customer.address}, {customer.city} {customer.zip}</p>}
         <span className="inline-block bg-volturaNavy text-gray-400 text-xs px-2.5 py-1 rounded-full capitalize">{customer.property_type}</span>
         {customer.notes && <p className="text-gray-500 text-sm bg-volturaNavy/50 rounded-xl p-3 mt-2">{customer.notes}</p>}
+
+        {/* Maintenance Agreement */}
+        <div className="bg-volturaNavy/50 rounded-xl p-4 mt-4">
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Maintenance Plan</p>
+          {agreement ? (
+            <div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-400 text-sm font-semibold">🛡 Active — $199/yr</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Renews {new Date(agreement.renewal_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!window.confirm('Cancel maintenance plan?')) return
+                    startTransition(async () => {
+                      await cancelAgreement(agreement.id, customer.id)
+                      router.refresh()
+                    })
+                  }}
+                  disabled={isPending}
+                  className="text-red-400 text-xs disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+              <ul className="mt-3 space-y-1">
+                {['Annual panel inspection', 'Safety walkthrough / GFCI + AFCI test', 'Priority scheduling', '10% labor discount', 'Free Level 1 diagnostic'].map(item => (
+                  <li key={item} className="text-gray-400 text-xs flex items-start gap-1">
+                    <span className="text-green-400 mt-0.5">✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <button
+              onClick={async () => {
+                if (!window.confirm('Add annual maintenance plan for $199?')) return
+                startTransition(async () => {
+                  await createAgreement(customer.id)
+                  router.refresh()
+                })
+              }}
+              disabled={isPending}
+              className="w-full bg-volturaGold/10 border border-volturaGold/30 text-volturaGold rounded-xl py-3 text-sm font-semibold disabled:opacity-50"
+            >
+              {isPending ? 'Adding...' : '🛡 Add Maintenance Plan — $199/yr'}
+            </button>
+          )}
+        </div>
       </div>
     )
   }
