@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { sendTelegram } from '@/lib/telegram'
+import { sendSMS } from '@/lib/sms'
 import { syncToSheets } from '@/lib/sheets'
 import type { Job, JobStatus } from '@/types'
 
@@ -94,7 +95,7 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
   if (error) throw new Error(error.message)
 
   // Fetch job details for notifications
-  const { data } = await admin.from('jobs').select('job_type, customers(name)').eq('id', id).single()
+  const { data } = await admin.from('jobs').select('job_type, customers(name, phone, sms_opt_out)').eq('id', id).single()
   if (data) {
     const customers = data.customers as unknown as Record<string, unknown> | null
     const customerName = (customers?.name as string) ?? 'Unknown'
@@ -105,6 +106,19 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
     }
     if (status === 'In Progress') {
       void sendTelegram(`🔧 Job started: ${customerName} — ${jobType}`)
+      try {
+        const phone = (customers?.phone as string | null) ?? null
+        const optOut = (customers?.sms_opt_out as boolean) ?? false
+        if (phone) {
+          await sendSMS(
+            phone,
+            `Hi ${customerName}, your Voltura Power Group technician is on the way!`,
+            optOut
+          )
+        }
+      } catch (err) {
+        console.error('[Dispatch SMS] failed:', err)
+      }
     }
 
     void syncToSheets('Jobs', {

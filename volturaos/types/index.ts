@@ -17,6 +17,7 @@ export interface Customer {
   email: string | null
   property_type: PropertyType
   notes: string | null
+  sms_opt_out: boolean
   created_at: string
 }
 
