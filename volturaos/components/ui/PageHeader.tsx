@@ -24,7 +24,7 @@ export function PageHeader({ title, subtitle, backHref, action }: PageHeaderProp
 
       {/* Title + subtitle (centered) */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        <span className="text-white text-sm font-semibold tracking-wide leading-tight">{title}</span>
+        <span className="text-white text-sm font-semibold font-display tracking-wide leading-tight">{title}</span>
         {subtitle && (
           <span className="text-gray-400 text-[10px] leading-tight">{subtitle}</span>
         )}

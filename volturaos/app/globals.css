@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap');
 @import "tailwindcss";
 
 @theme inline {
@@ -8,6 +9,7 @@
   --color-foreground: #f1f5f9;
   --color-surface: #161B2E;
   --font-sans: 'Inter', sans-serif;
+  --font-display: 'Barlow Condensed', sans-serif;
 }
 
 html {
@@ -19,6 +21,11 @@ body {
   min-height: 100dvh;
   font-family: 'Inter', sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Display font utility */
+.font-display {
+  font-family: var(--font-display);
 }
 
 /* Large touch targets for mobile price inputs */
