@@ -83,10 +83,12 @@ export async function listAgreements(
     .order('renewal_date', { ascending: true })
 
   if (filter === 'Expiring') {
+    const today = new Date().toISOString().split('T')[0]
     const in30 = new Date()
     in30.setDate(in30.getDate() + 30)
     query = query
       .eq('status', 'Active')
+      .gte('renewal_date', today)
       .lte('renewal_date', in30.toISOString().split('T')[0])
   } else if (filter) {
     query = query.eq('status', filter)

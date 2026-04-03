@@ -51,11 +51,15 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    await admin.from('estimates')
+    const { error: updateErr } = await admin.from('estimates')
       .update({ follow_up_sent_at: new Date().toISOString() })
       .eq('id', est.id)
 
-    count++
+    if (updateErr) {
+      console.error('[follow-up cron] failed to mark estimate:', est.id, updateErr.message)
+    } else {
+      count++
+    }
   }
 
   return NextResponse.json({ sent: count })

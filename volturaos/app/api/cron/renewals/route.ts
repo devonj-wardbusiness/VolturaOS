@@ -45,11 +45,15 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    await admin.from('maintenance_agreements')
+    const { error: updateErr } = await admin.from('maintenance_agreements')
       .update({ renewal_reminder_sent: true })
       .eq('id', a.id)
 
-    reminders++
+    if (updateErr) {
+      console.error('[renewals cron] failed to mark agreement:', a.id, updateErr.message)
+    } else {
+      reminders++
+    }
   }
 
   // Step 2: Expire overdue agreements
