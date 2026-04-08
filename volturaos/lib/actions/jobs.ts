@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { sendTelegram } from '@/lib/telegram'
-import { sendSMS } from '@/lib/sms'
+import { sendJobScheduledSMS, sendOnMyWaySMS, sendJobCompleteSMS } from '@/lib/sms'
 import { syncToSheets } from '@/lib/sheets'
 import type { Job, JobStatus } from '@/types'
 
@@ -32,6 +32,24 @@ export async function createJob(input: {
     status: input.scheduledDate ? 'Scheduled' : 'Lead',
   }).select().single()
   if (error) throw new Error(error.message)
+
+  // Send scheduled SMS if job has a date
+  if (input.scheduledDate) {
+    const { data: customer } = await admin
+      .from('customers')
+      .select('phone, sms_opt_out')
+      .eq('id', input.customerId)
+      .single()
+    if (customer) {
+      void sendJobScheduledSMS(
+        customer.phone as string | null,
+        (customer.sms_opt_out as boolean) ?? true,
+        input.scheduledDate,
+        input.scheduledTime ?? null
+      )
+    }
+  }
+
   return data as Job
 }
 
@@ -101,24 +119,17 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
     const customerName = (customers?.name as string) ?? 'Unknown'
     const jobType = data.job_type as string
 
-    if (status === 'Completed') {
-      void sendTelegram(`✅ Job completed: ${customerName} — ${jobType}`)
-    }
     if (status === 'In Progress') {
       void sendTelegram(`🔧 Job started: ${customerName} — ${jobType}`)
-      try {
-        const phone = (customers?.phone as string | null) ?? null
-        const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
-        if (phone) {
-          await sendSMS(
-            phone,
-            `Hi ${customerName}, your Voltura Power Group technician is on the way!`,
-            optOut
-          )
-        }
-      } catch (err) {
-        console.error('[Dispatch SMS] failed:', err)
-      }
+      const phone = (customers?.phone as string | null) ?? null
+      const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
+      void sendOnMyWaySMS(phone, optOut)
+    }
+    if (status === 'Completed') {
+      void sendTelegram(`✅ Job completed: ${customerName} — ${jobType}`)
+      const phone = (customers?.phone as string | null) ?? null
+      const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
+      void sendJobCompleteSMS(phone, optOut)
     }
 
     void syncToSheets('Jobs', {
