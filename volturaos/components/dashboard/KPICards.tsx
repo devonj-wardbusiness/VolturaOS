@@ -81,7 +81,7 @@ export function KPICards(props: KPICardsProps) {
             <Icon size={14} className={`${color} opacity-70 flex-shrink-0 mt-0.5`} />
           </div>
           <p className={`font-display ${color} text-2xl font-bold leading-none tracking-wide`}>{value}</p>
-          {sparkline && sparkline}
+          {sparkline}
         </div>
       ))}
     </div>
