@@ -1,4 +1,6 @@
-export const STATUS_ACCENT: Record<string, string> = {
+import type { JobStatus } from '@/types'
+
+export const STATUS_ACCENT: Record<JobStatus, string> = {
   'Lead':        '#6b7280',
   'Scheduled':   '#38bdf8',
   'In Progress': '#f59e0b',
