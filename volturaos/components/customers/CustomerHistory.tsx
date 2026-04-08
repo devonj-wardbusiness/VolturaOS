@@ -60,7 +60,7 @@ export function CustomerHistory({ items }: CustomerHistoryProps) {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <StatusPill status={item.status} />
-                {item.amount !== undefined && item.amount > 0 && (
+                {item.amount !== undefined && (
                   <span className="text-volturaGold text-sm font-semibold">
                     ${item.amount.toLocaleString()}
                   </span>
