@@ -43,7 +43,7 @@ export async function createJob(input: {
     if (customer) {
       void sendJobScheduledSMS(
         customer.phone as string | null,
-        (customer.sms_opt_out as boolean) ?? true,
+        customer.sms_opt_out == null ? true : (customer.sms_opt_out as boolean),
         input.scheduledDate,
         input.scheduledTime ?? null
       )
