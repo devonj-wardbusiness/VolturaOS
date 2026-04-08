@@ -12,7 +12,13 @@ export default async function JobsPage() {
     <>
       <PageHeader
         title="Jobs"
-        action={<Link href="/jobs/new" className="text-volturaGold text-sm pr-4">+ New</Link>}
+        action={
+          <div className="flex items-center gap-2">
+            <Link href="/jobs" className="text-volturaGold text-xs font-semibold">List</Link>
+            <Link href="/jobs/calendar" className="text-gray-400 text-xs">Cal</Link>
+            <Link href="/jobs/new" className="text-volturaGold text-sm font-bold">+ New</Link>
+          </div>
+        }
       />
       <div className="px-4 pt-14 pb-6">
         <Suspense>
