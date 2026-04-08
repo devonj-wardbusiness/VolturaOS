@@ -9,25 +9,25 @@ type SearchResults = Awaited<ReturnType<typeof searchAll>>
 export default function SearchPage() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResults>(null)
-  const [searched, setSearched] = useState(false)
 
   useEffect(() => {
     if (query.trim().length < 2) {
       setResults(null)
-      setSearched(false)
       return
     }
     const timer = setTimeout(async () => {
-      const data = await searchAll(query)
-      setResults(data)
-      setSearched(true)
+      try {
+        const data = await searchAll(query)
+        setResults(data)
+      } catch {
+        setResults(null)
+      }
     }, 300)
     return () => clearTimeout(timer)
   }, [query])
 
   const noResults =
-    searched &&
-    results &&
+    results !== null &&
     results.customers.length === 0 &&
     results.jobs.length === 0 &&
     results.estimates.length === 0 &&

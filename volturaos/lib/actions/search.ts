@@ -13,6 +13,11 @@ export async function searchAll(query: string) {
     admin.from('invoices').select('id, total, status, created_at, customers!inner(name)').ilike('customers.name', `%${q}%`).limit(5),
   ])
 
+  if (customers.error) throw new Error(customers.error.message)
+  if (jobs.error) throw new Error(jobs.error.message)
+  if (estimates.error) throw new Error(estimates.error.message)
+  if (invoices.error) throw new Error(invoices.error.message)
+
   return {
     customers: customers.data ?? [],
     jobs: jobs.data ?? [],
