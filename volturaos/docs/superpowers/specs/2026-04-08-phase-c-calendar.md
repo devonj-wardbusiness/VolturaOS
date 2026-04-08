@@ -21,14 +21,22 @@ Give the user a monthly calendar showing which days have scheduled jobs, color-c
 
 - Server component, `export const dynamic = 'force-dynamic'`
 - Reads `?month=YYYY-MM` from URL params (defaults to current month if absent)
+- Parses `year` and `month` (1-indexed) from the param before passing to the action and component
 
 ### Data
-New server action `getJobsForMonth(year: number, month: number)` in `lib/actions/jobs.ts`:
+New server action `getJobsForMonth(year: number, month: number)` in `lib/actions/jobs.ts`.
 
+**Boundary calculation — December-safe:**
 ```ts
 // month is 1-indexed (1 = January)
 const start = `${year}-${String(month).padStart(2, '0')}-01`
-const end = `${year}-${String(month + 1).padStart(2, '0')}-01` // exclusive upper bound
+// Use Date arithmetic to get next month — handles December → January correctly
+const nextMonthDate = new Date(year, month, 1) // JS Date: month param is 0-indexed, so `month` (1-based) = next month
+const end = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`
+```
+
+**Query:**
+```ts
 admin.from('jobs')
   .select('id, job_type, status, scheduled_date, scheduled_time, customers(name)')
   .gte('scheduled_date', start)
@@ -37,55 +45,83 @@ admin.from('jobs')
   .order('scheduled_date', { ascending: true })
 ```
 
-Returns `(Job & { customer: { name: string } })[]`.
+**Return type:** Remap the `customers` join key to `customer` (same pattern as `listJobs`):
+```ts
+return (data as Record<string, unknown>[]).map(({ customers, ...j }) => ({
+  ...j, customer: customers,
+})) as (Job & { customer: { name: string } })[]
+```
 
 ### Calendar Grid Component
 New `JobCalendar` client component at `components/jobs/JobCalendar.tsx`.
 
+**Props:** `{ jobs: (Job & { customer: { name: string } })[], year: number, month: number }`
+
+**Month navigation links** — December-safe, computed from props:
+```ts
+const prevDate = new Date(year, month - 2, 1) // month-2 because JS Date is 0-indexed and month is 1-indexed
+const nextDate = new Date(year, month, 1)
+const prevParam = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+const nextParam = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`
+```
+
 **Layout:**
-- Header: `← [Month Year] →` navigation row
-  - `←` links to `?month=YYYY-MM` for previous month
-  - `→` links to next month
+- Header: `← [Month Year] →` navigation row — `←` and `→` are `Link` components to `?month=prevParam` / `?month=nextParam`
 - Day-of-week header row: `Sun Mon Tue Wed Thu Fri Sat` (7 columns)
-- Day grid: CSS `grid-cols-7`, each cell is a fixed height (`min-h-[80px]`)
+- Day grid: CSS `grid-cols-7`, each cell `min-h-[80px]`
+
+**Today highlight:** Compare using ISO date string, not `Date` object, to avoid timezone shift:
+```ts
+const todayISO = new Date().toLocaleDateString('en-CA') // yields 'YYYY-MM-DD' in local time
+// In day cell: isTodayCell = `${year}-${mm}-${dd}` === todayISO
+```
 
 **Each day cell:**
-- Day number in top-left corner
-- Today's date: gold ring (`ring-1 ring-volturaGold`) around the number
-- Up to 2 job chips rendered vertically:
-  - Chip: customer name (truncated), colored left border using `STATUS_ACCENT` from `JobCard`
-  - Entire chip is a `Link` to `/jobs/[id]`
-- If 3+ jobs on a day: show 2 chips + `+N more` text (tapping `+N more` does nothing for now — just informational)
-- Days from previous/next month that fill the grid: shown as empty cells with dimmed day number
+- Day number in top-left corner; if today: `ring-1 ring-volturaGold rounded-full` around the number
+- Up to 2 job chips rendered vertically — each chip: customer name (truncated with `truncate`), colored left border using `STATUS_ACCENT`; entire chip is a `Link` to `/jobs/[id]`
+- If 3+ jobs: show 2 chips + `<span className="text-gray-500 text-xs">+N more</span>` (a `<span>`, not a button or link — non-interactive)
+- Filler cells (days from prev/next month): empty cells with dimmed day number (`text-white/20`)
 
 **No separate day-detail view** — chips navigate directly to job detail.
 
+### Status Colors
+Move `STATUS_ACCENT` from `components/jobs/JobCard.tsx` to `lib/constants/jobStatus.ts` and export it. Import in both `JobCard.tsx` and `JobCalendar.tsx`. Add missing `'Paid'` entry:
+
+```ts
+export const STATUS_ACCENT: Record<string, string> = {
+  'Lead':        '#6b7280',
+  'Scheduled':   '#38bdf8',
+  'In Progress': '#f59e0b',
+  'Completed':   '#4ade80',
+  'Invoiced':    '#a78bfa',
+  'Paid':        '#4ade80',  // same green as Completed
+  'Cancelled':   '#f87171',
+}
+```
+
 ### Jobs Page Integration
-`app/(app)/jobs/page.tsx` header updated to show a toggle:
+`app/(app)/jobs/page.tsx` — add a List/Calendar toggle **inside the `PageHeader` action prop** as a single React fragment:
 
-```
-Jobs                [☰ List]  [📅 Calendar]  + New
+```tsx
+action={
+  <div className="flex items-center gap-2">
+    <Link href="/jobs" className="text-volturaGold text-xs font-semibold">List</Link>
+    <Link href="/jobs/calendar" className="text-gray-400 text-xs">Cal</Link>
+    <Link href="/jobs/new" className="text-volturaGold text-sm font-bold">+ New</Link>
+  </div>
+}
 ```
 
-- `☰ List` links to `/jobs` (current page)
-- `📅 Calendar` links to `/jobs/calendar`
-- Active view is indicated by gold text vs gray
+The calendar page's `PageHeader` swaps the active/inactive colors. The title remains `"Jobs"` on both pages — no layout change needed since the toggle fits within the existing `action` slot. This avoids any collision with the centered title on mobile.
 
 ### Page Structure
 ```
 app/(app)/jobs/calendar/page.tsx
-  → fetches getJobsForMonth(year, month)
-  → renders PageHeader with List/Calendar toggle + "Calendar" title
-  → renders <JobCalendar jobs={jobs} year={year} month={month} />
+  → parse ?month param → year, month integers
+  → fetch getJobsForMonth(year, month)
+  → render PageHeader title="Jobs" with List/Cal/+New action
+  → render <JobCalendar jobs={jobs} year={year} month={month} />
 ```
-
-### Status Colors
-Reuse `STATUS_ACCENT` record from `JobCard.tsx`. Import it or move it to a shared location (`lib/constants/jobStatus.ts`) so both `JobCard` and `JobCalendar` use the same map. If moving it would touch more than 2 files, inline it instead.
-
-### Month Overflow Handling
-- Month index wraps correctly: December + 1 → January of next year
-- January - 1 → December of previous year
-- Handled with simple date arithmetic (no library needed)
 
 ---
 
