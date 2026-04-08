@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
-import type { Customer, CustomerEquipment } from '@/types'
+import type { Customer, CustomerEquipment, HistoryItem } from '@/types'
 
 async function requireAuth() { // auth disabled
   // const supabase = await createClient()
@@ -122,16 +122,6 @@ export async function deleteEquipment(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-interface HistoryItem {
-  type: 'job' | 'invoice' | 'estimate'
-  id: string
-  title: string
-  status: string
-  amount?: number
-  date: string
-  href: string
-}
-
 export async function getCustomerHistory(customerId: string): Promise<HistoryItem[]> {
   await requireAuth()
   const admin = createAdminClient()
@@ -141,6 +131,10 @@ export async function getCustomerHistory(customerId: string): Promise<HistoryIte
     admin.from('invoices').select('id, total, status, created_at').eq('customer_id', customerId).order('created_at', { ascending: false }),
     admin.from('estimates').select('id, name, total, status, created_at').eq('customer_id', customerId).order('created_at', { ascending: false }),
   ])
+
+  if (jobs.error) throw new Error(jobs.error.message)
+  if (invoices.error) throw new Error(invoices.error.message)
+  if (estimates.error) throw new Error(estimates.error.message)
 
   const items: HistoryItem[] = [
     ...(jobs.data ?? []).map((j: Record<string, unknown>) => ({
@@ -154,7 +148,7 @@ export async function getCustomerHistory(customerId: string): Promise<HistoryIte
     ...(invoices.data ?? []).map((inv: Record<string, unknown>) => ({
       type: 'invoice' as const,
       id: inv.id as string,
-      title: `Invoice $${((inv.total as number) ?? 0).toLocaleString()}`,
+      title: 'Invoice',
       status: inv.status as string,
       amount: (inv.total as number) ?? 0,
       date: inv.created_at as string,

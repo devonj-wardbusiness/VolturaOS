@@ -1,16 +1,7 @@
 import Link from 'next/link'
 import { Wrench, DollarSign, FileText } from 'lucide-react'
 import { StatusPill } from '@/components/ui/StatusPill'
-
-interface HistoryItem {
-  type: 'job' | 'invoice' | 'estimate'
-  id: string
-  title: string
-  status: string
-  amount?: number
-  date: string
-  href: string
-}
+import type { HistoryItem } from '@/types'
 
 interface CustomerHistoryProps {
   items: HistoryItem[]

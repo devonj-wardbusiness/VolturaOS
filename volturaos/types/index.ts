@@ -180,6 +180,16 @@ export interface AIPageContext {
   daysSinceContact?: number
 }
 
+export interface HistoryItem {
+  type: 'job' | 'invoice' | 'estimate'
+  id: string
+  title: string
+  status: string
+  amount?: number
+  date: string
+  href: string
+}
+
 export const DEFAULT_ADDONS: Omit<Addon, 'selected'>[] = [
   { name: 'Whole-home surge protector', price: 500, original_price: 500 },
   { name: 'AFCI breaker upgrade', price: 350, original_price: 350 },
