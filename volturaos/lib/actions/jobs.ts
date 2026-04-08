@@ -103,6 +103,32 @@ export async function updateJob(id: string, updates: {
   if (error) throw new Error(error.message)
 }
 
+export async function getJobsForMonth(year: number, month: number): Promise<(Job & { customer: { name: string } })[]> {
+  await requireAuth()
+  const admin = createAdminClient()
+
+  // month is 1-indexed (1 = January)
+  const start = `${year}-${String(month).padStart(2, '0')}-01`
+  // Use Date arithmetic — handles December → January correctly
+  // JS Date month param is 0-indexed, so passing `month` (1-based) = next month
+  const nextMonthDate = new Date(year, month, 1)
+  const end = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`
+
+  const { data, error } = await admin
+    .from('jobs')
+    .select('id, job_type, status, scheduled_date, scheduled_time, customers(name)')
+    .gte('scheduled_date', start)
+    .lt('scheduled_date', end)
+    .not('scheduled_date', 'is', null)
+    .order('scheduled_date', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  return (data as Record<string, unknown>[]).map(({ customers, ...j }) => ({
+    ...j, customer: customers,
+  })) as (Job & { customer: { name: string } })[]
+}
+
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()
