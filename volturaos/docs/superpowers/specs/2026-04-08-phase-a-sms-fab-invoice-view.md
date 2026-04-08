@@ -21,28 +21,37 @@ Three independent features that ship together as Phase A of the VolturaOS featur
 | Job status → In Progress | `updateJobStatus()` in `lib/actions/jobs.ts` | "We're on our way! Your Voltura Power Group technician is headed your way." |
 | Job status → Completed | `updateJobStatus()` in `lib/actions/jobs.ts` | "Job complete! Thank you for choosing Voltura Power Group. Mind leaving us a quick review? [GOOGLE_REVIEW_LINK]" |
 
-### Implementation
+### Helper functions in `lib/sms.ts`
 
-**`lib/sms.ts` additions** — three named helper functions:
+Three named helpers are added. Each accepts `phone: string | null | undefined` and `optOut: boolean`. Each silently returns (no throw) if `phone` is falsy or `optOut` is true. Each calls the existing `sendSMS(to, body, optOut)`.
 
 ```ts
-sendJobScheduledSMS(phone, date, time)
-sendOnMyWaySMS(phone)
-sendJobCompleteSMS(phone)
+sendJobScheduledSMS(phone, optOut, date, time)
+sendOnMyWaySMS(phone, optOut)
+sendJobCompleteSMS(phone, optOut)
 ```
 
-Each calls the existing `sendSMS(to, body)`. Each silently returns if `phone` is falsy — no throw, no crash.
+`GOOGLE_REVIEW_LINK` is a server-only env var (no `NEXT_PUBLIC_` prefix — the message is composed server-side). Use placeholder value `https://g.page/r/YOUR_REVIEW_LINK` until the real URL is available.
 
-**`GOOGLE_REVIEW_LINK`** stored as env var (`NEXT_PUBLIC_GOOGLE_REVIEW_LINK` or server-only `GOOGLE_REVIEW_LINK`). Use a placeholder string for now: `https://g.page/r/YOUR_REVIEW_LINK`. Document in `.env.local.example`.
+### Touch points in `lib/actions/jobs.ts`
 
-**`lib/actions/jobs.ts`** — two touch points:
-- After successful insert in `createJob()`: if `scheduled_date` present, call `sendJobScheduledSMS`
-- In `updateJobStatus()` (or equivalent status update action): check `newStatus`, call appropriate SMS helper
+**`createJob()`**
+After successful insert, if `data.scheduled_date` is present:
+- Fetch `customers(phone, sms_opt_out)` by `customerId` (extra query)
+- Call `sendJobScheduledSMS(phone, sms_opt_out, scheduled_date, scheduled_time)`
+
+**`updateJobStatus()` (or the equivalent status update path)**
+The existing In Progress SMS pattern already fetches `customers(name, phone, sms_opt_out)`. Mirror that exact pattern for the Completed branch:
+- `newStatus === 'In Progress'` → `sendOnMyWaySMS(phone, sms_opt_out)`
+- `newStatus === 'Completed'` → `sendJobCompleteSMS(phone, sms_opt_out)`
+
+The Completed branch currently only fires a Telegram message and sheet sync — add the SMS call there.
 
 ### Guards
-- No phone → skip silently
+- No phone → skip silently (handled inside each helper)
+- `sms_opt_out === true` → skip silently (handled inside each helper)
 - Twilio env vars missing → `sendSMS` already no-ops gracefully
-- Do not send duplicate SMS if job is re-saved without status change
+- Do not add duplicate guards — rely on existing `sendSMS` behavior
 
 ---
 
@@ -52,55 +61,63 @@ Each calls the existing `sendSMS(to, body)`. Each silently returns if `phone` is
 - Fixed position: bottom-right corner, `bottom-6 right-4`, `z-50`
 - Default state: gold `+` circle button (48×48px touch target)
 - Expanded state: `+` rotates to `×`, three link buttons appear stacked above:
-  - `+ Customer` → `/customers/new`
-  - `+ Estimate` → `/estimates/new`
   - `+ Job` → `/jobs/new`
+  - `+ Estimate` → `/estimates/new`
+  - `+ Customer` → `/customers/new`
 - Closes on: outside click, navigation, pressing `×`
-- Smooth expand/collapse animation (Tailwind transition classes)
+- Smooth expand/collapse via Tailwind transition classes
+
+### Outside-click handling
+Use a `useRef` on the FAB container `<div>`. In a `useEffect`, attach a `mousedown` listener to `document`. If `event.target` is not contained within the ref element, close the FAB. Return a cleanup function that calls `removeEventListener` to prevent memory leaks.
 
 ### Files
-- **New:** `components/ui/FAB.tsx` — `'use client'`, self-contained state
+- **New:** `components/ui/FAB.tsx` — `'use client'`, self-contained open/close state, `useRef` + `useEffect` for outside-click
 - **Edit:** `app/(app)/layout.tsx` — add `<FAB />` inside the layout wrapper
 
 ### Visual
-- Button: `bg-volturaGold text-volturaBlue rounded-full w-12 h-12`
-- Expanded links: same gold style, smaller, stacked with `gap-2`, slide up from button
-- Backdrop: transparent (no overlay — tap outside via `useEffect` click listener)
+- Button: `bg-volturaGold text-volturaBlue rounded-full w-12 h-12 flex items-center justify-center`
+- Expanded links: gold border, white text, smaller pill buttons stacked above with `gap-2`, animate via `transition-all`
+- No backdrop overlay
 
 ---
 
 ## Feature 3: Public Invoice View
 
-### Route
-`app/invoices/[id]/view/page.tsx` — public, no auth check, `export const dynamic = 'force-dynamic'`
+### Route placement
+**`app/invoices/[id]/view/page.tsx`** — this route must live at the **root app level**, NOT inside `app/(app)/`. This mirrors the estimate public view at `app/estimates/[id]/view/`. Placing it outside `(app)` ensures it does not inherit the app layout (no BottomNav, no FAB, no internal chrome).
+
+The existing internal invoice route `app/(app)/invoices/[id]/page.tsx` is unaffected.
 
 ### Data
 New server action `getPublicInvoice(id)` in `lib/actions/invoices.ts`:
-- Fetches invoice by id with customer join
-- Returns `{ invoice, customer }` or null (→ notFound())
-- No auth required (uses admin client, same as estimates public view)
+- Uses `createAdminClient()` directly — **must NOT call `requireAuth()`** (unlike `getInvoiceById`). This ensures it continues to work if auth is ever re-enabled.
+- Fetches invoice by id with customer join (`customers(name, phone, address)`)
+- Returns `{ invoice, customer }` or null (→ `notFound()`)
 
-### Page layout (mirrors estimate view)
+### Page layout
 ```
-Voltura header (gold logo, "Power Group — Colorado Springs")
+Voltura header (gold logo, "Power Group — Colorado Springs, CO", License #)
 Customer name card
-Line items list (if present)
-Total card (gold amount)
-"Pay Online" button — disabled, labeled "Coming Soon" (gray, rounded)
-Payment methods accepted card
+Line items list (if invoice has line_items — check existing invoice schema)
+Total card (gold amount, balance due if partial)
+"Pay Online" button — disabled, gray, labeled "Coming Soon"
+Payment methods accepted card (Check · Zelle · Cash · Credit Card)
 Footer
 ```
 
+Styled identically to `app/estimates/[id]/view/page.tsx` — reuse class names verbatim.
+
 ### Share button
-`components/invoices/InvoiceDetail.tsx` gets a **"Share Invoice"** icon button in the header area. On click: copies `window.location.origin + /invoices/[id]/view` to clipboard. Shows brief "Copied!" confirmation.
+`components/invoices/InvoiceDetail.tsx` gets a **"Share"** button. On click: copies `window.location.origin + '/invoices/' + invoiceId + '/view'` to clipboard via `navigator.clipboard.writeText`. Shows brief "Copied!" label swap for 2 seconds. This is a `'use client'` interaction — if `InvoiceDetail` is currently a server component, extract just the share button as a small client component.
 
 ---
 
 ## Out of Scope (Phase A)
 - Stripe / actual online payments
-- SMS opt-out management
+- SMS opt-out management UI
 - Invoice PDF export
 - Two-way SMS replies
+- Estimate public view changes
 
 ---
 
@@ -108,8 +125,8 @@ Footer
 | Variable | Value | Where |
 |----------|-------|-------|
 | `TWILIO_ACCOUNT_SID` | From Twilio Console | Vercel + .env.local |
-| `TWILIO_AUTH_TOKEN` | From Twilio Console | Vercel + .env.local |
-| `TWILIO_FROM_NUMBER` | E.164 format | Vercel + .env.local |
-| `GOOGLE_REVIEW_LINK` | Placeholder for now | Vercel + .env.local |
+| `TWILIO_AUTH_TOKEN` | From Twilio Console (click show) | Vercel + .env.local |
+| `TWILIO_FROM_NUMBER` | E.164 format e.g. +1xxxxxxxxxx | Vercel + .env.local |
+| `GOOGLE_REVIEW_LINK` | Placeholder now, real URL later | Vercel + .env.local |
 
-Twilio vars already uploaded to Vercel per user confirmation.
+Twilio vars already uploaded to Vercel per user confirmation. Add `GOOGLE_REVIEW_LINK` to `.env.example` (not `.env.local.example` — the project uses `.env.example`).
