@@ -21,7 +21,15 @@ interface InvoiceDetailProps {
 
 export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
   const [paymentOpen, setPaymentOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const lineItems = (invoice.line_items ?? [])
+
+  async function handleShare() {
+    const url = `${window.location.origin}/invoices/${invoice.id}/view`
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="px-4 pb-8 space-y-4">
@@ -73,6 +81,14 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         notes={invoice.notes}
         createdAt={invoice.created_at}
       />
+
+      {/* Share Invoice */}
+      <button
+        onClick={handleShare}
+        className="w-full bg-volturaNavy border border-volturaGold/30 text-volturaGold font-semibold py-3 rounded-xl text-sm"
+      >
+        {copied ? '✓ Link Copied!' : '🔗 Share Invoice'}
+      </button>
 
       {/* Record Payment button */}
       {invoice.status !== 'Paid' && (

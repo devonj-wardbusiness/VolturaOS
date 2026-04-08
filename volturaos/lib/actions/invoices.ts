@@ -105,6 +105,25 @@ export async function listInvoices(filters?: {
   })) as (Invoice & { customer: { name: string } })[]
 }
 
+export async function getPublicInvoice(id: string): Promise<{
+  invoice: Invoice & { line_items: LineItem[] | null }
+  customer: { name: string; address: string | null }
+} | null> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('invoices')
+    .select('*, customers(name, address)')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  const { customers, ...invoice } = data as Record<string, unknown>
+  if (!customers) return null
+  return {
+    invoice: invoice as unknown as Invoice & { line_items: LineItem[] | null },
+    customer: customers as { name: string; address: string | null },
+  }
+}
+
 export async function recordPayment(input: {
   invoiceId: string
   amount: number
