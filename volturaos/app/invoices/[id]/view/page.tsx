@@ -44,7 +44,7 @@ export default async function PublicInvoiceView({ params }: { params: Promise<{ 
           <span className="text-gray-400">Total</span>
           <span className="text-volturaGold text-3xl font-bold">${invoice.total.toLocaleString()}</span>
         </div>
-        {invoice.balance > 0 && invoice.status !== 'Unpaid' && (
+        {invoice.balance > 0 && invoice.status !== 'Paid' && (
           <div className="flex justify-between items-center border-t border-white/10 pt-2">
             <span className="text-gray-400 text-sm">Balance Due</span>
             <span className="text-red-400 font-semibold">${invoice.balance.toLocaleString()}</span>

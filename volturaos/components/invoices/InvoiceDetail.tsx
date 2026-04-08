@@ -26,9 +26,15 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
 
   async function handleShare() {
     const url = `${window.location.origin}/invoices/${invoice.id}/view`
-    await navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: 'Invoice', url })
+      }
+    }
   }
 
   return (

@@ -112,7 +112,7 @@ export async function getPublicInvoice(id: string): Promise<{
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('invoices')
-    .select('*, customers(name, address)')
+    .select('id, total, amount_paid, balance, status, line_items, customers(name, address)')
     .eq('id', id)
     .single()
   if (error || !data) return null
