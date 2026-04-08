@@ -26,6 +26,7 @@ export default async function DashboardPage() {
           pendingEstimates={data.pendingEstimates}
           approvedValue={data.approvedValue}
           closeRate={data.closeRate}
+          sparklineData={data.sparklineData}
         />
 
         {/* Recent Activity */}

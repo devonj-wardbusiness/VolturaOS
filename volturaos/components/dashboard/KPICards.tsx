@@ -1,5 +1,6 @@
 import { TrendingUp, AlertCircle, Briefcase, FileText, CheckCircle, Target } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { SparklineChart } from './SparklineChart'
 
 interface KPICardsProps {
   monthRevenue: number
@@ -8,6 +9,7 @@ interface KPICardsProps {
   pendingEstimates: number
   approvedValue: number
   closeRate: number
+  sparklineData: { date: string; amount: number }[]
 }
 
 interface CardDef {
@@ -16,6 +18,7 @@ interface CardDef {
   color: string
   accent: string
   Icon: LucideIcon
+  sparkline?: React.ReactNode
 }
 
 export function KPICards(props: KPICardsProps) {
@@ -26,6 +29,7 @@ export function KPICards(props: KPICardsProps) {
       color: 'text-volturaGold',
       accent: '#D4AF37',
       Icon: TrendingUp,
+      sparkline: <SparklineChart data={props.sparklineData} />,
     },
     {
       label: 'Outstanding',
@@ -66,7 +70,7 @@ export function KPICards(props: KPICardsProps) {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {cards.map(({ label, value, color, accent, Icon }) => (
+      {cards.map(({ label, value, color, accent, Icon, sparkline }) => (
         <div
           key={label}
           className="relative bg-volturaNavy/50 border border-white/5 rounded-2xl p-3 overflow-hidden"
@@ -77,6 +81,7 @@ export function KPICards(props: KPICardsProps) {
             <Icon size={14} className={`${color} opacity-70 flex-shrink-0 mt-0.5`} />
           </div>
           <p className={`font-display ${color} text-2xl font-bold leading-none tracking-wide`}>{value}</p>
+          {sparkline && sparkline}
         </div>
       ))}
     </div>
