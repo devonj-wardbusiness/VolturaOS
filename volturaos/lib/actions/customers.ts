@@ -121,3 +121,55 @@ export async function deleteEquipment(id: string): Promise<void> {
   const { error } = await admin.from('customer_equipment').delete().eq('id', id)
   if (error) throw new Error(error.message)
 }
+
+interface HistoryItem {
+  type: 'job' | 'invoice' | 'estimate'
+  id: string
+  title: string
+  status: string
+  amount?: number
+  date: string
+  href: string
+}
+
+export async function getCustomerHistory(customerId: string): Promise<HistoryItem[]> {
+  await requireAuth()
+  const admin = createAdminClient()
+
+  const [jobs, invoices, estimates] = await Promise.all([
+    admin.from('jobs').select('id, job_type, status, scheduled_date, created_at').eq('customer_id', customerId).order('created_at', { ascending: false }),
+    admin.from('invoices').select('id, total, status, created_at').eq('customer_id', customerId).order('created_at', { ascending: false }),
+    admin.from('estimates').select('id, name, total, status, created_at').eq('customer_id', customerId).order('created_at', { ascending: false }),
+  ])
+
+  const items: HistoryItem[] = [
+    ...(jobs.data ?? []).map((j: Record<string, unknown>) => ({
+      type: 'job' as const,
+      id: j.id as string,
+      title: (j.job_type as string) || 'Job',
+      status: j.status as string,
+      date: j.created_at as string,
+      href: `/jobs/${j.id}`,
+    })),
+    ...(invoices.data ?? []).map((inv: Record<string, unknown>) => ({
+      type: 'invoice' as const,
+      id: inv.id as string,
+      title: `Invoice $${((inv.total as number) ?? 0).toLocaleString()}`,
+      status: inv.status as string,
+      amount: (inv.total as number) ?? 0,
+      date: inv.created_at as string,
+      href: `/invoices/${inv.id}`,
+    })),
+    ...(estimates.data ?? []).map((e: Record<string, unknown>) => ({
+      type: 'estimate' as const,
+      id: e.id as string,
+      title: (e.name as string) || 'Estimate',
+      status: e.status as string,
+      amount: (e.total as number) ?? 0,
+      date: e.created_at as string,
+      href: `/estimates/${e.id}`,
+    })),
+  ]
+
+  return items.sort((a, b) => b.date.localeCompare(a.date))
+}
