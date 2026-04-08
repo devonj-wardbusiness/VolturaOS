@@ -2,18 +2,10 @@ import Link from 'next/link'
 import type { Job } from '@/types'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { Calendar } from 'lucide-react'
+import { STATUS_ACCENT } from '@/lib/constants/jobStatus'
 
 interface JobCardProps {
   job: Job & { customer: { name: string } }
-}
-
-const STATUS_ACCENT: Record<string, string> = {
-  'Lead':        '#6b7280',
-  'Scheduled':   '#38bdf8',
-  'In Progress': '#f59e0b',
-  'Completed':   '#4ade80',
-  'Invoiced':    '#a78bfa',
-  'Cancelled':   '#f87171',
 }
 
 export function JobCard({ job }: JobCardProps) {
