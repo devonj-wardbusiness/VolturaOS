@@ -225,6 +225,19 @@ export function EstimateBuilder({
     if (duplicating || proposalCount >= 3) return
     setDuplicating(true)
     try {
+      // Auto-save current state first so the duplicate gets the latest data
+      await saveEstimate(estimateId, {
+        name: estimateName,
+        lineItems: allLineItems,
+        addons,
+        subtotal: total,
+        total,
+        notes,
+        includesPermit,
+        includesCleanup,
+        includesWarranty,
+        followUpDays,
+      })
       const newEst = await duplicateEstimate(estimateId)
       router.push(`/estimates/${newEst.id}`)
     } catch (e) {
