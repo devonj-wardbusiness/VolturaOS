@@ -1,9 +1,31 @@
-import { getAllPricebook } from '@/lib/actions/pricebook'
+import { getEstimatesByCustomer } from '@/lib/actions/estimates'
+import { getCustomerById } from '@/lib/actions/customers'
 import { JobForm } from '@/components/jobs/JobForm'
 
-export default async function NewJobPage() {
-  const pricebook = await getAllPricebook()
-  const jobTypes = pricebook.map((p) => p.job_type)
+export default async function NewJobPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ customerId?: string }>
+}) {
+  const { customerId } = await searchParams
+
+  let initialCustomerId: string | undefined
+  let initialCustomerName: string | undefined
+  let customerEstimates: Awaited<ReturnType<typeof getEstimatesByCustomer>> = []
+
+  if (customerId) {
+    try {
+      const [customer, estimates] = await Promise.all([
+        getCustomerById(customerId),
+        getEstimatesByCustomer(customerId),
+      ])
+      initialCustomerId = customer.id
+      initialCustomerName = customer.name
+      customerEstimates = estimates
+    } catch {
+      // ignore — form still works without pre-fill
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-volturaBlue">
@@ -11,7 +33,11 @@ export default async function NewJobPage() {
         <a href="/jobs" className="text-gray-400 text-sm">&larr; Jobs</a>
         <h1 className="text-white font-semibold">New Job</h1>
       </header>
-      <JobForm jobTypes={jobTypes} />
+      <JobForm
+        initialCustomerId={initialCustomerId}
+        initialCustomerName={initialCustomerName}
+        customerEstimates={customerEstimates}
+      />
     </div>
   )
 }

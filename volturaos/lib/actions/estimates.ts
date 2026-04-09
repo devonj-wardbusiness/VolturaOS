@@ -337,6 +337,21 @@ export async function createEstimateFromTemplate(
   return (data as { id: string }).id
 }
 
+export async function getEstimatesByCustomer(customerId: string): Promise<Pick<Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'notes' | 'includes_permit' | 'includes_cleanup' | 'includes_warranty'>[]> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('estimates')
+    .select('id, name, total, status, line_items, addons, notes, includes_permit, includes_cleanup, includes_warranty')
+    .eq('customer_id', customerId)
+    .eq('is_template', false)
+    .not('status', 'eq', 'Declined')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Pick<Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'notes' | 'includes_permit' | 'includes_cleanup' | 'includes_warranty'>[]
+}
+
 export async function listEstimates(): Promise<(Estimate & { customer: { name: string } })[]> {
   await requireAuth()
   const admin = createAdminClient()
