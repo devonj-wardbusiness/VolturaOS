@@ -27,6 +27,9 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [editingSchedule, setEditingSchedule] = useState(false)
+  const [scheduledDate, setScheduledDate] = useState(job.scheduled_date || '')
+  const [scheduledTime, setScheduledTime] = useState(job.scheduled_time || '')
 
   const nextAction = NEXT_STATUS[job.status]
 
@@ -41,6 +44,17 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
     startTransition(async () => {
       await updateJob(job.id, { notes })
       setEditingNotes(false)
+    })
+  }
+
+  function handleSaveSchedule() {
+    startTransition(async () => {
+      await updateJob(job.id, {
+        scheduledDate: scheduledDate || null,
+        scheduledTime: scheduledTime || null,
+      })
+      setEditingSchedule(false)
+      router.refresh()
     })
   }
 
@@ -65,11 +79,41 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
           <p className="text-white font-semibold">{job.job_type}</p>
           <StatusPill status={job.status} />
         </div>
-        {job.scheduled_date && (
-          <p className="text-gray-400 text-sm">
-            📅 {new Date(job.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            {job.scheduled_time ? ` at ${job.scheduled_time.slice(0, 5)}` : ''}
-          </p>
+
+        {editingSchedule ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={e => setScheduledDate(e.target.value)}
+                className="bg-volturaBlue text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50"
+              />
+              <input
+                type="time"
+                value={scheduledTime}
+                onChange={e => setScheduledTime(e.target.value)}
+                className="bg-volturaBlue text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleSaveSchedule} disabled={isPending} className="text-volturaGold text-xs font-semibold">
+                {isPending ? 'Saving...' : 'Save'}
+              </button>
+              <button onClick={() => setEditingSchedule(false)} className="text-gray-500 text-xs">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <p className="text-gray-400 text-sm">
+              {scheduledDate
+                ? `📅 ${new Date(scheduledDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${scheduledTime ? ` at ${scheduledTime.slice(0, 5)}` : ''}`
+                : '📅 No date set'}
+            </p>
+            <button onClick={() => setEditingSchedule(true)} className="text-volturaGold text-xs">
+              {scheduledDate ? 'Edit' : 'Set Date'}
+            </button>
+          </div>
         )}
       </div>
 

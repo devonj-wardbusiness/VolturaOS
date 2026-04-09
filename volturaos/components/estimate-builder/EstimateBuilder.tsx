@@ -342,6 +342,24 @@ export function EstimateBuilder({
           selectedName={customerName}
           onSelect={(id, name) => { setCustomerId(id); setCustomerName(name) }}
         />
+        {customerId && (
+          <div className="flex gap-2 -mt-4">
+            <button
+              type="button"
+              onClick={() => router.push(`/jobs/new?customerId=${customerId}`)}
+              className="text-volturaGold text-xs border border-volturaGold/30 px-3 py-1.5 rounded-lg"
+            >
+              + Schedule Job
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push(`/customers/${customerId}`)}
+              className="text-gray-400 text-xs border border-white/10 px-3 py-1.5 rounded-lg"
+            >
+              View Customer
+            </button>
+          </div>
+        )}
 
         {/* Primary job (optional) */}
         {!primarySkipped && (
