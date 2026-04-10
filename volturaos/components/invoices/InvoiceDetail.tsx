@@ -14,7 +14,7 @@ const InvoiceDownloadButton = dynamic(
 
 interface InvoiceDetailProps {
   invoice: Invoice & {
-    customer: { name: string; phone: string | null }
+    customer: { name: string; phone: string | null; address: string | null }
     payments: InvoicePayment[]
   }
 }
@@ -42,8 +42,11 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
       {/* Customer */}
       <div className="bg-volturaNavy/50 rounded-xl p-4">
         <p className="text-white font-bold text-lg">{invoice.customer.name}</p>
+        {invoice.customer.address && (
+          <p className="text-gray-400 text-sm mt-0.5">📍 {invoice.customer.address}</p>
+        )}
         {invoice.customer.phone && (
-          <a href={`tel:${invoice.customer.phone}`} className="text-volturaGold text-sm">
+          <a href={`tel:${invoice.customer.phone}`} className="text-volturaGold text-sm block mt-1">
             📞 {invoice.customer.phone}
           </a>
         )}
@@ -78,6 +81,7 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         invoiceId={invoice.id}
         customerName={invoice.customer.name}
         customerPhone={invoice.customer.phone}
+        customerAddress={invoice.customer.address}
         lineItems={invoice.line_items ?? []}
         total={invoice.total}
         amountPaid={invoice.amount_paid}
@@ -109,12 +113,17 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
       {/* Line Items */}
       {lineItems.length > 0 && (
         <div className="bg-volturaNavy/50 rounded-xl p-4">
-          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Line Items</p>
-          <div className="space-y-2">
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Services</p>
+          <div className="space-y-3">
             {lineItems.map((item, i) => (
-              <div key={i} className="flex justify-between">
-                <span className="text-white text-sm flex-1 mr-4">{item.description}</span>
-                <span className="text-volturaGold font-semibold text-sm">${item.price.toLocaleString()}</span>
+              <div key={i} className="flex justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm">{item.description}</p>
+                  {item.pricebook_description && (
+                    <p className="text-gray-500 text-xs mt-0.5 leading-snug">{item.pricebook_description}</p>
+                  )}
+                </div>
+                <span className="text-volturaGold font-semibold text-sm flex-shrink-0">${item.price.toLocaleString()}</span>
               </div>
             ))}
           </div>

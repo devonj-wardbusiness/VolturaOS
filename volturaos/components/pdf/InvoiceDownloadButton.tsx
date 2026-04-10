@@ -8,6 +8,7 @@ interface InvoiceDownloadButtonProps {
   invoiceId: string
   customerName: string
   customerPhone?: string | null
+  customerAddress?: string | null
   lineItems: LineItem[]
   total: number
   amountPaid: number
