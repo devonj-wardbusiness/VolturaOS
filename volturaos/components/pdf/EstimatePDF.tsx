@@ -57,6 +57,15 @@ const styles = StyleSheet.create({
   footerText: { color: '#9ca3af', fontSize: 8 },
   footerBrand: { color: GOLD, fontFamily: 'Helvetica-Bold', fontSize: 9, letterSpacing: 1 },
 
+  // Signature block
+  sigBlock: { marginTop: 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e5e7eb' },
+  sigStatement: { fontSize: 7.5, color: GRAY, marginBottom: 14 },
+  sigRow: { flexDirection: 'row', gap: 20, marginBottom: 14 },
+  sigField: { flex: 1 },
+  sigFieldNarrow: { width: 120 },
+  sigLine: { borderBottomWidth: 1, borderBottomColor: NAVY, height: 28, marginBottom: 4 },
+  sigLabel: { fontSize: 7, color: GRAY, textTransform: 'uppercase', letterSpacing: 0.8 },
+
   // T&C page
   tcPage: { backgroundColor: '#ffffff', fontFamily: 'Helvetica', fontSize: 9, color: NAVY, padding: 40 },
   tcHeaderBar: { backgroundColor: NAVY, paddingHorizontal: 40, paddingVertical: 14, marginHorizontal: -40, marginTop: -40, marginBottom: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -219,9 +228,36 @@ export function EstimatePDF({
             </>
           )}
 
+          {/* Signature block */}
+          <View style={styles.sigBlock}>
+            <Text style={styles.sigStatement}>
+              By signing below, I/we accept this estimate and authorize Voltura Power Group to proceed with the scope of work described above, subject to the Terms &amp; Conditions on page 2. I understand that payment is due upon completion and that changes to scope require a signed change order.
+            </Text>
+            <View style={styles.sigRow}>
+              <View style={styles.sigField}>
+                <View style={styles.sigLine} />
+                <Text style={styles.sigLabel}>Customer Signature</Text>
+              </View>
+              <View style={styles.sigFieldNarrow}>
+                <View style={styles.sigLine} />
+                <Text style={styles.sigLabel}>Date</Text>
+              </View>
+            </View>
+            <View style={[styles.sigRow, { marginBottom: 0 }]}>
+              <View style={styles.sigField}>
+                <View style={styles.sigLine} />
+                <Text style={styles.sigLabel}>Print Name</Text>
+              </View>
+              <View style={styles.sigFieldNarrow}>
+                <View style={styles.sigLine} />
+                <Text style={styles.sigLabel}>Phone / Email</Text>
+              </View>
+            </View>
+          </View>
+
           {/* T&C reference */}
-          <Text style={[styles.notesText, { marginTop: 16, color: GRAY, fontSize: 7.5 }]}>
-            By accepting this estimate, you agree to the Terms &amp; Conditions on page 2, including payment terms, warranty, and cancellation policy.
+          <Text style={[styles.notesText, { marginTop: 12, color: GRAY, fontSize: 7.5 }]}>
+            Full Terms &amp; Conditions are on page 2. This estimate is valid for 30 days from issue date.
           </Text>
         </View>
 

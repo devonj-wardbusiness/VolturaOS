@@ -64,6 +64,15 @@ const styles = StyleSheet.create({
   notesBox: { backgroundColor: LIGHT, borderRadius: 4, padding: 10, marginTop: 8 },
   notesText: { color: GRAY, fontSize: 8.5 },
 
+  // Signature block
+  sigBlock: { marginTop: 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e5e7eb' },
+  sigStatement: { fontSize: 7.5, color: GRAY, marginBottom: 14 },
+  sigRow: { flexDirection: 'row', gap: 20, marginBottom: 14 },
+  sigField: { flex: 1 },
+  sigFieldNarrow: { width: 120 },
+  sigLine: { borderBottomWidth: 1, borderBottomColor: NAVY, height: 28, marginBottom: 4 },
+  sigLabel: { fontSize: 7, color: GRAY, textTransform: 'uppercase', letterSpacing: 0.8 },
+
   // PAID stamp
   paidStamp: { position: 'absolute', top: 110, right: 48, borderWidth: 3, borderColor: GREEN, paddingHorizontal: 10, paddingVertical: 5, transform: 'rotate(-15deg)' },
   paidText: { color: GREEN, fontFamily: 'Helvetica-Bold', fontSize: 22, letterSpacing: 3 },
@@ -209,6 +218,35 @@ export function InvoicePDF({
                 <Text style={styles.notesText}>{notes}</Text>
               </View>
             </>
+          )}
+
+          {/* Signature block — only shown when invoice is unpaid/partial */}
+          {status !== 'Paid' && (
+            <View style={styles.sigBlock}>
+              <Text style={styles.sigStatement}>
+                By signing below, I/we authorize payment of the balance due and confirm that all services listed above have been completed to satisfaction. I understand that unpaid balances after 30 days are subject to a 1.5% monthly finance charge.
+              </Text>
+              <View style={styles.sigRow}>
+                <View style={styles.sigField}>
+                  <View style={styles.sigLine} />
+                  <Text style={styles.sigLabel}>Customer Signature</Text>
+                </View>
+                <View style={styles.sigFieldNarrow}>
+                  <View style={styles.sigLine} />
+                  <Text style={styles.sigLabel}>Date</Text>
+                </View>
+              </View>
+              <View style={[styles.sigRow, { marginBottom: 0 }]}>
+                <View style={styles.sigField}>
+                  <View style={styles.sigLine} />
+                  <Text style={styles.sigLabel}>Print Name</Text>
+                </View>
+                <View style={styles.sigFieldNarrow}>
+                  <View style={styles.sigLine} />
+                  <Text style={styles.sigLabel}>Phone / Email</Text>
+                </View>
+              </View>
+            </View>
           )}
         </View>
 
