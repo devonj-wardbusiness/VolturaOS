@@ -22,6 +22,7 @@ import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
+import { InPersonSignature } from '@/components/estimates/InPersonSignature'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 import { DiscountsSection } from './DiscountsSection'
 
@@ -46,6 +47,8 @@ interface EstimateBuilderProps {
     follow_up_days?: number
     follow_up_sent_at?: string | null
     follow_up_dismissed?: boolean
+    signed_at?: string | null
+    signer_name?: string | null
   }
 }
 
@@ -99,6 +102,7 @@ export function EstimateBuilder({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [presenting, setPresenting] = useState(false)
+  const [signingInPerson, setSigningInPerson] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [invoicing, setInvoicing] = useState(false)
@@ -434,6 +438,19 @@ export function EstimateBuilder({
 
       <div className="fixed bottom-16 left-0 right-0 bg-volturaBlue border-t border-volturaNavy z-30 px-4 py-3">
         <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
+        {/* Signed badge */}
+        {initialEstimate?.signed_at && (
+          <div className="flex items-center gap-2 bg-green-900/30 border border-green-500/30 rounded-xl px-4 py-2 mb-2">
+            <span className="text-green-400 text-sm">✍️ Signed</span>
+            {initialEstimate.signer_name && (
+              <span className="text-green-300 text-sm font-semibold">{initialEstimate.signer_name}</span>
+            )}
+            <span className="text-green-600 text-xs ml-auto">
+              {new Date(initialEstimate.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+          </div>
+        )}
+
         <div className="flex gap-2 mt-2">
           <button onClick={handleSave} disabled={saving || !hasItems} className="flex-1 bg-volturaNavy text-white py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50">
             {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Draft'}
@@ -445,9 +462,19 @@ export function EstimateBuilder({
           >
             Present
           </button>
-          <button onClick={() => { handleSave(); setSendOpen(true) }} disabled={!hasItems} className="flex-1 bg-volturaGold text-volturaBlue py-2.5 rounded-xl font-bold text-sm disabled:opacity-50">
-            Send
-          </button>
+          {!initialEstimate?.signed_at && hasItems ? (
+            <button
+              onClick={() => { handleSave(); setSigningInPerson(true) }}
+              disabled={!hasItems}
+              className="flex-1 bg-volturaGold text-volturaBlue py-2.5 rounded-xl font-bold text-sm disabled:opacity-50"
+            >
+              ✍️ Sign
+            </button>
+          ) : (
+            <button onClick={() => { handleSave(); setSendOpen(true) }} disabled={!hasItems} className="flex-1 bg-volturaGold text-volturaBlue py-2.5 rounded-xl font-bold text-sm disabled:opacity-50">
+              Send
+            </button>
+          )}
         </div>
         {initialEstimate?.status === 'Approved' && (
           linkedInvoiceId ? (
@@ -483,6 +510,20 @@ export function EstimateBuilder({
       </div>
 
       <SendSheet open={sendOpen} onClose={() => setSendOpen(false)} estimateId={estimateId} total={total} />
+
+      {signingInPerson && (
+        <InPersonSignature
+          estimateId={estimateId}
+          customerName={customerName}
+          total={total}
+          estimateName={estimateName}
+          onClose={() => setSigningInPerson(false)}
+          onSigned={() => {
+            setSigningInPerson(false)
+            window.location.reload()
+          }}
+        />
+      )}
 
       {presenting && (
         <PresentMode

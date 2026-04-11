@@ -106,6 +106,9 @@ export interface Estimate {
   declined_at: string | null
   created_at: string
   is_template: boolean
+  signer_name: string | null
+  signature_data: string | null
+  signed_at: string | null
 }
 
 export interface Invoice {

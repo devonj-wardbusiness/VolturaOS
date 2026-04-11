@@ -251,6 +251,27 @@ export async function getLinkedInvoice(estimateId: string): Promise<{ id: string
   return data ? { id: data.id as string } : null
 }
 
+export async function signEstimate(
+  id: string,
+  signerName: string,
+  signatureData: string
+): Promise<void> {
+  const admin = createAdminClient()
+  const now = new Date().toISOString()
+  const { error } = await admin
+    .from('estimates')
+    .update({
+      status: 'Approved',
+      approved_at: now,
+      signer_name: signerName,
+      signature_data: signatureData,
+      signed_at: now,
+    })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+  void sendTelegram(`✍️ Estimate signed in person by ${signerName}`)
+}
+
 export async function deleteEstimate(id: string): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()

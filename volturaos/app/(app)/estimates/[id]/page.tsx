@@ -64,6 +64,8 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
             follow_up_days: estimate.follow_up_days,
             follow_up_sent_at: estimate.follow_up_sent_at,
             follow_up_dismissed: estimate.follow_up_dismissed,
+            signed_at: estimate.signed_at,
+            signer_name: estimate.signer_name,
           }}
         />
       </div>
