@@ -31,6 +31,7 @@ interface EstimateBuilderProps {
   pricebook: PricebookEntry[]
   initialCustomerId?: string
   initialCustomerName?: string
+  initialCustomerPhone?: string | null
   estimateCreatedAt?: string
   proposalCount: number
   proposalEstimates: Estimate[]
@@ -57,6 +58,7 @@ export function EstimateBuilder({
   pricebook,
   initialCustomerId,
   initialCustomerName,
+  initialCustomerPhone,
   estimateCreatedAt,
   proposalCount,
   proposalEstimates,
@@ -509,7 +511,7 @@ export function EstimateBuilder({
         )}
       </div>
 
-      <SendSheet open={sendOpen} onClose={() => setSendOpen(false)} estimateId={estimateId} total={total} />
+      <SendSheet open={sendOpen} onClose={() => setSendOpen(false)} estimateId={estimateId} total={total} customerPhone={initialCustomerPhone ?? null} customerName={customerName ?? 'Customer'} />
 
       {signingInPerson && (
         <InPersonSignature

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
+import { sendSMS } from '@/lib/sms'
 import type { Estimate, EstimateStatus, LineItem, Addon } from '@/types'
 
 async function requireAuth() { // auth disabled
@@ -249,6 +250,19 @@ export async function getLinkedInvoice(estimateId: string): Promise<{ id: string
     .eq('estimate_id', estimateId)
     .maybeSingle()
   return data ? { id: data.id as string } : null
+}
+
+export async function sendEstimateLinkSMS(
+  estimateId: string,
+  customerPhone: string,
+  customerName: string,
+  smsOptOut: boolean
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://volturaos.vercel.app'
+  const link = `${baseUrl}/estimates/${estimateId}/view`
+  const message = `Hi ${customerName.split(' ')[0]}, here's your estimate from Voltura Power Group: ${link}`
+  await sendSMS(customerPhone, message, smsOptOut)
+  await updateEstimateStatus(estimateId, 'Sent')
 }
 
 export async function signEstimate(
