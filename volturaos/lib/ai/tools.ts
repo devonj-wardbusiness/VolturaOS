@@ -150,6 +150,105 @@ export const AI_TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: 'list_customers',
+    description: 'List recent customers or search by name/phone/address.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: { type: 'string', description: 'Optional search term — name, phone, or address' },
+        limit: { type: 'number', description: 'Max results (default 15)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'update_customer',
+    description: 'Update an existing customer\'s details. Only fields provided will be changed.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        customer_id: { type: 'string', description: 'Customer UUID from search_customers' },
+        name: { type: 'string', description: 'New name' },
+        phone: { type: 'string', description: 'New phone number' },
+        email: { type: 'string', description: 'New email' },
+        address: { type: 'string', description: 'New street address' },
+        city: { type: 'string', description: 'New city' },
+        zip: { type: 'string', description: 'New ZIP code' },
+        notes: { type: 'string', description: 'Customer notes' },
+        property_type: { type: 'string', enum: ['residential', 'commercial'], description: 'Property type' },
+      },
+      required: ['customer_id'],
+    },
+  },
+  {
+    name: 'search_estimates',
+    description: 'Find estimates by customer name, status, or both. Returns estimate IDs, names, totals, and status.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        customer_name: { type: 'string', description: 'Customer name to search for (partial match)' },
+        customer_id: { type: 'string', description: 'Customer UUID for exact match' },
+        status: { type: 'string', description: 'Filter by status: Draft, Sent, Viewed, Approved, Declined' },
+        limit: { type: 'number', description: 'Max results (default 10)' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'update_estimate',
+    description: 'Update an existing estimate — change notes, status, or add/replace line items from the pricebook.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        estimate_id: { type: 'string', description: 'Estimate UUID' },
+        notes: { type: 'string', description: 'New notes for the estimate' },
+        status: { type: 'string', enum: ['Draft', 'Sent', 'Viewed', 'Approved', 'Declined'], description: 'New status' },
+        add_items: {
+          type: 'array',
+          description: 'Additional line items to append to existing items',
+          items: {
+            type: 'object',
+            properties: {
+              job_type: { type: 'string', description: 'Job type from pricebook' },
+              tier: { type: 'string', enum: ['good', 'better', 'best'], description: 'Tier (default: better)' },
+            },
+            required: ['job_type'],
+          },
+        },
+      },
+      required: ['estimate_id'],
+    },
+  },
+  {
+    name: 'update_job',
+    description: 'Update an existing job — change type, scheduled date/time, notes, or tech name.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        job_id: { type: 'string', description: 'Job UUID from list_jobs' },
+        job_type: { type: 'string', description: 'Updated job description/type' },
+        scheduled_date: { type: 'string', description: 'New scheduled date YYYY-MM-DD' },
+        scheduled_time: { type: 'string', description: 'New scheduled time like "9:00 AM"' },
+        notes: { type: 'string', description: 'Updated notes' },
+        tech_name: { type: 'string', description: 'Assigned technician name' },
+      },
+      required: ['job_id'],
+    },
+  },
+  {
+    name: 'list_invoices',
+    description: 'List recent invoices, optionally filtered by customer or status.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        customer_id: { type: 'string', description: 'Filter by customer UUID' },
+        status: { type: 'string', description: 'Filter by status: Unpaid, Partial, Paid, Sent' },
+        limit: { type: 'number', description: 'Max results (default 10)' },
+      },
+      required: [],
+    },
+  },
+  {
     name: 'record_payment',
     description: 'Record a payment against an invoice. Supports partial payments. Updates invoice balance automatically.',
     input_schema: {
@@ -184,6 +283,20 @@ export async function executeTool(name: string, input: Record<string, unknown>):
       return JSON.stringify(data, null, 2)
     }
 
+    case 'list_customers': {
+      const limit = (input.limit as number) || 15
+      const query = input.query as string | undefined
+      let q = admin.from('customers').select('id, name, phone, email, address, city, property_type').order('name').limit(limit)
+      if (query) {
+        const like = `%${query}%`
+        q = q.or(`name.ilike.${like},phone.ilike.${like},address.ilike.${like}`)
+      }
+      const { data, error } = await q
+      if (error) return `Error: ${error.message}`
+      if (!data?.length) return 'No customers found.'
+      return JSON.stringify(data, null, 2)
+    }
+
     case 'create_customer': {
       const { data, error } = await admin
         .from('customers')
@@ -202,6 +315,23 @@ export async function executeTool(name: string, input: Record<string, unknown>):
         .single()
       if (error) return `Error creating customer: ${error.message}`
       return `Customer created successfully:\n${JSON.stringify(data, null, 2)}`
+    }
+
+    case 'update_customer': {
+      const customerId = input.customer_id as string
+      const updates: Record<string, unknown> = {}
+      if (input.name) updates.name = (input.name as string).trim()
+      if (input.phone !== undefined) updates.phone = input.phone
+      if (input.email !== undefined) updates.email = input.email
+      if (input.address !== undefined) updates.address = input.address
+      if (input.city !== undefined) updates.city = input.city
+      if (input.zip !== undefined) updates.zip = input.zip
+      if (input.notes !== undefined) updates.notes = input.notes
+      if (input.property_type !== undefined) updates.property_type = input.property_type
+      if (Object.keys(updates).length === 0) return 'Error: No fields provided to update.'
+      const { data, error } = await admin.from('customers').update(updates).eq('id', customerId).select('id, name, phone, email, address, city').single()
+      if (error) return `Error: ${error.message}`
+      return `Customer updated:\n${JSON.stringify(data, null, 2)}`
     }
 
     case 'lookup_pricebook': {
@@ -326,6 +456,77 @@ ${summary}
 View and edit in the Estimates tab.`
     }
 
+    case 'search_estimates': {
+      const limit = (input.limit as number) || 10
+      let query = admin.from('estimates').select('id, name, status, total, notes, created_at, customers(id, name)').order('created_at', { ascending: false }).limit(limit)
+      if (input.customer_id) query = query.eq('customer_id', input.customer_id as string)
+      if (input.status) query = query.eq('status', input.status as string)
+      const { data, error } = await query
+      if (error) return `Error: ${error.message}`
+      if (!data?.length) return 'No estimates found.'
+      // Filter by customer name if provided
+      let results = data as Record<string, unknown>[]
+      if (input.customer_name) {
+        const search = (input.customer_name as string).toLowerCase()
+        results = results.filter((e) => {
+          const c = e.customers as Record<string, unknown> | null
+          return (c?.name as string || '').toLowerCase().includes(search)
+        })
+      }
+      return JSON.stringify(results.map((e) => ({
+        id: e.id,
+        id_short: (e.id as string).slice(0, 8),
+        customer: (e.customers as Record<string, unknown> | null)?.name || 'Unknown',
+        name: e.name,
+        status: e.status,
+        total: e.total ? `$${(e.total as number).toLocaleString()}` : '—',
+        created: new Date(e.created_at as string).toLocaleDateString(),
+      })), null, 2)
+    }
+
+    case 'update_estimate': {
+      const estimateId = input.estimate_id as string
+      const updates: Record<string, unknown> = {}
+
+      if (input.notes !== undefined) updates.notes = input.notes
+      if (input.status) {
+        updates.status = input.status
+        const now = new Date().toISOString()
+        if (input.status === 'Sent') updates.sent_at = now
+        if (input.status === 'Approved') updates.approved_at = now
+        if (input.status === 'Declined') updates.declined_at = now
+      }
+
+      // Add items from pricebook
+      const addItems = (input.add_items as { job_type: string; tier?: string }[]) || []
+      if (addItems.length > 0) {
+        const { data: existing, error: fetchErr } = await admin.from('estimates').select('line_items, total').eq('id', estimateId).single()
+        if (fetchErr) return `Error fetching estimate: ${fetchErr.message}`
+
+        const currentItems = (existing.line_items as { description: string; price: number; is_override: boolean; original_price: number }[]) || []
+        let currentTotal = (existing.total as number) || 0
+        const newItems = [...currentItems]
+
+        for (const item of addItems) {
+          const tier = item.tier || 'better'
+          const { data: pb } = await admin.from('pricebook').select('*').eq('job_type', item.job_type).eq('active', true).single()
+          if (!pb) return `Error: "${item.job_type}" not found in pricebook.`
+          const price = (pb[`price_${tier}` as keyof typeof pb] as number) || 0
+          const desc = (pb[`description_${tier}` as keyof typeof pb] as string) || item.job_type
+          newItems.push({ description: desc, price, is_override: false, original_price: price })
+          currentTotal += price
+        }
+        updates.line_items = newItems
+        updates.total = currentTotal
+        updates.subtotal = currentTotal
+      }
+
+      if (Object.keys(updates).length === 0) return 'Error: No changes provided.'
+      const { error } = await admin.from('estimates').update(updates).eq('id', estimateId)
+      if (error) return `Error updating estimate: ${error.message}`
+      return `Estimate updated successfully.${addItems.length > 0 ? ` Added ${addItems.length} item(s).` : ''}`
+    }
+
     case 'list_estimates': {
       const limit = (input.limit as number) || 10
       const { data, error } = await admin
@@ -347,6 +548,41 @@ View and edit in the Estimates tab.`
         }
       })
       return JSON.stringify(formatted, null, 2)
+    }
+
+    case 'update_job': {
+      const jobId = input.job_id as string
+      const updates: Record<string, unknown> = {}
+      if (input.job_type !== undefined) updates.job_type = input.job_type
+      if (input.scheduled_date !== undefined) updates.scheduled_date = input.scheduled_date
+      if (input.scheduled_time !== undefined) updates.scheduled_time = input.scheduled_time
+      if (input.notes !== undefined) updates.notes = input.notes
+      if (input.tech_name !== undefined) updates.tech_name = input.tech_name
+      if (Object.keys(updates).length === 0) return 'Error: No fields provided to update.'
+      const { data, error } = await admin.from('jobs').update(updates).eq('id', jobId).select('id, job_type, status, scheduled_date, customers(name)').single()
+      if (error) return `Error updating job: ${error.message}`
+      const c = (data as Record<string, unknown>).customers as Record<string, unknown> | null
+      return `Job updated!\n- Customer: ${c?.name || 'Unknown'}\n- Type: ${data.job_type}\n- Status: ${data.status}${data.scheduled_date ? `\n- Scheduled: ${data.scheduled_date}` : ''}`
+    }
+
+    case 'list_invoices': {
+      const limit = (input.limit as number) || 10
+      let query = admin.from('invoices').select('id, status, total, amount_paid, created_at, customers(name)').order('created_at', { ascending: false }).limit(limit)
+      if (input.customer_id) query = query.eq('customer_id', input.customer_id as string)
+      if (input.status) query = query.eq('status', input.status as string)
+      const { data, error } = await query
+      if (error) return `Error: ${error.message}`
+      if (!data?.length) return 'No invoices found.'
+      return JSON.stringify(data.map((inv: Record<string, unknown>) => ({
+        id: inv.id,
+        id_short: (inv.id as string).slice(0, 8),
+        customer: (inv.customers as Record<string, unknown> | null)?.name || 'Unknown',
+        status: inv.status,
+        total: `$${(inv.total as number).toLocaleString()}`,
+        paid: `$${((inv.amount_paid as number) || 0).toLocaleString()}`,
+        balance: `$${((inv.total as number) - ((inv.amount_paid as number) || 0)).toLocaleString()}`,
+        created: new Date(inv.created_at as string).toLocaleDateString(),
+      })), null, 2)
     }
 
     case 'create_job': {

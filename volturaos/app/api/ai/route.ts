@@ -117,12 +117,23 @@ export async function POST(request: Request) {
 }
 
 function formatToolName(name: string): string {
-  switch (name) {
-    case 'search_customers': return 'Searching customers'
-    case 'create_customer': return 'Creating customer'
-    case 'lookup_pricebook': return 'Checking pricebook'
-    case 'create_estimate': return 'Creating estimate'
-    case 'list_estimates': return 'Looking up estimates'
-    default: return name
+  const labels: Record<string, string> = {
+    search_customers: 'Searching customers',
+    list_customers: 'Listing customers',
+    create_customer: 'Creating customer',
+    update_customer: 'Updating customer',
+    lookup_pricebook: 'Checking pricebook',
+    create_estimate: 'Creating estimate',
+    search_estimates: 'Finding estimates',
+    update_estimate: 'Updating estimate',
+    list_estimates: 'Looking up estimates',
+    create_job: 'Creating job',
+    list_jobs: 'Looking up jobs',
+    update_job: 'Updating job',
+    update_job_status: 'Updating job status',
+    create_invoice: 'Creating invoice',
+    list_invoices: 'Looking up invoices',
+    record_payment: 'Recording payment',
   }
+  return labels[name] ?? name
 }

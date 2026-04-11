@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { updateEstimateStatus } from '@/lib/actions/estimates'
+import { updateEstimateStatus, signEstimate } from '@/lib/actions/estimates'
 import { calculateTotal } from '@/components/estimate-builder/LiveTotal'
 import { ExpandableLineItem } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
@@ -41,6 +41,7 @@ export function PresentMode({
   const [signing, setSigning] = useState(false)
   const [approved, setApproved] = useState(false)
   const [hasSig, setHasSig] = useState(false)
+  const [signerName, setSignerName] = useState('')
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
@@ -88,7 +89,9 @@ export function PresentMode({
     if (!hasSig) return
     setSigning(true)
     try {
-      await updateEstimateStatus(selectedEstimateId, 'Approved')
+      const dataUrl = canvasRef.current!.toDataURL('image/png')
+      const name = signerName.trim() || customerName || 'Customer'
+      await signEstimate(selectedEstimateId, name, dataUrl)
       const siblings = proposalEstimates.filter((e) => e.id !== selectedEstimateId)
       await Promise.all(siblings.map((e) => updateEstimateStatus(e.id, 'Declined')))
       setApproved(true)
@@ -97,7 +100,7 @@ export function PresentMode({
       alert('Failed to approve — please try again.')
       setSigning(false)
     }
-  }, [hasSig, selectedEstimateId, proposalEstimates, onApproved])
+  }, [hasSig, signerName, customerName, selectedEstimateId, proposalEstimates, onApproved])
 
   return (
     <div className="fixed inset-0 z-50 bg-volturaBlue flex flex-col" style={{ touchAction: 'none' }}>
@@ -261,6 +264,19 @@ export function PresentMode({
                       : soloTotal.toLocaleString()
                     }
                   </p>
+                </div>
+
+                {/* Print name */}
+                <div>
+                  <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Print Name</label>
+                  <input
+                    type="text"
+                    value={signerName}
+                    onChange={(e) => setSignerName(e.target.value)}
+                    placeholder="Customer's full name"
+                    className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-volturaGold"
+                    autoComplete="off"
+                  />
                 </div>
 
                 <div className="flex-1 flex flex-col gap-2">
