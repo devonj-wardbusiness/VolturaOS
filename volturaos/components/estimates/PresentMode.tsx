@@ -5,6 +5,8 @@ import { updateEstimateStatus, signEstimate } from '@/lib/actions/estimates'
 import { calculateTotal } from '@/components/estimate-builder/LiveTotal'
 import { ExpandableLineItem } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
+import { TC_SECTIONS } from '@/lib/constants/termsAndConditions'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { LineItem, Addon, Estimate } from '@/types'
 
 interface PresentModeProps {
@@ -42,6 +44,7 @@ export function PresentMode({
   const [approved, setApproved] = useState(false)
   const [hasSig, setHasSig] = useState(false)
   const [signerName, setSignerName] = useState('')
+  const [openSection, setOpenSection] = useState<number | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
@@ -231,14 +234,14 @@ export function PresentMode({
       {/* ── Sign step ── */}
       {step === 'sign' && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-volturaNavy/50">
+          <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-volturaNavy/50 shrink-0">
             <button
               onClick={() => isProposal ? setStep('compare') : setStep('scope')}
               className="text-gray-400 text-sm"
             >
               ← Back
             </button>
-            <span className="text-white font-semibold">Sign to Approve</span>
+            <span className="text-white font-semibold">Review &amp; Sign</span>
             <div className="w-12" />
           </div>
 
@@ -250,75 +253,106 @@ export function PresentMode({
               <p className="text-gray-500 text-sm">We&apos;ll be in touch to schedule your service.</p>
             </div>
           ) : (
-            <>
-              <div className="flex-1 flex flex-col px-5 py-5 gap-4">
-                <div className="text-center">
-                  {isProposal && (
-                    <p className="text-gray-400 text-sm">
-                      {proposalEstimates.find((e) => e.id === selectedEstimateId)?.name ?? 'Estimate'}
-                    </p>
-                  )}
-                  <p className="text-volturaGold text-3xl font-bold mt-1">
-                    ${isProposal
-                      ? (proposalEstimates.find((e) => e.id === selectedEstimateId)?.total ?? 0).toLocaleString()
-                      : soloTotal.toLocaleString()
-                    }
+            <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+              {/* Estimate summary */}
+              <div className="text-center pb-2">
+                <p className="text-gray-400 text-sm">{customerName}</p>
+                {isProposal && (
+                  <p className="text-gray-300 text-sm font-semibold">
+                    {proposalEstimates.find((e) => e.id === selectedEstimateId)?.name ?? 'Estimate'}
                   </p>
-                </div>
-
-                {/* Print name */}
-                <div>
-                  <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Print Name</label>
-                  <input
-                    type="text"
-                    value={signerName}
-                    onChange={(e) => setSignerName(e.target.value)}
-                    placeholder="Customer's full name"
-                    className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-volturaGold"
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-400 text-sm">Sign below</p>
-                    {hasSig && (
-                      <button onClick={clearSignature} className="text-gray-500 text-xs underline">Clear</button>
-                    )}
-                  </div>
-                  <div className="flex-1 rounded-2xl border-2 border-dashed border-volturaNavy overflow-hidden bg-volturaNavy/20">
-                    <canvas
-                      ref={canvasRef}
-                      className="w-full h-full touch-none"
-                      style={{ display: 'block' }}
-                      onPointerDown={onPointerDown}
-                      onPointerMove={onPointerMove}
-                      onPointerUp={onPointerUp}
-                      onPointerLeave={onPointerUp}
-                      width={typeof window !== 'undefined' ? window.innerWidth : 400}
-                      height={260}
-                    />
-                  </div>
-                  {!hasSig && (
-                    <p className="text-gray-600 text-xs text-center">Use your finger or stylus to sign</p>
-                  )}
-                </div>
-
-                <p className="text-gray-500 text-xs text-center leading-relaxed">
-                  By signing, you authorize Voltura Power Group to proceed with the work described in this estimate.
+                )}
+                <p className="text-volturaGold text-4xl font-bold mt-1">
+                  ${isProposal
+                    ? (proposalEstimates.find((e) => e.id === selectedEstimateId)?.total ?? 0).toLocaleString()
+                    : soloTotal.toLocaleString()
+                  }
                 </p>
               </div>
 
-              <div className="px-5 pb-6">
-                <button
-                  onClick={handleApprove}
-                  disabled={!hasSig || signing}
-                  className="w-full bg-volturaGold text-volturaBlue font-bold py-4 rounded-2xl text-lg disabled:opacity-40"
-                >
-                  {signing ? 'Approving...' : 'Approve Estimate'}
-                </button>
+              {/* Terms & Conditions accordion */}
+              <div>
+                <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Terms &amp; Conditions</p>
+                <div className="rounded-2xl overflow-hidden border border-volturaNavy divide-y divide-volturaNavy">
+                  {TC_SECTIONS.map((section, i) => (
+                    <div key={i} className="bg-volturaNavy/40">
+                      <button
+                        onClick={() => setOpenSection(openSection === i ? null : i)}
+                        className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                      >
+                        <span className={`text-sm font-semibold ${openSection === i ? 'text-volturaGold' : 'text-white'}`}>
+                          {section.title}
+                        </span>
+                        {openSection === i
+                          ? <ChevronUp size={15} className="text-volturaGold shrink-0 ml-2" />
+                          : <ChevronDown size={15} className="text-gray-500 shrink-0 ml-2" />
+                        }
+                      </button>
+                      {openSection === i && (
+                        <div className="px-4 pb-4">
+                          <p className="text-gray-300 text-sm leading-relaxed">{section.body}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </>
+
+              {/* Authorization statement */}
+              <p className="text-gray-500 text-xs leading-relaxed bg-volturaNavy/30 rounded-xl px-4 py-3">
+                By signing below, I authorize Voltura Power Group to proceed with the work described in this estimate and agree to the Terms &amp; Conditions listed above, including payment terms, the 12-month labor warranty, and the cancellation policy.
+              </p>
+
+              {/* Print name */}
+              <div>
+                <label className="text-gray-400 text-xs uppercase tracking-wider mb-1.5 block">Print Name</label>
+                <input
+                  type="text"
+                  value={signerName}
+                  onChange={(e) => setSignerName(e.target.value)}
+                  placeholder="Customer's full name"
+                  className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-volturaGold"
+                  autoComplete="off"
+                />
+              </div>
+
+              {/* Signature canvas */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-gray-400 text-xs uppercase tracking-wider">Signature</label>
+                  {hasSig && (
+                    <button onClick={clearSignature} className="text-gray-500 text-xs underline">Clear</button>
+                  )}
+                </div>
+                <div className="rounded-2xl border-2 border-dashed border-volturaNavy overflow-hidden bg-volturaNavy/20 h-44 relative">
+                  <canvas
+                    ref={canvasRef}
+                    className="w-full h-full touch-none block"
+                    style={{ touchAction: 'none' }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerLeave={onPointerUp}
+                    width={typeof window !== 'undefined' ? window.innerWidth : 400}
+                    height={176}
+                  />
+                  {!hasSig && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <p className="text-gray-600 text-sm">Sign here with your finger</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Approve button */}
+              <button
+                onClick={handleApprove}
+                disabled={!hasSig || signing}
+                className="w-full bg-volturaGold text-volturaBlue font-bold py-4 rounded-2xl text-lg disabled:opacity-40 mb-4"
+              >
+                {signing ? 'Saving…' : 'Approve & Sign Estimate'}
+              </button>
+            </div>
           )}
         </div>
       )}
