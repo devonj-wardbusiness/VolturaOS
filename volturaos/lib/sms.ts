@@ -59,13 +59,20 @@ export async function sendOnMyWaySMS(
 
 export async function sendJobCompleteSMS(
   phone: string | null | undefined,
-  optOut: boolean
+  optOut: boolean,
+  jobType?: string
 ): Promise<void> {
   if (!phone) return
   const reviewLink = process.env.GOOGLE_REVIEW_LINK ?? 'https://g.page/r/YOUR_REVIEW_LINK'
-  await sendSMS(
-    phone,
-    `Job complete! Thank you for choosing Voltura Power Group. Mind leaving us a quick review? ${reviewLink}`,
-    optOut
-  )
+  const volturaPhone = process.env.VOLTURA_PHONE ?? '(719) 555-0100'
+  const jobLabel = jobType ? `your ${jobType}` : 'your electrical work'
+
+  const body =
+    `✅ Voltura Power Group — Work Complete!\n\n` +
+    `We've finished ${jobLabel}. All work is covered by our 12-month labor warranty.\n\n` +
+    `📋 Keep this message as your service record.\n` +
+    `📞 Questions? Call/text ${volturaPhone}\n` +
+    `⭐ How'd we do? Leave us a quick review: ${reviewLink}`
+
+  await sendSMS(phone, body, optOut)
 }

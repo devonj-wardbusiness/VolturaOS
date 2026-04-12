@@ -73,17 +73,17 @@ export async function listJobs(filters?: {
   })) as (Job & { customer: { name: string } })[]
 }
 
-export async function getJobById(id: string): Promise<Job & { customer: { id: string; name: string; phone: string | null; address: string | null } }> {
+export async function getJobById(id: string): Promise<Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }> {
   await requireAuth()
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('jobs')
-    .select('*, customers(id, name, phone, address)')
+    .select('*, customers(id, name, phone, address, zip)')
     .eq('id', id)
     .single()
   if (error) throw new Error(error.message)
   const { customers, ...job } = data as Record<string, unknown>
-  return { ...job, customer: customers } as Job & { customer: { id: string; name: string; phone: string | null; address: string | null } }
+  return { ...job, customer: customers } as Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }
 }
 
 export async function updateJob(id: string, updates: {
@@ -129,6 +129,71 @@ export async function getJobsForMonth(year: number, month: number): Promise<(Job
   })) as (Job & { customer: { name: string } })[]
 }
 
+export async function getNeighborhoodCustomers(jobId: string): Promise<{
+  id: string; name: string; phone: string; address: string | null; zip: string | null
+}[]> {
+  const admin = createAdminClient()
+  // Get this job's customer zip
+  const { data: jobData } = await admin
+    .from('jobs')
+    .select('customer_id, customers(zip, id)')
+    .eq('id', jobId)
+    .single()
+
+  const customerId = jobData?.customer_id as string | null
+  const cusRaw = jobData?.customers as unknown
+  const zip = (cusRaw && !Array.isArray(cusRaw) ? (cusRaw as Record<string, unknown>).zip : null) as string | null
+  if (!zip) return []
+
+  // Find other customers in same zip with a phone, not opted out
+  const { data } = await admin
+    .from('customers')
+    .select('id, name, phone, address, zip')
+    .eq('zip', zip)
+    .eq('sms_opt_out', false)
+    .not('phone', 'is', null)
+    .neq('id', customerId ?? '')
+    .limit(20)
+
+  return ((data ?? []) as Record<string, unknown>[]).map((c) => ({
+    id: c.id as string,
+    name: c.name as string,
+    phone: c.phone as string,
+    address: c.address as string | null,
+    zip: c.zip as string | null,
+  }))
+}
+
+export async function sendBlitzSMS(
+  customerIds: string[],
+  jobType: string,
+  zip: string
+): Promise<number> {
+  const admin = createAdminClient()
+  const { sendSMS: _sendSMS } = await import('@/lib/sms')
+  const phone = process.env.VOLTURA_PHONE ?? '(719) 555-0100'
+
+  const { data: customers } = await admin
+    .from('customers')
+    .select('phone, sms_opt_out')
+    .in('id', customerIds)
+
+  let sent = 0
+  for (const c of customers ?? []) {
+    const customer = c as { phone: string | null; sms_opt_out: boolean }
+    if (!customer.phone || customer.sms_opt_out) continue
+    await _sendSMS(
+      customer.phone,
+      `Hi! Voltura Power Group just finished a ${jobType} near you in ${zip}. ` +
+      `If you've been thinking about electrical work — panel upgrade, EV charger, new circuits, or a safety check — ` +
+      `we're in the area and have openings this week. Call/text ${phone} for a free estimate.`,
+      false
+    )
+    sent++
+  }
+  return sent
+}
+
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()
@@ -155,7 +220,7 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
       void sendTelegram(`✅ Job completed: ${customerName} — ${jobType}`)
       const phone = (customers?.phone as string | null) ?? null
       const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
-      void sendJobCompleteSMS(phone, optOut)
+      void sendJobCompleteSMS(phone, optOut, jobType)
     }
 
     void syncToSheets('Jobs', {

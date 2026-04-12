@@ -8,10 +8,11 @@ import { StatusStepper } from './StatusStepper'
 import { JobChecklist as JobChecklistUI } from './JobChecklist'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { JobPhotos } from './JobPhotos'
+import { NeighborhoodBlitz } from './NeighborhoodBlitz'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
-  job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null } }
+  job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }
   checklist: JobChecklist
   photos: JobPhotoRecord[]
 }
@@ -136,12 +137,15 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
         )}
 
         {job.status === 'Completed' && (
-          <button
-            onClick={() => router.push(`/invoices/new?jobId=${job.id}&customerId=${job.customer.id}`)}
-            className="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-base"
-          >
-            💰 Create Invoice
-          </button>
+          <>
+            <button
+              onClick={() => router.push(`/invoices/new?jobId=${job.id}&customerId=${job.customer.id}`)}
+              className="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-base"
+            >
+              💰 Create Invoice
+            </button>
+            <NeighborhoodBlitz jobId={job.id} jobType={job.job_type} zip={job.customer.zip} />
+          </>
         )}
 
         {job.status !== 'Cancelled' && job.status !== 'Paid' && (

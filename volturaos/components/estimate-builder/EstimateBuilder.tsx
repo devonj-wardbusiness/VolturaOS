@@ -23,6 +23,7 @@ import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
 import { InPersonSignature } from '@/components/estimates/InPersonSignature'
+import { MaterialList } from '@/components/estimates/MaterialList'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 import { DiscountsSection } from './DiscountsSection'
 
@@ -439,7 +440,10 @@ export function EstimateBuilder({
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 bg-volturaBlue border-t border-volturaNavy z-30 px-4 py-3">
-        <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
+        <div className="flex items-center justify-between mb-1">
+          <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
+          <MaterialList lineItems={lineItems} />
+        </div>
         {/* Signed badge */}
         {initialEstimate?.signed_at && (
           <div className="flex items-center gap-2 bg-green-900/30 border border-green-500/30 rounded-xl px-4 py-2 mb-2">

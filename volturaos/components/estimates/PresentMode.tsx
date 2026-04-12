@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { updateEstimateStatus, signEstimate } from '@/lib/actions/estimates'
+import { generateUpsellSuggestion } from '@/lib/actions/ai-tools'
 import { calculateTotal } from '@/components/estimate-builder/LiveTotal'
 import { ExpandableLineItem } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
@@ -45,6 +46,8 @@ export function PresentMode({
   const [hasSig, setHasSig] = useState(false)
   const [signerName, setSignerName] = useState('')
   const [openSection, setOpenSection] = useState<number | null>(null)
+  const [upsell, setUpsell] = useState<{ name: string; reason: string; price: number } | null>(null)
+  const [upsellDismissed, setUpsellDismissed] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawing = useRef(false)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
@@ -53,6 +56,16 @@ export function PresentMode({
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
+
+  // Fire upsell AI when sign step is reached
+  useEffect(() => {
+    if (step !== 'sign' || upsell !== null || upsellDismissed) return
+    const allItems = [...lineItems, ...customItems]
+    if (!allItems.length) return
+    generateUpsellSuggestion(allItems, allItems[0]?.description ?? 'electrical work')
+      .then((suggestion) => { if (suggestion) setUpsell(suggestion) })
+      .catch(() => { /* fail silently */ })
+  }, [step, upsell, upsellDismissed, lineItems, customItems])
 
   const soloTotal = calculateTotal([], lineItems, addons, customItems)
   const selectedAddonList = addons.filter((a) => a.selected)
@@ -269,6 +282,20 @@ export function PresentMode({
                   }
                 </p>
               </div>
+
+              {/* AI Upsell suggestion */}
+              {upsell && !upsellDismissed && (
+                <div className="bg-volturaGold/10 border border-volturaGold/40 rounded-2xl px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-volturaGold text-xs font-bold uppercase tracking-wider mb-0.5">While You&apos;re Here</p>
+                      <p className="text-white font-semibold text-sm">{upsell.name} — ${upsell.price.toLocaleString()}</p>
+                      <p className="text-gray-400 text-xs mt-1 leading-relaxed">{upsell.reason}</p>
+                    </div>
+                    <button onClick={() => setUpsellDismissed(true)} className="text-gray-600 text-lg leading-none shrink-0 mt-0.5">✕</button>
+                  </div>
+                </div>
+              )}
 
               {/* Terms & Conditions accordion */}
               <div>
