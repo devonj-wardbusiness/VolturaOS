@@ -42,6 +42,49 @@ export interface Job {
   tech_name: string
   created_at: string
   completed_at: string | null
+  permit_number: string | null
+  permit_status: string | null
+}
+
+export type PermitStatus = 'Not Applied' | 'Applied' | 'Approved' | 'Inspected' | 'Final'
+
+export interface JobTimeEntry {
+  id: string
+  job_id: string
+  clocked_in_at: string
+  clocked_out_at: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface HomeInspection {
+  id: string
+  customer_id: string
+  job_id: string | null
+  score: number
+  panel_age: number | null
+  panel_condition: string | null
+  has_afci: boolean
+  afci_rooms: number
+  has_gfci: boolean
+  gfci_locations: number
+  has_surge: boolean
+  grounding_ok: boolean
+  wiring_type: string | null
+  notes: string | null
+  created_at: string
+}
+
+export interface MaintenancePlan {
+  id: string
+  customer_id: string
+  plan_name: string
+  price: number
+  start_date: string
+  next_due: string
+  status: string
+  notes: string | null
+  created_at: string
 }
 
 export interface PricebookEntry {

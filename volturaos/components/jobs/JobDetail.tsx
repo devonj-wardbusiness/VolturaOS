@@ -11,6 +11,10 @@ import { JobPhotos } from './JobPhotos'
 import { NeighborhoodBlitz } from './NeighborhoodBlitz'
 import { VoiceNotes } from './VoiceNotes'
 import { ViolationReport } from './ViolationReport'
+import { PermitTracker } from './PermitTracker'
+import { JobCosting } from './JobCosting'
+import { HealthScore } from './HealthScore'
+import { MaintenancePlan } from './MaintenancePlan'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
@@ -168,6 +172,33 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
           </button>
         )}
       </div>
+
+      {/* Permit Tracker */}
+      <PermitTracker
+        jobId={job.id}
+        initialPermitNumber={job.permit_number ?? null}
+        initialPermitStatus={job.permit_status ?? null}
+      />
+
+      {/* Job Costing */}
+      <JobCosting jobId={job.id} />
+
+      {/* Electrical Health Score */}
+      {(job.status === 'In Progress' || job.status === 'Completed') && (
+        <HealthScore
+          customerId={job.customer.id}
+          jobId={job.id}
+          customerName={job.customer.name}
+        />
+      )}
+
+      {/* Maintenance Plans */}
+      {(job.status === 'Completed' || job.status === 'Paid') && (
+        <MaintenancePlan
+          customerId={job.customer.id}
+          customerName={job.customer.name}
+        />
+      )}
 
       {/* Checklist */}
       <JobChecklistUI checklist={checklist} />

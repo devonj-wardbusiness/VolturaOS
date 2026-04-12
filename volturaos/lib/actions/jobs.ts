@@ -91,6 +91,8 @@ export async function updateJob(id: string, updates: {
   scheduledDate?: string | null
   scheduledTime?: string | null
   notes?: string | null
+  permitNumber?: string | null
+  permitStatus?: string | null
 }): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()
@@ -99,8 +101,42 @@ export async function updateJob(id: string, updates: {
   if (updates.scheduledDate !== undefined) payload.scheduled_date = updates.scheduledDate
   if (updates.scheduledTime !== undefined) payload.scheduled_time = updates.scheduledTime
   if (updates.notes !== undefined) payload.notes = updates.notes
+  if (updates.permitNumber !== undefined) payload.permit_number = updates.permitNumber
+  if (updates.permitStatus !== undefined) payload.permit_status = updates.permitStatus
   const { error } = await admin.from('jobs').update(payload).eq('id', id)
   if (error) throw new Error(error.message)
+}
+
+// ── Time tracking ─────────────────────────────────────────────────────────────
+
+export async function clockIn(jobId: string): Promise<string> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('job_time_entries')
+    .insert({ job_id: jobId, clocked_in_at: new Date().toISOString() })
+    .select('id')
+    .single()
+  if (error) throw new Error(error.message)
+  return (data as { id: string }).id
+}
+
+export async function clockOut(entryId: string, notes?: string): Promise<void> {
+  const admin = createAdminClient()
+  const payload: Record<string, unknown> = { clocked_out_at: new Date().toISOString() }
+  if (notes) payload.notes = notes
+  const { error } = await admin.from('job_time_entries').update(payload).eq('id', entryId)
+  if (error) throw new Error(error.message)
+}
+
+export async function getTimeEntries(jobId: string): Promise<import('@/types').JobTimeEntry[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('job_time_entries')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('clocked_in_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as import('@/types').JobTimeEntry[]
 }
 
 export async function getJobsForMonth(year: number, month: number): Promise<(Job & { customer: { name: string } })[]> {
