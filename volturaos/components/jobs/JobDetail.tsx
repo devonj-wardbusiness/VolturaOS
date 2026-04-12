@@ -9,6 +9,8 @@ import { JobChecklist as JobChecklistUI } from './JobChecklist'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { JobPhotos } from './JobPhotos'
 import { NeighborhoodBlitz } from './NeighborhoodBlitz'
+import { VoiceNotes } from './VoiceNotes'
+import { ViolationReport } from './ViolationReport'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
@@ -136,6 +138,14 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
           </button>
         )}
 
+        {(job.status === 'In Progress' || job.status === 'Completed') && (
+          <ViolationReport
+            customerName={job.customer.name}
+            address={job.customer.address}
+            jobType={job.job_type}
+          />
+        )}
+
         {job.status === 'Completed' && (
           <>
             <button
@@ -166,13 +176,22 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
       <div className="bg-volturaNavy/50 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Notes</p>
-          {!editingNotes ? (
-            <button onClick={() => setEditingNotes(true)} className="text-volturaGold text-xs">Edit</button>
-          ) : (
-            <button onClick={handleSaveNotes} disabled={isPending} className="text-volturaGold text-xs font-semibold">
-              {isPending ? 'Saving...' : 'Save'}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            <VoiceNotes
+              jobType={job.job_type}
+              onTranscript={(text) => {
+                setNotes((prev) => prev ? `${prev}\n${text}` : text)
+                setEditingNotes(true)
+              }}
+            />
+            {!editingNotes ? (
+              <button onClick={() => setEditingNotes(true)} className="text-volturaGold text-xs">Edit</button>
+            ) : (
+              <button onClick={handleSaveNotes} disabled={isPending} className="text-volturaGold text-xs font-semibold">
+                {isPending ? 'Saving...' : 'Save'}
+              </button>
+            )}
+          </div>
         </div>
         {editingNotes ? (
           <textarea

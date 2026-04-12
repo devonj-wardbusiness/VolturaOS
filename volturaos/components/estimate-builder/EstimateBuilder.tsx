@@ -24,6 +24,8 @@ import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
 import { InPersonSignature } from '@/components/estimates/InPersonSignature'
 import { MaterialList } from '@/components/estimates/MaterialList'
+import { SavingsCalculator } from '@/components/estimates/SavingsCalculator'
+import { PhotoEstimate } from './PhotoEstimate'
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 import { DiscountsSection } from './DiscountsSection'
 
@@ -442,7 +444,20 @@ export function EstimateBuilder({
       <div className="fixed bottom-16 left-0 right-0 bg-volturaBlue border-t border-volturaNavy z-30 px-4 py-3">
         <div className="flex items-center justify-between mb-1">
           <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
-          <MaterialList lineItems={lineItems} />
+          <div className="flex items-center gap-3">
+            <SavingsCalculator lineItems={lineItems} addons={addons} />
+            <PhotoEstimate
+              onAddItems={(items) => {
+                items.forEach((item) => {
+                  setCustomItems((prev) => [
+                    ...prev,
+                    { description: item.description, price: item.price, is_override: false, original_price: item.price },
+                  ])
+                })
+              }}
+            />
+            <MaterialList lineItems={lineItems} />
+          </div>
         </div>
         {/* Signed badge */}
         {initialEstimate?.signed_at && (

@@ -72,6 +72,73 @@ export async function generateUpsellSuggestion(
   }
 }
 
+export async function cleanupVoiceNotes(rawTranscript: string, jobType: string): Promise<string> {
+  const msg = await client.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 512,
+    messages: [
+      {
+        role: 'user',
+        content:
+          `You are a field electrician's assistant. Clean up and structure this raw voice transcript ` +
+          `from a job site note. Job type: ${jobType}.\n\n` +
+          `Raw transcript: "${rawTranscript}"\n\n` +
+          `Rules: Fix grammar and punctuation. Keep all technical details exact (wire gauges, breaker sizes, ` +
+          `part numbers, locations). Format as short bullet points if multiple items mentioned. ` +
+          `Use electrician terminology. Do not add anything not in the transcript. ` +
+          `Return the cleaned note only — no preamble.`,
+      },
+    ],
+  })
+  const block = msg.content[0]
+  return block.type === 'text' ? block.text.trim() : rawTranscript
+}
+
+export async function analyzePhotoForEstimate(
+  imageBase64: string,
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp'
+): Promise<{ description: string; price: number; category: string }[]> {
+  const msg = await client.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mimeType, data: imageBase64 },
+          },
+          {
+            type: 'text',
+            text:
+              `You are an expert electrician reviewing a photo from a job site. ` +
+              `Identify the electrical components, issues, or work needed and suggest ` +
+              `estimate line items for Voltura Power Group (Colorado Springs electrical contractor).\n\n` +
+              `Look for: panel brand/condition, breaker issues, double-taps, missing AFCI/GFCI, ` +
+              `wiring issues, code violations, meter condition, grounding, service size, etc.\n\n` +
+              `Return JSON array only:\n` +
+              `[{"description": "...", "price": 000, "category": "..."}]\n\n` +
+              `Use realistic mid-tier Colorado Springs pricing. Category options: ` +
+              `"Panel Upgrades", "Code Compliance", "Circuits", "Service Calls", "EV Chargers". ` +
+              `Max 6 items. No markdown, no explanation — JSON array only.`,
+          },
+        ],
+      },
+    ],
+  })
+
+  try {
+    const block = msg.content[0]
+    if (block.type !== 'text') return []
+    const raw = block.text.match(/\[[\s\S]*\]/)
+    if (!raw) return []
+    return JSON.parse(raw[0]) as { description: string; price: number; category: string }[]
+  } catch {
+    return []
+  }
+}
+
 export async function generateNeighborhoodBlitzMessage(
   jobType: string,
   zip: string

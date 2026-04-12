@@ -39,10 +39,11 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick links */}
-        <div className="flex gap-4 justify-center mt-5">
+        <div className="flex flex-wrap gap-4 justify-center mt-5">
           <Link href="/settings/pricebook" className="text-gray-500 text-xs underline">⚙️ Pricebook</Link>
           <Link href="/settings/templates" className="text-gray-500 text-xs underline">🔖 Templates</Link>
           <Link href="/agreements" className="text-gray-500 text-xs underline">🛡 Agreements</Link>
+          <Link href="/tools/load-calc" className="text-gray-500 text-xs underline">🧮 Load Calc</Link>
         </div>
       </div>
     </>
