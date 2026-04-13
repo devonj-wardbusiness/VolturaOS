@@ -23,7 +23,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           <EmptyState message="No customers yet — tap + to add one" ctaLabel="+ Add Customer" ctaHref="/customers/new" />
         ) : (
           <div className="space-y-2 mt-4">
-            {customers.map((c) => <CustomerCard key={c.id} customer={c} />)}
+            {customers.map((c) => <CustomerCard key={c.id} customer={c} jobCount={c.jobCount} />)}
           </div>
         )}
       </div>

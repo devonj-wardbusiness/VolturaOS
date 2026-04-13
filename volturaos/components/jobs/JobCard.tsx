@@ -5,7 +5,7 @@ import { Calendar } from 'lucide-react'
 import { STATUS_ACCENT } from '@/lib/constants/jobStatus'
 
 interface JobCardProps {
-  job: Job & { customer: { name: string } }
+  job: Job & { customer: { name: string }; invoiceTotal?: number | null }
 }
 
 export function JobCard({ job }: JobCardProps) {
@@ -35,7 +35,12 @@ export function JobCard({ job }: JobCardProps) {
             </p>
           )}
         </div>
-        <StatusPill status={job.status} />
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <StatusPill status={job.status} />
+          {job.invoiceTotal != null && (
+            <p className="text-volturaGold font-bold text-sm">${job.invoiceTotal.toLocaleString()}</p>
+          )}
+        </div>
       </div>
     </Link>
   )

@@ -2,15 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Zap, Wrench, Users, FileText, DollarSign } from 'lucide-react'
+import { Zap, Wrench, Users, DollarSign } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-const tabs: { href: string; label: string; Icon: LucideIcon }[] = [
+const tabs: { href: string; label: string; Icon: LucideIcon; also?: string[] }[] = [
   { href: '/',          label: 'Home',      Icon: Zap },
   { href: '/jobs',      label: 'Jobs',      Icon: Wrench },
   { href: '/customers', label: 'Customers', Icon: Users },
-  { href: '/estimates', label: 'Estimates', Icon: FileText },
-  { href: '/invoices',  label: 'Invoices',  Icon: DollarSign },
+  { href: '/invoices',  label: 'Money',     Icon: DollarSign, also: ['/estimates'] },
 ]
 
 export function BottomNav() {
@@ -18,8 +17,11 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-[#0D0F1A]/95 backdrop-blur-sm border-t border-white/5 z-40">
       <div className="flex h-full">
-        {tabs.map(({ href, label, Icon }) => {
-          const active = pathname === href || (href !== '/' && pathname.startsWith(href))
+        {tabs.map(({ href, label, Icon, also }) => {
+          const active =
+            pathname === href ||
+            (href !== '/' && pathname.startsWith(href)) ||
+            (also?.some((p) => pathname.startsWith(p)) ?? false)
           return (
             <Link
               key={href}

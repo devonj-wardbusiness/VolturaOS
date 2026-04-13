@@ -74,23 +74,29 @@ export async function getCustomerById(id: string): Promise<Customer & { equipmen
   return { ...customer, equipment: customer_equipment ?? [] }
 }
 
-export async function searchCustomers(query: string): Promise<Customer[]> {
+export async function searchCustomers(query: string): Promise<(Customer & { jobCount: number })[]> {
   await requireAuth()
   const admin = createAdminClient()
   if (!query.trim()) {
-    const { data, error } = await admin.from('customers').select('*').order('name').limit(50)
+    const { data, error } = await admin.from('customers').select('*, jobs(id)').order('name').limit(50)
     if (error) throw new Error(error.message)
-    return data as Customer[]
+    return (data as Record<string, unknown>[]).map(({ jobs: jobList, ...c }) => ({
+      ...(c as unknown as Customer),
+      jobCount: Array.isArray(jobList) ? jobList.length : 0,
+    }))
   }
   const q = `%${query}%`
   const { data, error } = await admin
     .from('customers')
-    .select('*')
+    .select('*, jobs(id)')
     .or(`name.ilike.${q},phone.ilike.${q},address.ilike.${q}`)
     .order('name')
     .limit(20)
   if (error) throw new Error(error.message)
-  return data as Customer[]
+  return (data as Record<string, unknown>[]).map(({ jobs: jobList, ...c }) => ({
+    ...(c as unknown as Customer),
+    jobCount: Array.isArray(jobList) ? jobList.length : 0,
+  }))
 }
 
 export async function createEquipment(input: { customer_id: string; type: string; brand?: string; amperage?: string; age_years?: number; notes?: string }): Promise<CustomerEquipment> {

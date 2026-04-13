@@ -2,6 +2,7 @@ import { getDashboardData } from '@/lib/actions/dashboard'
 import { KPICards } from '@/components/dashboard/KPICards'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { TodaySchedule } from '@/components/dashboard/TodaySchedule'
+import { NeedsAttention } from '@/components/dashboard/NeedsAttention'
 import { PageHeader } from '@/components/ui/PageHeader'
 import Link from 'next/link'
 
@@ -18,6 +19,9 @@ export default async function DashboardPage() {
           <Link href="/estimates/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Estimate</Link>
           <Link href="/jobs/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Job</Link>
         </div>
+
+        {/* Needs Attention */}
+        <NeedsAttention items={data.attentionItems as { type: 'invoice' | 'job'; id: string; label: string; href: string; daysOverdue?: number }[]} />
 
         {/* Today's Schedule */}
         <TodaySchedule jobs={data.todayJobs as { id: string; job_type: string; status: string; scheduled_time: string | null; customer: { name: string; phone: string | null } }[]} />

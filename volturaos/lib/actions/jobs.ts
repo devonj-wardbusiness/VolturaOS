@@ -56,21 +56,24 @@ export async function createJob(input: {
 export async function listJobs(filters?: {
   status?: JobStatus
   customerId?: string
-}): Promise<(Job & { customer: { name: string } })[]> {
+}): Promise<(Job & { customer: { name: string }; invoiceTotal: number | null })[]> {
   await requireAuth()
   const admin = createAdminClient()
   let query = admin
     .from('jobs')
-    .select('*, customers(name)')
+    .select('*, customers(name), invoices(id, total, status)')
     .order('created_at', { ascending: false })
     .limit(100)
   if (filters?.status) query = query.eq('status', filters.status)
   if (filters?.customerId) query = query.eq('customer_id', filters.customerId)
   const { data, error } = await query
   if (error) throw new Error(error.message)
-  return (data as Record<string, unknown>[]).map(({ customers, ...j }) => ({
-    ...j, customer: customers,
-  })) as (Job & { customer: { name: string } })[]
+  return (data as Record<string, unknown>[]).map(({ customers, invoices: invs, ...j }) => {
+    const invoicesArr = Array.isArray(invs) ? (invs as { total: number; status: string }[]) : []
+    // Prefer latest invoice total (last in array)
+    const invoiceTotal = invoicesArr.length > 0 ? invoicesArr[invoicesArr.length - 1].total : null
+    return { ...j, customer: customers, invoiceTotal }
+  }) as (Job & { customer: { name: string }; invoiceTotal: number | null })[]
 }
 
 export async function getJobById(id: string): Promise<Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }> {
