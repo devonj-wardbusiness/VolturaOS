@@ -16,6 +16,7 @@ import { JobCosting } from './JobCosting'
 import { HealthScore } from './HealthScore'
 import { MaintenancePlan } from './MaintenancePlan'
 import { SendToCrewButton } from './SendToCrewButton'
+import { GPSClockIn } from './GPSClockIn'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
@@ -196,6 +197,15 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
         initialPermitNumber={job.permit_number ?? null}
         initialPermitStatus={job.permit_status ?? null}
       />
+
+      {/* GPS auto clock-in prompt */}
+      {(job.status === 'Scheduled' || job.status === 'In Progress') && (
+        <GPSClockIn
+          jobId={job.id}
+          address={job.customer.address}
+          isAlreadyClockedIn={job.status === 'In Progress'}
+        />
+      )}
 
       {/* Job Costing */}
       <JobCosting jobId={job.id} />

@@ -233,6 +233,44 @@ export async function sendBlitzSMS(
   return sent
 }
 
+// ── Material cost tracking ─────────────────────────────────────────────────
+
+export interface JobMaterial {
+  id: string
+  job_id: string
+  description: string
+  cost: number
+  created_at: string
+}
+
+export async function addMaterial(jobId: string, description: string, cost: number): Promise<JobMaterial> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('job_materials')
+    .insert({ job_id: jobId, description, cost })
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return data as JobMaterial
+}
+
+export async function getMaterials(jobId: string): Promise<JobMaterial[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('job_materials')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('created_at', { ascending: true })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as JobMaterial[]
+}
+
+export async function deleteMaterial(materialId: string): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin.from('job_materials').delete().eq('id', materialId)
+  if (error) throw new Error(error.message)
+}
+
 export async function sendCrewSMS(jobId: string, crewPhone: string): Promise<void> {
   const admin = createAdminClient()
   const { data, error } = await admin
