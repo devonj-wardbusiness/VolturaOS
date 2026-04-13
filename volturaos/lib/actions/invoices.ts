@@ -68,23 +68,26 @@ export async function createInvoiceFromEstimate(estimateId: string): Promise<Inv
 export async function getInvoiceById(id: string): Promise<Invoice & {
   customer: { name: string; phone: string | null; address: string | null }
   payments: InvoicePayment[]
+  permitNumber: string | null
 }> {
   await requireAuth()
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('invoices')
-    .select('*, customers(name, phone, address), invoice_payments(*)')
+    .select('*, customers(name, phone, address), invoice_payments(*), jobs(permit_number)')
     .eq('id', id)
     .single()
   if (error) throw new Error(error.message)
-  const { customers, invoice_payments, ...invoice } = data as Record<string, unknown>
+  const { customers, invoice_payments, jobs: jobData, ...invoice } = data as Record<string, unknown>
+  const permitNumber = (jobData as { permit_number: string | null } | null)?.permit_number ?? null
   return {
     ...invoice,
     customer: customers,
     payments: ((invoice_payments ?? []) as InvoicePayment[]).sort(
       (a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime()
     ),
-  } as Invoice & { customer: { name: string; phone: string | null; address: string | null }; payments: InvoicePayment[] }
+    permitNumber,
+  } as Invoice & { customer: { name: string; phone: string | null; address: string | null }; payments: InvoicePayment[]; permitNumber: string | null }
 }
 
 export async function listInvoices(filters?: {

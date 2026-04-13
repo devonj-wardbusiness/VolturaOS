@@ -16,6 +16,7 @@ interface InvoiceDetailProps {
   invoice: Invoice & {
     customer: { name: string; phone: string | null; address: string | null }
     payments: InvoicePayment[]
+    permitNumber?: string | null
   }
 }
 
@@ -90,6 +91,8 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
         payments={invoice.payments}
         notes={invoice.notes}
         createdAt={invoice.created_at}
+        dueDate={invoice.due_date}
+        permitNumber={invoice.permitNumber}
       />
 
       {/* Share Invoice */}

@@ -17,12 +17,15 @@ export async function getDashboardData() {
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
-  const [invoices, jobs, estimates, recentJobs, payments] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10)
+
+  const [invoices, jobs, estimates, recentJobs, payments, todayJobs] = await Promise.all([
     admin.from('invoices').select('total, amount_paid, status, created_at'),
     admin.from('jobs').select('status, created_at'),
     admin.from('estimates').select('status, total, created_at'),
     admin.from('jobs').select('*, customers(name)').order('created_at', { ascending: false }).limit(5),
     admin.from('invoice_payments').select('amount, paid_at').gte('paid_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+    admin.from('jobs').select('id, job_type, status, scheduled_date, scheduled_time, customers(name, phone)').eq('scheduled_date', today).not('status', 'in', '("Cancelled","Paid","Completed")').order('scheduled_time', { ascending: true }),
   ])
 
   const allInvoices = (invoices.data ?? []) as Record<string, unknown>[]
@@ -78,6 +81,10 @@ export async function getDashboardData() {
     closeRate,
     sparklineData,
     recentJobs: (recentJobs.data ?? []).map((row) => {
+      const { customers, ...j } = row as Record<string, unknown>
+      return { ...j, customer: customers }
+    }),
+    todayJobs: (todayJobs.data ?? []).map((row) => {
       const { customers, ...j } = row as Record<string, unknown>
       return { ...j, customer: customers }
     }),

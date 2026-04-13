@@ -9,6 +9,7 @@ interface InvoiceDownloadButtonProps {
   customerName: string
   customerPhone?: string | null
   customerAddress?: string | null
+  jobAddress?: string | null
   lineItems: LineItem[]
   total: number
   amountPaid: number
@@ -17,6 +18,8 @@ interface InvoiceDownloadButtonProps {
   payments: InvoicePayment[]
   notes?: string | null
   createdAt: string
+  dueDate?: string | null
+  permitNumber?: string | null
 }
 
 export function InvoiceDownloadButton(props: InvoiceDownloadButtonProps) {

@@ -70,13 +70,27 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
       {/* Customer info */}
       <div className="bg-volturaNavy/50 rounded-xl p-4">
         <p className="text-white font-bold text-lg">{job.customer.name}</p>
-        {job.customer.phone && (
-          <a href={`tel:${job.customer.phone}`} className="text-volturaGold text-sm block mt-1">
-            📞 {job.customer.phone}
-          </a>
-        )}
         {job.customer.address && (
-          <p className="text-gray-400 text-sm mt-1">📍 {job.customer.address}</p>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(job.customer.address ?? '')
+              if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(40)
+            }}
+            className="text-gray-400 text-sm mt-1 text-left flex items-center gap-1.5 group w-full"
+            title="Tap to copy address"
+          >
+            <span>📍</span>
+            <span className="group-active:text-volturaGold transition-colors">{job.customer.address}</span>
+            <span className="text-gray-600 text-xs ml-1 group-active:text-volturaGold">copy</span>
+          </button>
+        )}
+        {job.customer.phone && (
+          <a
+            href={`tel:${job.customer.phone}`}
+            className="mt-3 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+          >
+            <span>📞</span> Call {job.customer.name.split(' ')[0]}
+          </a>
         )}
       </div>
 
