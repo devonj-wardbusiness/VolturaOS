@@ -15,6 +15,7 @@ import { PermitTracker } from './PermitTracker'
 import { JobCosting } from './JobCosting'
 import { HealthScore } from './HealthScore'
 import { MaintenancePlan } from './MaintenancePlan'
+import { SendToCrewButton } from './SendToCrewButton'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 interface JobDetailProps {
@@ -175,6 +176,8 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
             <NeighborhoodBlitz jobId={job.id} jobType={job.job_type} zip={job.customer.zip} />
           </>
         )}
+
+        <SendToCrewButton jobId={job.id} />
 
         {job.status !== 'Cancelled' && job.status !== 'Paid' && (
           <button

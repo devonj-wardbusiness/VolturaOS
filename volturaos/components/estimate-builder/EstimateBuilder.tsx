@@ -102,6 +102,10 @@ export function EstimateBuilder({
 
   const [followUpDays, setFollowUpDays] = useState(initialEstimate?.follow_up_days ?? 3)
 
+  // Margin calculator (local only, not saved)
+  const [myCost, setMyCost] = useState('')
+  const [showMargin, setShowMargin] = useState(false)
+
   // UI state
   const [sendOpen, setSendOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -442,6 +446,36 @@ export function EstimateBuilder({
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 bg-volturaBlue border-t border-volturaNavy z-30 px-4 py-3">
+        {/* Margin calculator */}
+        {showMargin ? (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-gray-400 text-xs">My cost $</span>
+            <input
+              type="number"
+              min={0}
+              value={myCost}
+              onChange={e => setMyCost(e.target.value)}
+              placeholder="0"
+              className="w-24 bg-volturaNavy text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50"
+            />
+            {myCost && Number(myCost) > 0 && total > 0 && (
+              <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${
+                ((total - Number(myCost)) / total) >= 0.35
+                  ? 'text-green-400 bg-green-900/30'
+                  : ((total - Number(myCost)) / total) >= 0.20
+                  ? 'text-yellow-400 bg-yellow-900/20'
+                  : 'text-red-400 bg-red-900/20'
+              }`}>
+                {Math.round(((total - Number(myCost)) / total) * 100)}% margin
+              </span>
+            )}
+            <button onClick={() => setShowMargin(false)} className="ml-auto text-gray-500 text-xs">Done</button>
+          </div>
+        ) : (
+          <button onClick={() => setShowMargin(true)} className="text-gray-500 text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
+            <span>📊</span> Margin
+          </button>
+        )}
         <div className="flex items-center justify-between mb-1">
           <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
           <div className="flex items-center gap-3">

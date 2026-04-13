@@ -18,6 +18,7 @@ export interface Customer {
   property_type: PropertyType
   notes: string | null
   sms_opt_out: boolean
+  referral_source: string | null
   created_at: string
 }
 

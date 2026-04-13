@@ -22,6 +22,7 @@ export async function createCustomer(input: {
   zip?: string
   property_type?: string
   notes?: string
+  referral_source?: string
 }): Promise<Customer> {
   if (!input.name?.trim()) throw new Error('Name is required')
   await requireAuth()
@@ -37,6 +38,7 @@ export async function createCustomer(input: {
       zip: input.zip || null,
       property_type: input.property_type || 'residential',
       notes: input.notes || null,
+      referral_source: input.referral_source || null,
     })
     .select()
     .single()

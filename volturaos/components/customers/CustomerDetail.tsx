@@ -21,6 +21,7 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
     zip: customer.zip ?? '',
     property_type: customer.property_type,
     notes: customer.notes ?? '',
+    referral_source: customer.referral_source ?? '',
   })
 
   function handleSave() {
@@ -59,6 +60,9 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
         {customer.email && <p className="text-gray-400 text-sm">{customer.email}</p>}
         {customer.address && <p className="text-gray-400 text-sm">{customer.address}, {customer.city} {customer.zip}</p>}
         <span className="inline-block bg-volturaNavy text-gray-400 text-xs px-2.5 py-1 rounded-full capitalize">{customer.property_type}</span>
+        {customer.referral_source && (
+          <p className="text-gray-500 text-xs mt-1">📣 {customer.referral_source}</p>
+        )}
         {customer.notes && <p className="text-gray-500 text-sm bg-volturaNavy/50 rounded-xl p-3 mt-2">{customer.notes}</p>}
 
         {/* Maintenance Agreement */}
@@ -135,6 +139,18 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
         className="w-full bg-volturaNavy text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold">
         <option value="residential">Residential</option>
         <option value="commercial">Commercial</option>
+      </select>
+      <select value={form.referral_source} onChange={(e) => setForm({ ...form, referral_source: e.target.value })}
+        className="w-full bg-volturaNavy text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold">
+        <option value="">How did they hear about us?</option>
+        <option value="Google">Google</option>
+        <option value="Facebook">Facebook</option>
+        <option value="Nextdoor">Nextdoor</option>
+        <option value="Word of Mouth">Word of Mouth</option>
+        <option value="Repeat Customer">Repeat Customer</option>
+        <option value="Yard Sign">Yard Sign</option>
+        <option value="Referral">Referral from Customer</option>
+        <option value="Other">Other</option>
       </select>
       <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" rows={3}
         className="w-full bg-volturaNavy text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold" />

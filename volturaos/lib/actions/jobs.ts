@@ -233,6 +233,38 @@ export async function sendBlitzSMS(
   return sent
 }
 
+export async function sendCrewSMS(jobId: string, crewPhone: string): Promise<void> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('jobs')
+    .select('job_type, scheduled_date, scheduled_time, notes, customers(name, address, phone)')
+    .eq('id', jobId)
+    .single()
+  if (error) throw new Error(error.message)
+
+  const job = data as Record<string, unknown>
+  const cust = job.customers as { name: string; address: string | null; phone: string | null } | null
+
+  const dateStr = job.scheduled_date
+    ? new Date((job.scheduled_date as string) + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    : 'TBD'
+  const timeStr = job.scheduled_time ? (job.scheduled_time as string).slice(0, 5) : ''
+
+  const body = [
+    `📋 JOB DETAILS`,
+    `Customer: ${cust?.name ?? 'Unknown'}`,
+    `Job: ${job.job_type as string}`,
+    `Date: ${dateStr}${timeStr ? ' at ' + timeStr : ''}`,
+    cust?.address ? `Address: ${cust.address}` : null,
+    cust?.phone ? `Phone: ${cust.phone}` : null,
+    (job.notes as string | null) ? `Notes: ${job.notes as string}` : null,
+    `— Voltura Power Group`,
+  ].filter(Boolean).join('\n')
+
+  const { sendSMS: _sendSMS } = await import('@/lib/sms')
+  await _sendSMS(crewPhone, body, false)
+}
+
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()

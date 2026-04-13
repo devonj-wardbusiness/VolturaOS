@@ -14,10 +14,11 @@ export default async function DashboardPage() {
       <PageHeader title="VOLTURA" subtitle="Power Group" />
       <div className="px-4 pt-14 pb-6">
         {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-2 mb-5 mt-4">
+        <div className="grid grid-cols-4 gap-2 mb-5 mt-4">
           <Link href="/customers/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Customer</Link>
           <Link href="/estimates/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Estimate</Link>
           <Link href="/jobs/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Job</Link>
+          <Link href="/tools/quick-quote" className="bg-transparent border border-volturaGold/50 rounded-2xl p-3 text-center text-volturaGold/70 font-bold text-sm">⚡ Quote</Link>
         </div>
 
         {/* Needs Attention */}
