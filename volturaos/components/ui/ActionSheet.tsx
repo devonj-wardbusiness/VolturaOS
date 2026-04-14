@@ -40,8 +40,13 @@ export function ActionSheet({ label, actions, onClose }: ActionSheetProps) {
 
   async function confirmDelete() {
     if (!confirmingAction) return
-    confirmingAction.onClick()
-    close()
+    try {
+      await confirmingAction.onClick()
+      close()
+    } catch {
+      alert('Something went wrong. Please try again.')
+      setConfirmingAction(null)
+    }
   }
 
   return (
