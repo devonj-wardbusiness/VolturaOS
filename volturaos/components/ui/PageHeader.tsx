@@ -1,24 +1,31 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 
 interface PageHeaderProps {
   title: string
   subtitle?: string
+  /** Pass any truthy string to show the back chevron. Tapping always calls router.back(). */
   backHref?: string
   action?: React.ReactNode
 }
 
 export function PageHeader({ title, subtitle, backHref, action }: PageHeaderProps) {
+  const router = useRouter()
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#0D0F1A]/90 backdrop-blur-sm border-b border-white/5 flex items-center">
       {/* Back button */}
       <div className="absolute left-0 pl-2">
         {backHref && (
-          <Link href={backHref} className="flex items-center justify-center w-10 h-10">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-10 h-10"
+            aria-label="Go back"
+          >
             <ChevronLeft size={20} className="text-volturaGold" />
-          </Link>
+          </button>
         )}
       </div>
 

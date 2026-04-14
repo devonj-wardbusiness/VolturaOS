@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 export default function TermsPage() {
   return (
     <div className="pb-12">
-      <PageHeader title="Terms &amp; Conditions" />
+      <PageHeader title="Terms &amp; Conditions" backHref="back" />
       <div className="px-4">
       <div className="mb-6">
         <p className="text-gray-400 text-sm">Voltura Power Group — Colorado Springs, CO</p>

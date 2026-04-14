@@ -35,7 +35,7 @@ export default function SearchPage() {
 
   return (
     <>
-      <PageHeader title="Search" />
+      <PageHeader title="Search" backHref="back" />
       <div className="px-4 pt-14 pb-6">
         <input
           autoFocus
