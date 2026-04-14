@@ -5,6 +5,7 @@ import { Search } from 'lucide-react'
 import { BottomNav } from '@/components/nav/BottomNav'
 import { AIChatWidget } from '@/components/ai-chat/AIChatWidget'
 import { FAB } from '@/components/ui/FAB'
+import { ActionSheetProvider } from '@/components/ui/ActionSheetProvider'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +17,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       >
         <Search size={20} />
       </Link>
-      {children}
+      <ActionSheetProvider>
+        {children}
+      </ActionSheetProvider>
       <BottomNav />
       <AIChatWidget />
       <FAB />
