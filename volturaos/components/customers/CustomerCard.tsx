@@ -1,5 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { Customer } from '@/types'
+import { useLongPress } from '@/hooks/useLongPress'
+import { useActionSheet } from '@/components/ui/ActionSheetProvider'
+import { deleteCustomer } from '@/lib/actions/customers'
 
 function getInitials(name: string): string {
   return name
@@ -17,13 +23,42 @@ function getOrdinal(n: number): string {
 }
 
 export function CustomerCard({ customer, jobCount }: { customer: Customer; jobCount?: number }) {
+  const router = useRouter()
+  const { openSheet } = useActionSheet()
   const initials = getInitials(customer.name || '?')
   const isRepeat = jobCount != null && jobCount > 1
+
+  function showSheet() {
+    openSheet(customer.name, [
+      {
+        icon: '✏️',
+        label: 'Edit',
+        onClick: () => router.push(`/customers/${customer.id}`),
+      },
+      ...(customer.phone ? [{
+        icon: '📞',
+        label: `Call ${customer.name.split(' ')[0]}`,
+        onClick: () => { window.location.href = `tel:${customer.phone}` },
+      }] : []),
+      {
+        icon: '🗑️',
+        label: 'Delete',
+        onClick: async () => {
+          await deleteCustomer(customer.id)
+          router.refresh()
+        },
+        destructive: true,
+      },
+    ])
+  }
+
+  const bind = useLongPress(showSheet)
 
   return (
     <Link
       href={`/customers/${customer.id}`}
       className="flex items-center gap-3 bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100"
+      {...bind}
     >
       {/* Avatar */}
       <div className="w-10 h-10 rounded-full border border-volturaGold/40 bg-volturaBlue flex items-center justify-center flex-shrink-0">
