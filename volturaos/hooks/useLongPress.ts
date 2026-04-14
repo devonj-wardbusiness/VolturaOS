@@ -5,6 +5,7 @@ export interface LongPressHandlers {
   onTouchStart: (e: React.TouchEvent) => void
   onTouchMove: (e: React.TouchEvent) => void
   onTouchEnd: (e: React.TouchEvent) => void
+  onTouchCancel: (e: React.TouchEvent) => void
   onContextMenu: (e: React.MouseEvent) => void
 }
 
@@ -45,6 +46,7 @@ export function useLongPress(onLongPress: () => void, delay = 500): LongPressHan
 
   function contextMenu(e: React.MouseEvent) {
     e.preventDefault()
+    if (fired.current) return
     navigator.vibrate?.(40)
     onLongPress()
   }
@@ -53,6 +55,7 @@ export function useLongPress(onLongPress: () => void, delay = 500): LongPressHan
     onTouchStart: start,
     onTouchMove: move,
     onTouchEnd: end,
+    onTouchCancel: clear,
     onContextMenu: contextMenu,
   }
 }
