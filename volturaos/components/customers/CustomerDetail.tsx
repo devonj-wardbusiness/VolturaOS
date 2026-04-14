@@ -56,9 +56,28 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
             </button>
           </div>
         </div>
-        {customer.phone && <p className="text-gray-300">{customer.phone}</p>}
+        {customer.phone && (
+          <a
+            href={`tel:${customer.phone}`}
+            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+          >
+            <span>📞</span> Call {customer.name.split(' ')[0]}
+          </a>
+        )}
         {customer.email && <p className="text-gray-400 text-sm">{customer.email}</p>}
-        {customer.address && <p className="text-gray-400 text-sm">{customer.address}, {customer.city} {customer.zip}</p>}
+        {customer.address && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`${customer.address}, ${customer.city} ${customer.zip}`)
+              if (navigator.vibrate) navigator.vibrate(40)
+            }}
+            className="text-gray-400 text-sm text-left flex items-center gap-1.5 group w-full"
+          >
+            <span>📍</span>
+            <span className="group-active:text-volturaGold transition-colors">{customer.address}, {customer.city} {customer.zip}</span>
+            <span className="text-gray-600 text-xs ml-1 group-active:text-volturaGold">copy</span>
+          </button>
+        )}
         <span className="inline-block bg-volturaNavy text-gray-400 text-xs px-2.5 py-1 rounded-full capitalize">{customer.property_type}</span>
         {customer.referral_source && (
           <p className="text-gray-500 text-xs mt-1">📣 {customer.referral_source}</p>

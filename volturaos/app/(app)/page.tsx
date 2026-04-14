@@ -3,6 +3,7 @@ import { KPICards } from '@/components/dashboard/KPICards'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { TodaySchedule } from '@/components/dashboard/TodaySchedule'
 import { NeedsAttention } from '@/components/dashboard/NeedsAttention'
+import { ReferralStats } from '@/components/dashboard/ReferralStats'
 import { PageHeader } from '@/components/ui/PageHeader'
 import Link from 'next/link'
 
@@ -30,6 +31,7 @@ export default async function DashboardPage() {
         {/* KPIs */}
         <KPICards
           monthRevenue={data.monthRevenue}
+          lastMonthRevenue={data.lastMonthRevenue}
           totalOutstanding={data.totalOutstanding}
           activeJobs={data.activeJobs}
           pendingEstimates={data.pendingEstimates}
@@ -46,6 +48,9 @@ export default async function DashboardPage() {
           </div>
           <RecentActivity jobs={data.recentJobs as { id: string; job_type: string; status: string; created_at: string; customer: { name: string } }[]} />
         </div>
+
+        {/* Referral source breakdown */}
+        <ReferralStats stats={data.referralStats as { source: string; count: number }[]} />
 
         {/* Quick links */}
         <div className="flex flex-wrap gap-4 justify-center mt-5">

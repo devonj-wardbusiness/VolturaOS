@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 interface KPICardsProps {
   monthRevenue: number
+  lastMonthRevenue: number
   totalOutstanding: number
   activeJobs: number
   pendingEstimates: number
@@ -13,6 +14,11 @@ interface KPICardsProps {
 }
 
 export function KPICards(props: KPICardsProps) {
+  const momDelta = props.lastMonthRevenue > 0
+    ? Math.round(((props.monthRevenue - props.lastMonthRevenue) / props.lastMonthRevenue) * 100)
+    : null
+  const momUp = momDelta !== null && momDelta >= 0
+
   return (
     <div className="space-y-3">
       {/* Hero card — Monthly Revenue full width */}
@@ -26,9 +32,18 @@ export function KPICards(props: KPICardsProps) {
             <p className="text-volturaGold text-4xl font-bold tracking-wide leading-none">
               ${props.monthRevenue.toLocaleString()}
             </p>
-            <p className="text-gray-500 text-xs mt-2">
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-gray-500 text-xs">
+                {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </p>
+              {momDelta !== null && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  momUp ? 'bg-green-900/40 text-green-400' : 'bg-red-900/30 text-red-400'
+                }`}>
+                  {momUp ? '↑' : '↓'} {Math.abs(momDelta)}% vs last mo
+                </span>
+              )}
+            </div>
           </div>
           {props.totalOutstanding > 0 && (
             <Link href="/invoices?status=Unpaid" className="text-right">

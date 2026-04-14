@@ -20,8 +20,9 @@ export async function getDashboardData() {
   const today = new Date().toISOString().slice(0, 10)
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString()
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
 
-  const [invoices, jobs, estimates, recentJobs, payments, todayJobs, unpaidInvoices, stuckLeadsRes] = await Promise.all([
+  const [invoices, jobs, estimates, recentJobs, payments, todayJobs, unpaidInvoices, stuckLeadsRes, lastMonthPayments, referralCustomers] = await Promise.all([
     admin.from('invoices').select('total, amount_paid, status, created_at'),
     admin.from('jobs').select('status, created_at'),
     admin.from('estimates').select('status, total, created_at'),
@@ -30,6 +31,8 @@ export async function getDashboardData() {
     admin.from('jobs').select('id, job_type, status, scheduled_date, scheduled_time, customers(name, phone)').eq('scheduled_date', today).not('status', 'in', '("Cancelled","Paid","Completed")').order('scheduled_time', { ascending: true }),
     admin.from('invoices').select('id, total, balance, status, due_date, created_at, customers(name)').in('status', ['Unpaid', 'Partial']),
     admin.from('jobs').select('id, job_type, status, created_at, customers(name)').eq('status', 'Lead').lt('created_at', sevenDaysAgo).limit(10),
+    admin.from('invoice_payments').select('amount, paid_at').gte('paid_at', lastMonthStart).lt('paid_at', monthStart),
+    admin.from('customers').select('referral_source').not('referral_source', 'is', null),
   ])
 
   const allInvoices = (invoices.data ?? []) as Record<string, unknown>[]
@@ -76,6 +79,21 @@ export async function getDashboardData() {
   const approved = allEstimates.filter(e => e.status === 'Approved').length
   const closeRate = sentOrBetter > 0 ? Math.round((approved / sentOrBetter) * 100) : 0
 
+  // Last month revenue (for MoM delta)
+  const lastMonthRevenue = ((lastMonthPayments.data ?? []) as { amount: number }[])
+    .reduce((sum, p) => sum + p.amount, 0)
+
+  // Referral source breakdown
+  const referralCounts: Record<string, number> = {}
+  for (const c of (referralCustomers.data ?? []) as { referral_source: string | null }[]) {
+    const src = c.referral_source ?? 'Unknown'
+    referralCounts[src] = (referralCounts[src] ?? 0) + 1
+  }
+  const referralStats = Object.entries(referralCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([source, count]) => ({ source, count }))
+
   // Build attention items
   type AttentionItem = { type: 'invoice' | 'job'; id: string; label: string; href: string; daysOverdue?: number }
   const nowMs = Date.now()
@@ -116,6 +134,8 @@ export async function getDashboardData() {
 
   return {
     monthRevenue,
+    lastMonthRevenue,
+    referralStats,
     totalOutstanding,
     activeJobs,
     pendingEstimates,
