@@ -341,3 +341,9 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
     })
   }
 }
+
+export async function deleteJob(id: string): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin.from('jobs').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}

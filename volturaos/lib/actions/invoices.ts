@@ -175,3 +175,24 @@ export async function recordPayment(input: {
     Status: status,
   })
 }
+
+export async function deleteInvoice(id: string): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin.from('invoices').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function sendInvoiceReminder(id: string): Promise<void> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('invoices')
+    .select('id, total, customers(name, phone)')
+    .eq('id', id)
+    .single()
+  if (error || !data) throw new Error('Invoice not found')
+  const customer = data.customers as unknown as { name: string; phone: string | null } | null
+  if (!customer?.phone) return // no phone on file, silently skip
+  const { sendSMS } = await import('@/lib/sms')
+  const body = `Hi ${customer.name.split(' ')[0]}, your invoice of $${(data.total as number).toLocaleString()} with Voltura Power Group is due. Please call or text us to arrange payment. Thank you!`
+  await sendSMS(customer.phone, body, false)
+}
