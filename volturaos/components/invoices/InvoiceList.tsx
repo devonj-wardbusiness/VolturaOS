@@ -5,6 +5,9 @@ import Link from 'next/link'
 import type { Invoice } from '@/types'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useLongPress } from '@/hooks/useLongPress'
+import { useActionSheet } from '@/components/ui/ActionSheetProvider'
+import { deleteInvoice, sendInvoiceReminder } from '@/lib/actions/invoices'
 
 const FILTERS = [
   { label: 'All', value: '' },
@@ -42,6 +45,74 @@ function getLeftBorderColor(invoice: Invoice): string {
   if (aging?.color === 'text-red-400') return '#f87171'
   if (aging?.color === 'text-orange-400') return '#fb923c'
   return '#f87171'
+}
+
+function InvoiceRow({ inv }: { inv: Invoice & { customer: { name: string } } }) {
+  const router = useRouter()
+  const { openSheet } = useActionSheet()
+  const aging = getAgingInfo(inv)
+  const borderColor = getLeftBorderColor(inv)
+
+  function showSheet() {
+    openSheet(`${inv.customer.name} — $${inv.total.toLocaleString()}`, [
+      {
+        icon: '✏️',
+        label: 'Edit',
+        onClick: () => router.push(`/invoices/${inv.id}`),
+      },
+      {
+        icon: '💰',
+        label: 'Record Payment',
+        onClick: () => router.push(`/invoices/${inv.id}`),
+      },
+      {
+        icon: '📨',
+        label: 'Send Reminder',
+        onClick: async () => {
+          await sendInvoiceReminder(inv.id)
+        },
+      },
+      {
+        icon: '🗑️',
+        label: 'Delete',
+        onClick: async () => {
+          await deleteInvoice(inv.id)
+          router.refresh()
+        },
+        destructive: true,
+      },
+    ])
+  }
+
+  const bind = useLongPress(showSheet)
+
+  return (
+    <Link
+      href={`/invoices/${inv.id}`}
+      className="relative flex items-stretch bg-volturaNavy/50 border border-white/5 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform duration-100"
+      {...bind}
+    >
+      <div className="w-[3px] flex-shrink-0" style={{ backgroundColor: borderColor }} />
+      <div className="flex-1 flex items-start justify-between p-4">
+        <div>
+          <p className="text-white font-semibold">{inv.customer.name}</p>
+          <p className="text-gray-500 text-xs mt-1">
+            {new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </p>
+          {aging && (
+            <p className={`text-xs mt-1 font-semibold ${aging.color}`}>{aging.label}</p>
+          )}
+        </div>
+        <div className="text-right">
+          <StatusPill status={inv.status} />
+          <p className="text-volturaGold font-bold text-sm mt-1">${inv.total.toLocaleString()}</p>
+          {inv.balance > 0 && inv.status !== 'Unpaid' && (
+            <p className="text-red-400 text-xs">${inv.balance.toLocaleString()} due</p>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
 }
 
 export function InvoiceList({ invoices }: InvoiceListProps) {
@@ -103,35 +174,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
         <EmptyState message={activeFilter ? `No ${activeFilter.toLowerCase()} invoices` : 'No invoices yet'} />
       ) : (
         <div className="space-y-2">
-          {filtered.map((inv) => {
-            const aging = getAgingInfo(inv)
-            const borderColor = getLeftBorderColor(inv)
-            return (
-              <Link key={inv.id} href={`/invoices/${inv.id}`} className="relative flex items-stretch bg-volturaNavy/50 border border-white/5 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform duration-100">
-                {/* Left status strip */}
-                <div className="w-[3px] flex-shrink-0" style={{ backgroundColor: borderColor }} />
-                {/* Content */}
-                <div className="flex-1 flex items-start justify-between p-4">
-                  <div>
-                    <p className="text-white font-semibold">{inv.customer.name}</p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      {new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </p>
-                    {aging && (
-                      <p className={`text-xs mt-1 font-semibold ${aging.color}`}>{aging.label}</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <StatusPill status={inv.status} />
-                    <p className="text-volturaGold font-bold text-sm mt-1">${inv.total.toLocaleString()}</p>
-                    {inv.balance > 0 && inv.status !== 'Unpaid' && (
-                      <p className="text-red-400 text-xs">${inv.balance.toLocaleString()} due</p>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {filtered.map((inv) => <InvoiceRow key={inv.id} inv={inv} />)}
         </div>
       )}
     </div>
