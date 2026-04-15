@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic'
 
 import { listEstimates } from '@/lib/actions/estimates'
-import { StatusPill } from '@/components/ui/StatusPill'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import Link from 'next/link'
 import type { Estimate, EstimateStatus } from '@/types'
+import { EstimateGroupCard } from '@/components/estimates/EstimateGroupCard'
 
 type EstimateWithCustomer = Estimate & { customer: { name: string } }
 
@@ -46,31 +46,9 @@ export default async function EstimatesPage() {
           <div className="space-y-2">
             {groups.map((group) => {
               const anchor = group[0]
-              const isGrouped = group.length > 1
               const status = groupStatus(group)
-              const maxTotal = Math.max(...group.map((e) => e.total ?? 0))
-              const names = group.map((e) => e.name ?? 'Estimate').join(' · ')
-              const hasFollowUp = anchor.follow_up_sent_at && !anchor.follow_up_dismissed && anchor.status === 'Sent'
-
               return (
-                <Link key={anchor.id} href={`/estimates/${anchor.id}`} className="block bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1 pr-3">
-                      <p className="text-white font-semibold">{anchor.customer?.name ?? 'Unknown'}</p>
-                      <p className="text-gray-400 text-xs mt-0.5 truncate">
-                        {names}
-                        {hasFollowUp && <span className="text-yellow-400 ml-1">🔔</span>}
-                      </p>
-                      {isGrouped && (
-                        <p className="text-volturaGold/70 text-xs mt-0.5">{group.length} estimates</p>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <StatusPill status={status} />
-                      {maxTotal > 0 && <p className="text-volturaGold font-bold text-sm mt-1">${maxTotal.toLocaleString()}</p>}
-                    </div>
-                  </div>
-                </Link>
+                <EstimateGroupCard key={anchor.id} group={group} status={status} />
               )
             })}
           </div>
