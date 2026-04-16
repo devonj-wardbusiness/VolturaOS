@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VolturaOS — Design: Quick-Add + Change Orders</title>
+<style>
+  :root { --blue:#0D0F1A; --navy:#141628; --gold:#f5c842; --gray:#6b7280; --green:#22c55e; --red:#ef4444; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#080a12; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:white; padding:24px 16px 40px; }
+
+  h1 { color:var(--gold); font-size:13px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px; }
+  .sub { color:var(--gray); font-size:12px; margin-bottom:32px; }
+
+  /* Tabs */
+  .tabs { display:flex; gap:8px; margin-bottom:24px; }
+  .tab { padding:8px 18px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid rgba(255,255,255,0.1); color:var(--gray); background:transparent; transition:all .15s; }
+  .tab.active { background:var(--gold); color:#0D0F1A; border-color:var(--gold); }
+
+  /* Section label */
+  .section-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); margin-bottom:12px; }
+
+  /* Flow layout */
+  .flow { display:flex; gap:12px; align-items:flex-start; overflow-x:auto; padding-bottom:12px; }
+  .flow-step { flex:0 0 220px; }
+  .arrow { flex:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--gray); font-size:18px; padding-top:60px; }
+
+  /* Phone frame */
+  .phone { background:var(--blue); border-radius:20px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); }
+  .phone-bar { background:var(--navy); padding:10px 12px; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); display:flex; align-items:center; justify-content:space-between; }
+  .phone-bar .title { color:white; font-size:12px; font-weight:600; letter-spacing:0; text-transform:none; }
+  .step-num { font-size:10px; color:var(--gray); text-align:center; margin-top:8px; }
+  .step-title { font-size:12px; color:white; font-weight:600; text-align:center; margin-top:2px; }
+
+  /* Components */
+  .card-block { margin:10px; background:rgba(255,255,255,0.04); border-radius:12px; padding:10px 12px; }
+  .label-sm { font-size:10px; color:var(--gray); margin-bottom:4px; }
+  .value-md { font-size:13px; color:white; font-weight:600; }
+  .value-sm { font-size:12px; color:white; }
+  .gold { color:var(--gold); }
+  .green { color:var(--green); }
+  .red { color:var(--red); }
+
+  .line-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .line-row:last-child { border-bottom:none; }
+
+  .chip { display:inline-flex; align-items:center; gap:4px; background:rgba(245,200,66,.12); border:1px solid rgba(245,200,66,.3); border-radius:20px; padding:5px 10px; font-size:10px; color:var(--gold); white-space:nowrap; }
+  .chips-row { display:flex; gap:6px; padding:8px 10px; overflow-x:auto; scrollbar-width:none; }
+  .chips-row::-webkit-scrollbar { display:none; }
+
+  .btn-gold { background:var(--gold); color:#0D0F1A; font-weight:700; border-radius:11px; padding:10px; text-align:center; font-size:12px; margin:10px; }
+  .btn-outline { border:1px solid rgba(245,200,66,.4); color:var(--gold); border-radius:11px; padding:9px; text-align:center; font-size:12px; margin:6px 10px; }
+  .btn-green { background:var(--green); color:#0D0F1A; font-weight:700; border-radius:11px; padding:10px; text-align:center; font-size:12px; margin:10px; }
+
+  .mic-btn { width:52px; height:52px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; font-size:22px; box-shadow:0 0 0 8px rgba(245,200,66,.15); }
+  .voice-hint { font-size:10px; color:var(--gray); text-align:center; margin-bottom:8px; }
+  .transcript { background:rgba(255,255,255,.06); border-radius:10px; padding:8px 10px; font-size:11px; color:rgba(255,255,255,.7); font-style:italic; margin:0 10px 8px; line-height:1.45; }
+  .transcript em { color:white; font-style:normal; }
+
+  .parsed-item { display:flex; justify-content:space-between; align-items:center; background:rgba(245,200,66,.08); border:1px solid rgba(245,200,66,.2); border-radius:9px; padding:7px 10px; margin:0 10px 5px; }
+
+  .search-mini { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.06); border-radius:9px; padding:7px 10px; margin:6px 10px 0; }
+  .search-mini span { font-size:11px; color:var(--gray); }
+
+  .sig-box { margin:10px; background:rgba(255,255,255,.03); border:1px dashed rgba(255,255,255,.15); border-radius:12px; height:70px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--gray); }
+  .sig-done { margin:10px; background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:8px; }
+  .sig-name { font-size:12px; color:var(--green); font-weight:600; }
+  .sig-meta { font-size:10px; color:var(--gray); }
+
+  /* Change order badge */
+  .co-badge { display:inline-block; background:rgba(245,200,66,.15); border:1px solid rgba(245,200,66,.4); border-radius:6px; padding:2px 7px; font-size:9px; font-weight:700; color:var(--gold); letter-spacing:.06em; text-transform:uppercase; }
+  .orig-badge { display:inline-block; background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); border-radius:6px; padding:2px 7px; font-size:9px; font-weight:700; color:var(--green); letter-spacing:.06em; text-transform:uppercase; }
+
+  .divider { height:1px; background:rgba(255,255,255,.05); margin:2px 0; }
+
+  /* DB design */
+  .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:700px; margin-bottom:24px; }
+  .db-table { background:var(--navy); border-radius:12px; padding:14px 16px; border:1px solid rgba(255,255,255,.06); }
+  .db-table.highlight { border-color:rgba(245,200,66,.4); }
+  .db-name { font-size:11px; font-weight:700; color:var(--gold); margin-bottom:8px; font-family:monospace; }
+  .db-field { font-size:10px; color:rgba(255,255,255,.6); padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04); font-family:monospace; display:flex; gap:8px; }
+  .db-field:last-child { border:none; }
+  .db-field .new { color:var(--gold); font-weight:700; }
+  .db-field .type { color:var(--gray); }
+
+  /* Section */
+  section { margin-bottom:36px; }
+  h2 { font-size:15px; font-weight:700; color:white; margin-bottom:6px; }
+  h2 .badge { font-size:10px; font-weight:700; background:rgba(245,200,66,.15); color:var(--gold); border-radius:6px; padding:2px 7px; margin-left:8px; vertical-align:middle; letter-spacing:.04em; }
+  .desc { font-size:12px; color:var(--gray); line-height:1.55; margin-bottom:16px; max-width:700px; }
+
+  /* Summary table */
+  table { width:100%; max-width:700px; border-collapse:collapse; font-size:12px; }
+  th { text-align:left; color:var(--gray); font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; }
+  td { padding:8px 10px; border-top:1px solid rgba(255,255,255,.05); color:rgba(255,255,255,.8); }
+  td:first-child { color:white; font-weight:600; }
+  td .tag { display:inline-block; background:rgba(34,197,94,.1); color:var(--green); border-radius:5px; padding:1px 6px; font-size:10px; font-weight:600; margin-right:4px; }
+  td .tag.new { background:rgba(245,200,66,.12); color:var(--gold); }
+</style>
+</head>
+<body>
+
+<h1>VolturaOS — Feature Design</h1>
+<p class="sub">Quick-Add (voice + search + recents) &amp; Change Orders — unified field workflow</p>
+
+<!-- ═══ FEATURE 1 ═══ -->
+<section>
+  <h2>Feature 1 — Quick-Add in Estimate Builder <span class="badge">3 LAYERS</span></h2>
+  <p class="desc">A single "Quick Add" button replaces the category grid navigation. Tap it → bottom sheet with three modes: voice (default), instant search, recents. Works in both new estimates and change orders.</p>
+
+  <div class="section-label">User flow — estimate builder with quick add open</div>
+  <div class="flow">
+
+    <!-- Step 1: Builder with Quick Add button -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span>Estimate Builder</span><span class="co-badge">DRAFT</span></div>
+        <div class="card-block">
+          <div class="label-sm">Customer</div>
+          <div class="value-md">John Smith</div>
+        </div>
+        <div style="padding:0 10px 4px; font-size:10px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Items (1)</div>
+        <div style="padding:0 12px 8px;">
+          <div class="line-row"><span class="value-sm">Diagnostic / Service Call</span><span class="gold" style="font-size:12px;">$150</span></div>
+        </div>
+        <div class="btn-gold" style="background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3);">⚡ Quick Add Item</div>
+        <div class="divider" style="margin:0 10px;"></div>
+        <div style="padding:8px 12px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--gray);">Total</span>
+          <span class="gold" style="font-size:15px; font-weight:700;">$150</span>
+        </div>
+      </div>
+      <div class="step-num">Step 1</div>
+      <div class="step-title">Builder — tap Quick Add</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 2: Quick Add sheet — voice active -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span class="title">Quick Add</span></div>
+        <!-- Mode tabs -->
+        <div style="display:flex; gap:6px; padding:10px 10px 6px;">
+          <div style="flex:1;text-align:center;padding:6px;border-radius:9px;background:var(--gold);color:#0D0F1A;font-size:10px;font-weight:700;">🎤 Voice</div>
+          <div style="flex:1;text-align:center;padding:6px;border-radius:9px;background:rgba(255,255,255,.05);color:var(--gray);font-size:10px;font-weight:600;">🔍 Search</div>
+          <div style="flex:1;text-align:center;padding:6px;border-radius:9px;background:rgba(255,255,255,.05);color:var(--gray);font-size:10px;font-weight:600;">⏱ Recents</div>
+        </div>
+        <div style="padding:12px 10px 6px;">
+          <div class="voice-hint">Hold mic · say what you need · let go</div>
+          <div class="mic-btn">🎤</div>
+          <div class="transcript"><em>"trace the circuit, burnt splice in attic, repair and replace"</em></div>
+          <div style="font-size:9px;color:var(--gray);text-align:center;letter-spacing:.05em;margin-bottom:6px;">MATCHED TO PRICEBOOK</div>
+          <div class="parsed-item"><span style="font-size:11px;">Circuit Trace & Diagnosis</span><span class="gold" style="font-size:11px;font-weight:700;">$195</span></div>
+          <div class="parsed-item"><span style="font-size:11px;">Splice Repair (Accessible)</span><span class="gold" style="font-size:11px;font-weight:700;">$285</span></div>
+        </div>
+        <div class="btn-gold" style="margin-top:4px;">Add 2 Items →</div>
+        <div class="search-mini"><span>🔍</span><span>Or type to search...</span></div>
+      </div>
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Speak the new work</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 3: Updated estimate -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span>Estimate Builder</span><span class="co-badge">DRAFT</span></div>
+        <div class="card-block">
+          <div class="label-sm">Customer</div>
+          <div class="value-md">John Smith</div>
+        </div>
+        <div style="padding:0 10px 4px; font-size:10px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Items (3)</div>
+        <div style="padding:0 12px 8px;">
+          <div class="line-row"><span class="value-sm">Diagnostic / Service Call</span><span class="gold" style="font-size:12px;">$150</span></div>
+          <div class="line-row" style="background:rgba(245,200,66,.04); margin:0 -4px; padding:7px 4px; border-radius:6px;">
+            <span class="value-sm">Circuit Trace &amp; Diagnosis</span><span class="gold" style="font-size:12px;">$195</span>
+          </div>
+          <div class="line-row" style="background:rgba(245,200,66,.04); margin:0 -4px; padding:7px 4px; border-radius:6px;">
+            <span class="value-sm">Splice Repair (Accessible)</span><span class="gold" style="font-size:12px;">$285</span>
+          </div>
+        </div>
+        <div class="btn-gold" style="background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3);">⚡ Quick Add Item</div>
+        <div class="divider" style="margin:0 10px;"></div>
+        <div style="padding:8px 12px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--gray);">Total</span>
+          <span class="gold" style="font-size:15px; font-weight:700;">$630</span>
+        </div>
+      </div>
+      <div class="step-num">Step 3</div>
+      <div class="step-title">Items added instantly</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ FEATURE 2 ═══ -->
+<section>
+  <h2>Feature 2 — Change Orders <span class="badge">NEW</span></h2>
+  <p class="desc">When a signed estimate needs more work added — outlet call turns into attic splice repair — tap "Add Change Order" on the job. Customer gets a second signature request covering only the new items. Original signature is preserved. Invoice includes everything.</p>
+
+  <div class="section-label">User flow — job in progress, new work discovered</div>
+  <div class="flow">
+
+    <!-- Step 1: Job detail, already signed -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span class="title">Job Detail</span></div>
+        <div class="card-block">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div class="value-md">John Smith</div>
+            <div style="background:rgba(59,130,246,.15);color:#60a5fa;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;">IN PROGRESS</div>
+          </div>
+          <div style="font-size:11px; color:var(--gray);">Outlet not working — Service Call</div>
+        </div>
+        <!-- Original estimate -->
+        <div style="margin:0 10px 8px;">
+          <div style="font-size:10px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">Original Estimate</div>
+          <div style="background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); border-radius:10px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span class="orig-badge">SIGNED</span>
+              <span class="gold" style="font-size:12px; font-weight:700;">$150</span>
+            </div>
+            <div style="font-size:11px; color:rgba(255,255,255,.7);">Diagnostic / Service Call</div>
+            <div style="font-size:10px; color:var(--gray); margin-top:3px;">Signed Apr 15 · John Smith</div>
+          </div>
+        </div>
+        <div class="btn-outline">+ Add Change Order</div>
+        <div class="btn-gold" style="margin-top:0;">Create Invoice</div>
+      </div>
+      <div class="step-num">Step 1</div>
+      <div class="step-title">Job detail — tap Add Change Order</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 2: Change order builder (uses Quick Add) -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span class="title">Change Order</span><span class="co-badge">NEW</span></div>
+        <div style="margin:10px; padding:8px 10px; background:rgba(245,200,66,.06); border:1px solid rgba(245,200,66,.15); border-radius:10px; font-size:11px; color:rgba(255,255,255,.6); line-height:1.4;">
+          Adding to: <strong style="color:white;">Outlet not working</strong><br>
+          <span style="font-size:10px;">Original: $150 · Signed</span>
+        </div>
+        <div style="padding:0 10px 4px; font-size:10px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Additional Work</div>
+        <div style="padding:0 12px 8px;">
+          <div class="line-row"><span class="value-sm">Circuit Trace &amp; Diagnosis</span><span class="gold" style="font-size:12px;">$195</span></div>
+          <div class="line-row"><span class="value-sm">Splice Repair (Accessible)</span><span class="gold" style="font-size:12px;">$285</span></div>
+        </div>
+        <div class="btn-gold" style="background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.3);margin-top:0;">⚡ Quick Add Item</div>
+        <div class="divider" style="margin:0 10px;"></div>
+        <div style="padding:6px 12px 4px; font-size:11px; color:var(--gray);">Change order total: <span class="gold" style="font-weight:700;">$480</span></div>
+        <div style="padding:0 12px 10px; font-size:11px; color:var(--gray);">New job total: <span style="color:white; font-weight:700;">$630</span></div>
+        <div class="btn-green">Present to Customer →</div>
+      </div>
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Build additional work</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 3: Customer signs change order -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span class="title">Change Order</span><span class="co-badge">PENDING SIGN</span></div>
+        <div style="margin:10px 10px 6px; font-size:11px; color:rgba(255,255,255,.7); line-height:1.45;">
+          Additional work was found during your service call. Please review and sign to authorize:
+        </div>
+        <div style="margin:0 10px 8px;">
+          <div class="line-row" style="border-color:rgba(255,255,255,.06);"><span style="font-size:11px;color:rgba(255,255,255,.5);">Original (signed)</span><span style="font-size:11px;color:rgba(255,255,255,.4);">$150</span></div>
+          <div class="line-row" style="border-color:rgba(255,255,255,.06);"><span style="font-size:11px;">Circuit Trace &amp; Diagnosis</span><span class="gold" style="font-size:11px;">$195</span></div>
+          <div class="line-row" style="border-color:rgba(255,255,255,.06);"><span style="font-size:11px;">Splice Repair (Accessible)</span><span class="gold" style="font-size:11px;">$285</span></div>
+          <div class="line-row" style="border-color:rgba(255,255,255,.08);"><span style="font-size:12px;font-weight:700;">Total</span><span class="gold" style="font-size:14px;font-weight:700;">$630</span></div>
+        </div>
+        <div style="margin:0 10px 6px; font-size:10px; color:var(--gray);">Sign below to authorize change order:</div>
+        <div class="sig-box">✍️  Sign here</div>
+        <div class="btn-gold" style="margin-top:0;">Authorize Change Order</div>
+      </div>
+      <div class="step-num">Step 3</div>
+      <div class="step-title">Customer signs change order</div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Step 4: Job with both records -->
+    <div class="flow-step">
+      <div class="phone">
+        <div class="phone-bar"><span class="title">Job Detail</span></div>
+        <div style="margin:10px 10px 6px;">
+          <div style="font-size:10px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">Authorized Work</div>
+          <!-- Original -->
+          <div style="background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); border-radius:10px; padding:10px 12px; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <span class="orig-badge">ORIGINAL</span><span class="gold" style="font-size:11px;font-weight:700;">$150</span>
+            </div>
+            <div style="font-size:10px; color:rgba(255,255,255,.6);">Diagnostic / Service Call</div>
+          </div>
+          <!-- Change order -->
+          <div style="background:rgba(245,200,66,.05); border:1px solid rgba(245,200,66,.2); border-radius:10px; padding:10px 12px; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <span class="co-badge">CHANGE ORDER</span><span class="gold" style="font-size:11px;font-weight:700;">$480</span>
+            </div>
+            <div style="font-size:10px; color:rgba(255,255,255,.6);">Circuit Trace · Splice Repair</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:6px 4px;">
+            <span style="font-size:12px;font-weight:700;">Job Total</span>
+            <span class="gold" style="font-size:14px;font-weight:700;">$630</span>
+          </div>
+        </div>
+        <div class="btn-gold">Create Invoice ($630)</div>
+      </div>
+      <div class="step-num">Step 4</div>
+      <div class="step-title">Both records preserved</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ DB DESIGN ═══ -->
+<section>
+  <h2>DB Changes</h2>
+  <p class="desc">Minimal — one new column on estimates, one new table for change orders. Change orders reuse the same estimate builder UI and quick-add flow.</p>
+  <div class="db-grid">
+    <div class="db-table">
+      <div class="db-name">estimates (existing)</div>
+      <div class="db-field"><span>id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>customer_id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>proposal_id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>line_items</span><span class="type">jsonb</span></div>
+      <div class="db-field"><span>total</span><span class="type">numeric</span></div>
+      <div class="db-field"><span>signature_data</span><span class="type">text</span></div>
+      <div class="db-field"><span>status</span><span class="type">text</span></div>
+    </div>
+    <div class="db-table highlight">
+      <div class="db-name">change_orders ← NEW TABLE</div>
+      <div class="db-field"><span class="new">id</span><span class="type">uuid pk</span></div>
+      <div class="db-field"><span class="new">job_id</span><span class="type">uuid → jobs</span></div>
+      <div class="db-field"><span class="new">estimate_id</span><span class="type">uuid → estimates</span></div>
+      <div class="db-field"><span class="new">line_items</span><span class="type">jsonb</span></div>
+      <div class="db-field"><span class="new">total</span><span class="type">numeric</span></div>
+      <div class="db-field"><span class="new">signature_data</span><span class="type">text null</span></div>
+      <div class="db-field"><span class="new">status</span><span class="type">Draft|Pending|Signed</span></div>
+      <div class="db-field"><span class="new">notes</span><span class="type">text null</span></div>
+      <div class="db-field"><span class="new">created_at</span><span class="type">timestamptz</span></div>
+    </div>
+    <div class="db-table highlight">
+      <div class="db-name">pricebook_items (add field)</div>
+      <div class="db-field"><span>id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>name</span><span class="type">text</span></div>
+      <div class="db-field"><span>unit_price</span><span class="type">numeric</span></div>
+      <div class="db-field"><span>category</span><span class="type">text</span></div>
+      <div class="db-field"><span class="new">use_count</span><span class="type">integer default 0 ← NEW</span></div>
+      <div class="db-field"><span class="new">last_used_at</span><span class="type">timestamptz null ← NEW</span></div>
+    </div>
+    <div class="db-table">
+      <div class="db-name">invoices (no change needed)</div>
+      <div class="db-field"><span>id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>job_id</span><span class="type">uuid</span></div>
+      <div class="db-field"><span>total</span><span class="type">numeric — includes COs</span></div>
+      <div class="db-field" style="opacity:.4;"><span>...</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SUMMARY ═══ -->
+<section>
+  <h2>What Gets Built</h2>
+  <table>
+    <tr>
+      <th>Component</th><th>What it does</th><th>Where it lives</th>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>QuickAddSheet</td>
+      <td>Bottom sheet with voice / search / recents tabs. Replaces category grid in estimate builder.</td>
+      <td>components/estimate-builder/</td>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>VoiceLineItems</td>
+      <td>Mic button → Web Speech API transcript → Claude matches to pricebook → returns line items to confirm.</td>
+      <td>components/estimate-builder/</td>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>LineItemSearch</td>
+      <td>Instant pricebook search with 2-letter debounce. Shows name, category, price, + Add button.</td>
+      <td>components/estimate-builder/</td>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>RecentsRow</td>
+      <td>Pulls top 6 pricebook items by use_count. One-tap add. Auto-updates after every estimate saved.</td>
+      <td>components/estimate-builder/</td>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>ChangeOrderBuilder</td>
+      <td>Mini estimate builder pre-linked to a job + original estimate. Uses QuickAddSheet. Captures second signature.</td>
+      <td>components/jobs/</td>
+    </tr>
+    <tr>
+      <td><span class="tag new">NEW</span>ChangeOrderView</td>
+      <td>Customer-facing page for signing. Shows original (greyed) + new items + total + signature canvas.</td>
+      <td>app/change-orders/[id]/view/</td>
+    </tr>
+    <tr>
+      <td><span class="tag">UPDATE</span>InvoiceDetail</td>
+      <td>When job has change orders, invoice total = original estimate + all signed change orders.</td>
+      <td>components/invoices/</td>
+    </tr>
+    <tr>
+      <td><span class="tag">UPDATE</span>pricebook_items</td>
+      <td>Add use_count + last_used_at. Increment use_count when item added to any estimate or change order.</td>
+      <td>lib/actions/pricebook.ts</td>
+    </tr>
+  </table>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VolturaOS — Quick-Add Approaches</title>
+<style>
+  :root {
+    --blue: #0D0F1A;
+    --navy: #141628;
+    --gold: #f5c842;
+    --gray: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #080a12;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: white;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1 {
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: var(--gray);
+    font-size: 12px;
+    margin-bottom: 28px;
+  }
+
+  .approaches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 700px) {
+    .approaches { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--navy);
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .card.recommended {
+    border-color: var(--gold);
+  }
+
+  .card-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 3px;
+  }
+  .card-label.rec { color: var(--gold); }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+  }
+  .card-desc {
+    font-size: 11px;
+    color: var(--gray);
+    line-height: 1.45;
+  }
+
+  /* Phone mockup */
+  .phone {
+    margin: 14px;
+    background: var(--blue);
+    border-radius: 14px;
+    overflow: hidden;
+    min-height: 340px;
+  }
+
+  /* ── Option A: Recents Row ── */
+  .phone-header {
+    background: var(--navy);
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--gray);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .recents-row {
+    display: flex;
+    gap: 7px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .recents-row::-webkit-scrollbar { display: none; }
+  .recent-chip {
+    background: rgba(245,200,66,0.12);
+    border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 20px;
+    padding: 6px 11px;
+    font-size: 11px;
+    color: var(--gold);
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .recent-chip .plus {
+    color: rgba(245,200,66,0.5);
+    margin-right: 3px;
+  }
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 0 12px;
+  }
+  .line-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .line-item-name { font-size: 12px; color: rgba(255,255,255,0.85); }
+  .line-item-price { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .category-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding: 10px 12px;
+    margin-top: 4px;
+  }
+  .cat-btn {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+  }
+  .cat-btn .emoji { font-size: 15px; display: block; margin-bottom: 3px; }
+
+  /* ── Option B: Instant Search ── */
+  .search-bar {
+    margin: 10px 12px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 11px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 13px;
+    flex: 1;
+    font-family: inherit;
+  }
+  .search-bar input::placeholder { color: var(--gray); }
+  .search-icon { color: var(--gray); font-size: 13px; }
+  .search-results {
+    margin: 0 12px;
+  }
+  .search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 11px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+  .search-result-item:hover { background: rgba(245,200,66,0.08); }
+  .result-left { display: flex; flex-direction: column; gap: 1px; }
+  .result-name { font-size: 12px; color: white; }
+  .result-name .highlight { color: var(--gold); }
+  .result-cat { font-size: 10px; color: var(--gray); }
+  .result-price { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .add-btn {
+    background: rgba(245,200,66,0.15);
+    color: var(--gold);
+    border-radius: 7px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  /* ── Option C: Voice / Recommended ── */
+  .voice-area {
+    padding: 12px;
+  }
+  .voice-hint {
+    font-size: 10px;
+    color: var(--gray);
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .mic-btn {
+    width: 64px;
+    height: 64px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 0 0 8px rgba(245,200,66,0.12);
+  }
+  .mic-btn.listening {
+    box-shadow: 0 0 0 8px rgba(245,200,66,0.25), 0 0 0 16px rgba(245,200,66,0.08);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 8px rgba(245,200,66,0.25), 0 0 0 16px rgba(245,200,66,0.08); }
+    50% { box-shadow: 0 0 0 12px rgba(245,200,66,0.35), 0 0 0 22px rgba(245,200,66,0.12); }
+  }
+  .transcript-bubble {
+    background: rgba(255,255,255,0.06);
+    border-radius: 11px;
+    padding: 9px 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+    line-height: 1.45;
+    font-style: italic;
+  }
+  .transcript-bubble .said { color: white; font-style: normal; }
+  .parsed-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .parsed-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(245,200,66,0.08);
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 10px;
+    padding: 8px 11px;
+  }
+  .parsed-item-name { font-size: 12px; color: white; }
+  .parsed-item-price { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .confirm-btn {
+    width: 100%;
+    background: var(--gold);
+    color: #0D0F1A;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 11px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .quick-search-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 9px;
+    padding: 7px 10px;
+    margin: 8px 12px 4px;
+  }
+  .quick-search-mini span { font-size: 11px; color: var(--gray); }
+
+  /* Pros/cons */
+  .pros-cons {
+    padding: 12px 16px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .pro, .con {
+    font-size: 11px;
+    margin-bottom: 3px;
+    display: flex;
+    gap: 5px;
+  }
+  .pro { color: #6ee7b7; }
+  .con { color: #f87171; }
+
+  .rec-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: #0D0F1A;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<h1>VolturaOS — Estimate Quick-Add</h1>
+<p class="subtitle">Three approaches to adding line items faster while talking to a customer</p>
+
+<div class="approaches">
+
+  <!-- Option A: Recents Row -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-label">Option A</div>
+      <div class="card-title">Recents + Favorites Row</div>
+      <div class="card-desc">Your most-used items pinned at the top. One tap to add. No navigation. Great when you already know what you're building.</div>
+    </div>
+    <div class="phone">
+      <div class="phone-header">Quick Add</div>
+      <div class="recents-row">
+        <div class="recent-chip"><span class="plus">+</span>200A Panel</div>
+        <div class="recent-chip"><span class="plus">+</span>EV Charger</div>
+        <div class="recent-chip"><span class="plus">+</span>20A Circuit</div>
+        <div class="recent-chip"><span class="plus">+</span>GFCI Outlets</div>
+        <div class="recent-chip"><span class="plus">+</span>Smoke Detectors</div>
+      </div>
+      <div class="divider"></div>
+      <div style="padding: 8px 12px 4px; font-size:10px; color:var(--gray); font-weight:600; letter-spacing:0.05em; text-transform:uppercase;">Current items</div>
+      <div class="line-item-row">
+        <span class="line-item-name">200A Panel Upgrade</span>
+        <span class="line-item-price">$3,200</span>
+      </div>
+      <div class="line-item-row">
+        <span class="line-item-name">Permit & Inspection</span>
+        <span class="line-item-price">$350</span>
+      </div>
+      <div style="padding: 8px 12px 4px; font-size:10px; color:var(--gray); font-weight:600; letter-spacing:0.05em; text-transform:uppercase;">Browse categories</div>
+      <div class="category-grid">
+        <div class="cat-btn"><span class="emoji">⚡</span>Panels</div>
+        <div class="cat-btn"><span class="emoji">🚗</span>EV Chargers</div>
+        <div class="cat-btn"><span class="emoji">🔌</span>Circuits</div>
+        <div class="cat-btn"><span class="emoji">💡</span>Lighting</div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pro">✓ Instant — zero navigation for common items</div>
+      <div class="pro">✓ No AI needed — always works offline</div>
+      <div class="pro">✓ Builds itself from your history</div>
+      <div class="con">✗ Still requires typing for rare items</div>
+      <div class="con">✗ Doesn't help when discovering what customer needs</div>
+    </div>
+  </div>
+
+  <!-- Option B: Instant Search -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-label">Option B</div>
+      <div class="card-title">Instant Search Bar</div>
+      <div class="card-desc">Type 2 letters, matching pricebook items appear. No category browsing. Fastest path for any item you can name.</div>
+    </div>
+    <div class="phone">
+      <div class="search-bar" style="margin-top:12px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search line items..." value="pan" readonly />
+      </div>
+      <div class="search-results">
+        <div class="search-result-item">
+          <div class="result-left">
+            <div class="result-name"><span class="highlight">200A</span> <span class="highlight">Pan</span>el Upgrade</div>
+            <div class="result-cat">Panels & Service</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="result-price">$3,200</span>
+            <span class="add-btn">+ Add</span>
+          </div>
+        </div>
+        <div class="search-result-item">
+          <div class="result-left">
+            <div class="result-name">100A <span class="highlight">Pan</span>el Upgrade</div>
+            <div class="result-cat">Panels & Service</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="result-price">$1,800</span>
+            <span class="add-btn">+ Add</span>
+          </div>
+        </div>
+        <div class="search-result-item">
+          <div class="result-left">
+            <div class="result-name"><span class="highlight">Pan</span>el Inspection</div>
+            <div class="result-cat">Inspections</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="result-price">$150</span>
+            <span class="add-btn">+ Add</span>
+          </div>
+        </div>
+        <div class="search-result-item" style="opacity:0.5;">
+          <div class="result-left">
+            <div class="result-name">Sub<span class="highlight">pan</span>el Install</div>
+            <div class="result-cat">Panels & Service</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="result-price">$1,200</span>
+            <span class="add-btn">+ Add</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pro">✓ Works for any item, known or unknown</div>
+      <div class="pro">✓ 2-letter type → instant results</div>
+      <div class="pro">✓ No AI, always reliable</div>
+      <div class="con">✗ Still requires one hand on phone to type</div>
+      <div class="con">✗ Breaks eye contact with customer</div>
+    </div>
+  </div>
+
+  <!-- Option C: Voice (Recommended) -->
+  <div class="card recommended">
+    <div class="card-header">
+      <div class="card-label rec">Option C — Recommended</div>
+      <div class="card-title">Voice-to-Items <span class="rec-badge">⭐ Best</span></div>
+      <div class="card-desc">Hold mic, say what you need, AI matches to your pricebook. Fully hands-free. Handles both "I know what I need" and "I'm figuring it out live."</div>
+    </div>
+    <div class="phone">
+      <div class="voice-area">
+        <div class="voice-hint">Hold to talk — describe what you need</div>
+        <div class="mic-btn listening">🎤</div>
+        <div class="transcript-bubble">
+          "<span class="said">200 amp panel, two 20-amp circuits to the garage, and an EV charger rough-in</span>"
+        </div>
+        <div style="font-size:10px; color:var(--gray); margin-bottom:6px; text-align:center; letter-spacing:0.04em;">MATCHED TO YOUR PRICEBOOK</div>
+        <div class="parsed-items">
+          <div class="parsed-item">
+            <span class="parsed-item-name">200A Panel Upgrade</span>
+            <span class="parsed-item-price">$3,200</span>
+          </div>
+          <div class="parsed-item">
+            <span class="parsed-item-name">20A Circuit (×2)</span>
+            <span class="parsed-item-price">$580</span>
+          </div>
+          <div class="parsed-item">
+            <span class="parsed-item-name">EV Charger Rough-In</span>
+            <span class="parsed-item-price">$450</span>
+          </div>
+        </div>
+        <div class="confirm-btn">Add All 3 Items →</div>
+      </div>
+      <div class="quick-search-mini">
+        <span>🔍</span>
+        <span>Or type to search...</span>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pro">✓ Zero taps during conversation</div>
+      <div class="pro">✓ Handles "I don't know the exact name"</div>
+      <div class="pro">✓ Batch-add multiple items at once</div>
+      <div class="pro">✓ Falls back to typed search if needed</div>
+      <div class="con">✗ Needs internet for AI matching</div>
+      <div class="con">✗ Noisy job sites may affect recognition</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="max-width:960px; margin: 24px auto 0; background: var(--navy); border-radius:14px; padding:16px 20px; border: 1px solid rgba(245,200,66,0.2);">
+  <div style="font-size:11px; color:var(--gold); font-weight:700; margin-bottom:6px; letter-spacing:0.06em; text-transform:uppercase;">My recommendation: Build all three, layered</div>
+  <div style="font-size:12px; color:rgba(255,255,255,0.7); line-height:1.6;">
+    Voice is the headline feature, but search and recents serve as the safety net. The flow: <strong style="color:white;">tap mic → speak → confirm</strong>. If voice fails (noise, bad signal), instant search is one tap away. Recents row handles fast repeats. All three live in one "Quick Add" button — nothing changes about the existing estimate builder flow.
+  </div>
+</div>
+
+</body>
+</html>
