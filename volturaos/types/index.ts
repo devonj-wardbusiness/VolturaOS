@@ -45,6 +45,7 @@ export interface Job {
   completed_at: string | null
   permit_number: string | null
   permit_status: string | null
+  review_requested_at: string | null
 }
 
 export type PermitStatus = 'Not Applied' | 'Applied' | 'Approved' | 'Inspected' | 'Final'
@@ -104,6 +105,8 @@ export interface PricebookEntry {
   per_foot_rate: number | null
   is_footage_item: boolean
   footage_group: string | null
+  use_count: number
+  last_used_at: string | null
 }
 
 export interface LineItem {
@@ -168,6 +171,7 @@ export interface Invoice {
   due_date: string | null
   notes: string | null
   created_at: string
+  review_requested_at: string | null
 }
 
 export interface InvoicePayment {
@@ -177,6 +181,15 @@ export interface InvoicePayment {
   payment_method: PaymentMethod
   paid_at: string
   notes: string | null
+}
+
+export interface Referral {
+  id: string
+  estimate_id: string | null
+  name: string
+  phone: string
+  project_notes: string | null
+  created_at: string
 }
 
 export interface MaintenanceAgreement {
@@ -235,6 +248,18 @@ export interface HistoryItem {
   amount?: number
   date: string
   href: string
+}
+
+export interface ChangeOrder {
+  id: string
+  job_id: string
+  estimate_id: string | null
+  line_items: LineItem[]
+  total: number
+  signature_data: string | null
+  status: 'Draft' | 'Pending' | 'Signed'
+  notes: string | null
+  created_at: string
 }
 
 export const DEFAULT_ADDONS: Omit<Addon, 'selected'>[] = [
