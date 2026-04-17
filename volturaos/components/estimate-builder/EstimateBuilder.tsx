@@ -162,6 +162,13 @@ export function EstimateBuilder({
     setLineItems((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
+  // Price override from line item tap (optionally also saves to pricebook)
+  const handlePriceUpdate = useCallback((index: number, price: number) => {
+    setLineItems((prev) => prev.map((item, i) =>
+      i === index ? { ...item, price, is_override: true, original_price: item.original_price ?? item.price } : item
+    ))
+  }, [])
+
   // Add AI suggestion as custom line item
   const handleAddSuggestion = useCallback((name: string, price: number) => {
     setCustomItems((prev) => [...prev, { description: name, price, is_override: false, original_price: price }])
@@ -431,6 +438,7 @@ export function EstimateBuilder({
           pricebook={pricebook}
           onFootageChange={handleFootageChange}
           onRemove={handleRemoveItem}
+          onPriceUpdate={handlePriceUpdate}
         />
 
         {/* Badge toggles */}
