@@ -9,12 +9,17 @@ interface LineItemSearchProps {
   autoFocus?: boolean
 }
 
+function basePrice(entry: PricebookEntry): number {
+  return Math.round(entry.price_better ?? entry.price_good ?? 0)
+}
+
 function toLineItem(entry: PricebookEntry, price: number): LineItem {
+  const rounded = Math.round(price)
   return {
     description: entry.job_type,
-    price,
-    is_override: price !== (entry.price_better ?? 0),
-    original_price: entry.price_better ?? 0,
+    price: rounded,
+    is_override: rounded !== basePrice(entry),
+    original_price: basePrice(entry),
     tier: 'better',
     category: entry.category,
   }
@@ -38,7 +43,7 @@ export function LineItemSearch({ onAdd, autoFocus }: LineItemSearchProps) {
         // init draft prices from pricebook (preserve any already-edited values)
         setDraftPrices(prev => {
           const next: Record<string, string> = {}
-          data.forEach(e => { next[e.id] = prev[e.id] ?? String(e.price_better ?? 0) })
+          data.forEach(e => { next[e.id] = prev[e.id] ?? String(Math.round(e.price_better ?? e.price_good ?? 0)) })
           return next
         })
       } finally {
@@ -85,8 +90,8 @@ export function LineItemSearch({ onAdd, autoFocus }: LineItemSearchProps) {
                 <span className="text-volturaGold text-sm font-semibold">$</span>
                 <input
                   type="number"
-                  inputMode="decimal"
-                  value={draftPrices[entry.id] ?? String(entry.price_better ?? 0)}
+                  inputMode="numeric"
+                  value={draftPrices[entry.id] ?? String(basePrice(entry))}
                   onChange={(e) =>
                     setDraftPrices(prev => ({ ...prev, [entry.id]: e.target.value }))
                   }

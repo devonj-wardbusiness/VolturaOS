@@ -42,7 +42,8 @@ export async function updatePricebookPrice(
 ): Promise<void> {
   await requireAuth()
   const admin = createAdminClient()
-  const { error } = await admin.from('pricebook').update({ [field]: value }).eq('id', id)
+  const rounded = Math.round(value)
+  const { error } = await admin.from('pricebook').update({ [field]: rounded }).eq('id', id)
   if (error) throw new Error(error.message)
 }
 

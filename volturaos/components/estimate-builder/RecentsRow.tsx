@@ -16,8 +16,12 @@ export function RecentsRow({ items, onAdd }: RecentsRowProps) {
     )
   }
 
+  function basePrice(entry: PricebookEntry): number {
+    return Math.round(entry.price_better ?? entry.price_good ?? 0)
+  }
+
   function toLineItem(entry: PricebookEntry): LineItem {
-    const price = entry.price_better ?? 0
+    const price = basePrice(entry)
     return {
       description: entry.job_type,
       price,
@@ -31,7 +35,7 @@ export function RecentsRow({ items, onAdd }: RecentsRowProps) {
   return (
     <div className="flex gap-2 flex-wrap py-2">
       {items.map((entry) => {
-        const price = entry.price_better ?? 0
+        const price = basePrice(entry)
         return (
           <button
             key={entry.id}
