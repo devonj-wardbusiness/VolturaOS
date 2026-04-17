@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Job, JobChecklist, JobStatus } from '@/types'
+import type { Job, JobChecklist, JobStatus, ChangeOrder } from '@/types'
 import { updateJobStatus, updateJob } from '@/lib/actions/jobs'
 import { StatusStepper } from './StatusStepper'
 import { JobChecklist as JobChecklistUI } from './JobChecklist'
@@ -24,6 +24,7 @@ interface JobDetailProps {
   checklist: JobChecklist
   photos: JobPhotoRecord[]
   signedEstimateId: string | null
+  changeOrders: ChangeOrder[]
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -32,7 +33,7 @@ const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>
   'In Progress': { label: 'Complete Job', next: 'Completed' },
 }
 
-export function JobDetail({ job, checklist, photos, signedEstimateId }: JobDetailProps) {
+export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrders }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
@@ -207,6 +208,57 @@ export function JobDetail({ job, checklist, photos, signedEstimateId }: JobDetai
         initialPermitNumber={job.permit_number ?? null}
         initialPermitStatus={job.permit_status ?? null}
       />
+
+      {/* Change Orders */}
+      {changeOrders.length > 0 && (
+        <div className="bg-volturaNavy/50 rounded-xl p-4 mt-4">
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Change Orders</p>
+          <div className="space-y-2">
+            {changeOrders.map((co) => (
+              <div
+                key={co.id}
+                className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    co.status === 'Signed'
+                      ? 'bg-green-900/40 text-green-400'
+                      : co.status === 'Pending'
+                      ? 'bg-yellow-900/40 text-yellow-400'
+                      : 'bg-white/10 text-gray-400'
+                  }`}>
+                    {co.status}
+                  </span>
+                  <span className="text-gray-400 text-xs">
+                    {new Date(co.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-volturaGold font-semibold text-sm">
+                    +${co.total.toLocaleString()}
+                  </span>
+                  {co.status !== 'Signed' && (
+                    <button
+                      onClick={() => router.push(`/jobs/${job.id}/change-order/${co.id}`)}
+                      className="text-volturaGold text-xs underline"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {co.status === 'Pending' && (
+                    <button
+                      onClick={() => router.push(`/change-orders/${co.id}/view`)}
+                      className="text-green-400 text-xs underline"
+                    >
+                      Sign
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* GPS auto clock-in prompt */}
       {(job.status === 'Scheduled' || job.status === 'In Progress') && (
