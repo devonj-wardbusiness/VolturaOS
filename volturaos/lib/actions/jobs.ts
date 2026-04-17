@@ -327,9 +327,21 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
     }
     if (status === 'Completed') {
       void sendTelegram(`✅ Job completed: ${customerName} — ${jobType}`)
+
+      // Only send review/referral SMS once per job
+      const { data: jobRow } = await admin
+        .from('jobs')
+        .select('review_requested_at')
+        .eq('id', id)
+        .single()
+
       const phone = (customers?.phone as string | null) ?? null
       const optOut = customers == null ? true : (customers.sms_opt_out as boolean)
-      void sendJobCompleteSMS(phone, optOut, jobType)
+
+      if (!jobRow?.review_requested_at) {
+        void sendJobCompleteSMS(phone, optOut, jobType)
+        await admin.from('jobs').update({ review_requested_at: new Date().toISOString() }).eq('id', id)
+      }
     }
 
     void syncToSheets('Jobs', {

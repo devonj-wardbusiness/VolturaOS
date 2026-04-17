@@ -72,7 +72,22 @@ export async function sendJobCompleteSMS(
     `We've finished ${jobLabel}. All work is covered by our 12-month labor warranty.\n\n` +
     `📋 Keep this message as your service record.\n` +
     `📞 Questions? Call/text ${volturaPhone}\n` +
-    `⭐ How'd we do? Leave us a quick review: ${reviewLink}`
+    `⭐ How'd we do? Leave us a quick review: ${reviewLink}\n\n` +
+    `👥 Know someone who needs electrical work? Send them our number — we'd love to help.`
 
+  await sendSMS(phone, body, optOut)
+}
+
+export async function sendInvoicePaidReviewSMS(
+  phone: string | null | undefined,
+  optOut: boolean,
+  customerFirstName: string
+): Promise<void> {
+  if (!phone) return
+  const reviewLink = process.env.GOOGLE_REVIEW_LINK ?? 'https://g.page/r/YOUR_REVIEW_LINK'
+  const body =
+    `Hi ${customerFirstName}! Your invoice with Voltura Power Group is paid in full ✅\n\n` +
+    `Thank you for choosing us. If we earned it, a quick Google review means the world to our small business:\n` +
+    `${reviewLink}`
   await sendSMS(phone, body, optOut)
 }

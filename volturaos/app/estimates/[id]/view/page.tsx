@@ -3,6 +3,7 @@ import { PublicCompareView } from '@/components/estimates/PublicCompareView'
 import { LineItemsList } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
 import { ProgressTracker } from '@/components/estimates/ProgressTracker'
+import { ReferralForm } from '@/components/estimates/ReferralForm'
 import { notFound } from 'next/navigation'
 import type { Addon } from '@/types'
 
@@ -78,9 +79,14 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
         </>
       )}
 
-      <div className="bg-volturaNavy/50 rounded-2xl p-5 mb-8">
+      <div className="bg-volturaNavy/50 rounded-2xl p-5 mb-6">
         <p className="text-gray-400 text-sm font-semibold mb-2">Payment Methods Accepted</p>
         <p className="text-white text-sm">Check &middot; Zelle &middot; Cash &middot; Credit Card</p>
+      </div>
+
+      {/* Referral capture */}
+      <div className="mb-8">
+        <ReferralForm estimateId={id} />
       </div>
 
       <footer className="text-center text-gray-500 text-sm">
