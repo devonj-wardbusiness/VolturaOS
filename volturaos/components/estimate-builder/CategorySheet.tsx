@@ -44,7 +44,7 @@ export function CategorySheet({ open, onClose, category, entries, onAddItem }: C
           >
             <span className="text-white text-sm flex-1 mr-3">{entry.job_type}</span>
             <span className="text-volturaGold text-sm font-semibold">
-              ${(entry.price_good ?? entry.price_better ?? 0).toLocaleString()}
+              ${(entry.price_better ?? entry.price_good ?? 0).toLocaleString()}
             </span>
           </button>
         ))}
@@ -55,7 +55,7 @@ export function CategorySheet({ open, onClose, category, entries, onAddItem }: C
             <p className="text-white text-sm font-semibold mb-2">{formatGroupName(group)}</p>
             <div className="grid grid-cols-3 gap-2">
               {groupEntries
-                .sort((a, b) => (a.price_good ?? 0) - (b.price_good ?? 0))
+                .sort((a, b) => (a.price_better ?? a.price_good ?? 0) - (b.price_better ?? b.price_good ?? 0))
                 .map((entry, i) => {
                   const labels = ['0-25ft', '25-50ft', '50-100ft']
                   return (
@@ -66,7 +66,7 @@ export function CategorySheet({ open, onClose, category, entries, onAddItem }: C
                     >
                       <span className="text-gray-400 text-xs block">{labels[i] ?? entry.job_type}</span>
                       <span className="text-volturaGold text-xs font-semibold">
-                        ${(entry.price_good ?? 0).toLocaleString()}
+                        ${(entry.price_better ?? entry.price_good ?? 0).toLocaleString()}
                       </span>
                     </button>
                   )

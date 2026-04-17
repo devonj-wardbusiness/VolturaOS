@@ -126,9 +126,9 @@ export function EstimateBuilder({
     setPrimarySkipped(true)
     const entry = pricebook.find((p) => p.job_type === jobType)
     if (!entry) return
-    const price = entry.price_good ?? 0
+    const price = entry.price_better ?? entry.price_good ?? 0
     setLineItems((prev) => [
-      { description: entry.job_type, price, is_override: false, original_price: price, pricebook_description: entry.description_good ?? entry.description_better ?? entry.description_best ?? undefined, category: entry.category },
+      { description: entry.job_type, price, is_override: false, original_price: price, category: entry.category },
       ...prev,
     ])
   }, [pricebook])
@@ -140,13 +140,12 @@ export function EstimateBuilder({
 
   // Additional item from category grid
   const handleAddItem = useCallback((entry: PricebookEntry) => {
-    const price = entry.price_good ?? 0
+    const price = entry.price_better ?? entry.price_good ?? 0
     setLineItems((prev) => [...prev, {
       description: entry.job_type,
       price,
       is_override: false,
       original_price: price,
-      pricebook_description: entry.description_good ?? entry.description_better ?? entry.description_best ?? undefined,
       category: entry.category,
       footage: entry.is_footage_item ? null : undefined,
     }])
