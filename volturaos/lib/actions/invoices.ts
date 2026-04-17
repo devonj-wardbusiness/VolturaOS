@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
+import { sendInvoicePaidReviewSMS } from '@/lib/sms'
 import type { Invoice, InvoicePayment, PaymentMethod, LineItem } from '@/types'
 
 async function requireAuth() { // auth disabled
@@ -49,18 +50,46 @@ export async function createInvoiceFromEstimate(estimateId: string): Promise<Inv
     .single()
   if (estErr || !est) throw new Error('Estimate not found')
 
+  // Fetch signed change orders if estimate is linked to a job
+  const jobId = est.job_id as string | null
+  let mergedLineItems: LineItem[] = (est.line_items ?? []) as LineItem[]
+  let mergedTotal: number = est.total as number
+
+  if (jobId) {
+    const { data: changeOrders } = await admin
+      .from('change_orders')
+      .select('line_items, total')
+      .eq('job_id', jobId)
+      .eq('status', 'Signed')
+    if (changeOrders?.length) {
+      const separator: LineItem = {
+        description: '— Additional Work —',
+        price: 0,
+        is_override: false,
+        original_price: null,
+      }
+      for (const co of changeOrders) {
+        mergedLineItems = [
+          ...mergedLineItems,
+          separator,
+          ...((co.line_items ?? []) as LineItem[]),
+        ]
+        mergedTotal += co.total as number
+      }
+    }
+  }
+
   const { data, error } = await admin.from('invoices').insert({
     customer_id: est.customer_id,
     estimate_id: estimateId,
-    line_items: est.line_items,
-    total: est.total,
+    line_items: mergedLineItems,
+    total: mergedTotal,
     status: 'Unpaid',
   }).select().single()
   if (error) throw new Error(error.message)
 
-  // Update estimate status to Invoiced if it exists as a job status concept
   const customerName = (est.customers as Record<string, unknown>)?.name ?? 'Unknown'
-  void sendTelegram(`💰 Invoice created from estimate — ${customerName} — $${(est.total as number)?.toLocaleString()}`)
+  void sendTelegram(`💰 Invoice created from estimate — ${customerName} — $${mergedTotal.toLocaleString()}`)
 
   return data as Invoice
 }
@@ -164,6 +193,24 @@ export async function recordPayment(input: {
 
   const customers = inv.customers as unknown as Record<string, unknown> | null
   const customerName = (customers?.name as string) ?? 'Unknown'
+
+  // Send review SMS once when invoice goes fully Paid
+  if (status === 'Paid') {
+    const { data: invRow } = await admin
+      .from('invoices')
+      .select('review_requested_at, customers(phone, sms_opt_out)')
+      .eq('id', input.invoiceId)
+      .single()
+    const custData = invRow?.customers as unknown as { phone: string | null; sms_opt_out: boolean } | null
+    const custPhone = custData?.phone ?? null
+    const custOptOut = custData == null ? true : (custData.sms_opt_out ?? false)
+    const firstName = customerName.split(' ')[0]
+    if (!invRow?.review_requested_at) {
+      void sendInvoicePaidReviewSMS(custPhone, custOptOut, firstName)
+      await admin.from('invoices').update({ review_requested_at: new Date().toISOString() }).eq('id', input.invoiceId)
+    }
+  }
+
   void sendTelegram(
     `💵 Payment: $${input.amount} via ${input.paymentMethod} — ${customerName} — ${status === 'Paid' ? 'PAID IN FULL' : `$${(total - newAmountPaid).toFixed(2)} remaining`}`
   )
