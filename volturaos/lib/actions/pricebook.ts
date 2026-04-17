@@ -45,3 +45,42 @@ export async function updatePricebookPrice(
   const { error } = await admin.from('pricebook').update({ [field]: value }).eq('id', id)
   if (error) throw new Error(error.message)
 }
+
+export async function getRecentPricebookItems(limit = 6): Promise<PricebookEntry[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('pricebook')
+    .select('*')
+    .eq('active', true)
+    .order('use_count', { ascending: false })
+    .order('last_used_at', { ascending: false, nullsFirst: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as PricebookEntry[]
+}
+
+export async function searchPricebook(query: string): Promise<PricebookEntry[]> {
+  if (!query.trim()) return []
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('pricebook')
+    .select('*')
+    .eq('active', true)
+    .ilike('job_type', `%${query}%`)
+    .order('use_count', { ascending: false })
+    .limit(12)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as PricebookEntry[]
+}
+
+export async function incrementPricebookUseCount(ids: string[]): Promise<void> {
+  if (!ids.length) return
+  const admin = createAdminClient()
+  for (const id of ids) {
+    const { data: row } = await admin.from('pricebook').select('use_count').eq('id', id).single()
+    await admin.from('pricebook').update({
+      use_count: ((row?.use_count as number) ?? 0) + 1,
+      last_used_at: new Date().toISOString(),
+    }).eq('id', id)
+  }
+}
