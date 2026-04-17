@@ -56,14 +56,22 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
             </button>
           </div>
         </div>
-        {customer.phone && (
-          <a
-            href={`tel:${customer.phone}`}
-            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+        <div className="flex gap-2">
+          {customer.phone && (
+            <a
+              href={`tel:${customer.phone}`}
+              className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+            >
+              <span>📞</span> Call
+            </a>
+          )}
+          <button
+            onClick={() => router.push(`/invoices/new?customerId=${customer.id}`)}
+            className="flex-1 flex items-center justify-center gap-2 bg-volturaGold/10 border border-volturaGold/30 text-volturaGold font-semibold py-2.5 rounded-xl text-sm active:scale-[0.98] transition-transform"
           >
-            <span>📞</span> Call {customer.name.split(' ')[0]}
-          </a>
-        )}
+            <span>💰</span> Quick Invoice
+          </button>
+        </div>
         {customer.email && <p className="text-gray-400 text-sm">{customer.email}</p>}
         {customer.address && (
           <button
