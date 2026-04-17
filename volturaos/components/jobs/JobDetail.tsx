@@ -23,6 +23,7 @@ interface JobDetailProps {
   job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }
   checklist: JobChecklist
   photos: JobPhotoRecord[]
+  signedEstimateId: string | null
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -31,7 +32,7 @@ const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>
   'In Progress': { label: 'Complete Job', next: 'Completed' },
 }
 
-export function JobDetail({ job, checklist, photos }: JobDetailProps) {
+export function JobDetail({ job, checklist, photos, signedEstimateId }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
@@ -176,6 +177,15 @@ export function JobDetail({ job, checklist, photos }: JobDetailProps) {
             </button>
             <NeighborhoodBlitz jobId={job.id} jobType={job.job_type} zip={job.customer.zip} />
           </>
+        )}
+
+        {signedEstimateId && (job.status === 'Scheduled' || job.status === 'In Progress' || job.status === 'Completed') && (
+          <button
+            onClick={() => router.push(`/jobs/${job.id}/change-order/new`)}
+            className="w-full bg-volturaGold/10 border border-volturaGold/30 text-volturaGold font-semibold py-3 rounded-xl text-sm"
+          >
+            📋 Add Change Order
+          </button>
         )}
 
         <SendToCrewButton jobId={job.id} />
