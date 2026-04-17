@@ -30,16 +30,22 @@ export function RecentsRow({ items, onAdd }: RecentsRowProps) {
 
   return (
     <div className="flex gap-2 flex-wrap py-2">
-      {items.map((entry) => (
-        <button
-          key={entry.id}
-          onClick={() => onAdd([toLineItem(entry)])}
-          className="flex items-center gap-1.5 bg-volturaGold/10 border border-volturaGold/30 rounded-full px-3 py-2 text-volturaGold text-xs font-medium active:scale-95 transition-transform"
-        >
-          <span className="text-volturaGold/50">+</span>
-          {entry.job_type}
-        </button>
-      ))}
+      {items.map((entry) => {
+        const price = entry.price_better ?? 0
+        return (
+          <button
+            key={entry.id}
+            onClick={() => onAdd([toLineItem(entry)])}
+            className="flex items-center gap-1.5 bg-volturaGold/10 border border-volturaGold/30 rounded-full px-3 py-2 text-volturaGold text-xs font-medium active:scale-95 transition-transform"
+          >
+            <span className="text-volturaGold/50">+</span>
+            {entry.job_type}
+            <span className="text-volturaGold/60 font-normal">
+              · ${price > 0 ? price.toLocaleString() : '—'}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

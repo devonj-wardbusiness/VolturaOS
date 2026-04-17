@@ -9,13 +9,12 @@ interface LineItemSearchProps {
   autoFocus?: boolean
 }
 
-function toLineItem(entry: PricebookEntry): LineItem {
-  const price = entry.price_better ?? 0
+function toLineItem(entry: PricebookEntry, price: number): LineItem {
   return {
     description: entry.job_type,
     price,
-    is_override: false,
-    original_price: price,
+    is_override: price !== (entry.price_better ?? 0),
+    original_price: entry.price_better ?? 0,
     tier: 'better',
     category: entry.category,
   }
@@ -25,6 +24,7 @@ export function LineItemSearch({ onAdd, autoFocus }: LineItemSearchProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PricebookEntry[]>([])
   const [loading, setLoading] = useState(false)
+  const [draftPrices, setDraftPrices] = useState<Record<string, string>>({})
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -35,11 +35,25 @@ export function LineItemSearch({ onAdd, autoFocus }: LineItemSearchProps) {
       try {
         const data = await searchPricebook(query)
         setResults(data)
+        // init draft prices from pricebook (preserve any already-edited values)
+        setDraftPrices(prev => {
+          const next: Record<string, string> = {}
+          data.forEach(e => { next[e.id] = prev[e.id] ?? String(e.price_better ?? 0) })
+          return next
+        })
       } finally {
         setLoading(false)
       }
     }, 200)
   }, [query])
+
+  function handleAdd(entry: PricebookEntry) {
+    const raw = draftPrices[entry.id] ?? String(entry.price_better ?? 0)
+    const price = parseFloat(raw)
+    onAdd([toLineItem(entry, isNaN(price) || price < 0 ? 0 : price)])
+    setQuery('')
+    setResults([])
+  }
 
   return (
     <div className="space-y-2">
@@ -61,18 +75,26 @@ export function LineItemSearch({ onAdd, autoFocus }: LineItemSearchProps) {
           {results.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between bg-white/4 rounded-xl px-3 py-2.5"
+              className="flex items-center justify-between bg-white/4 rounded-xl px-3 py-2.5 gap-2"
             >
-              <div>
-                <p className="text-white text-sm">{entry.job_type}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm truncate">{entry.job_type}</p>
                 <p className="text-gray-500 text-xs">{entry.category}</p>
               </div>
-              <div className="flex items-center gap-2 ml-3">
-                <span className="text-volturaGold text-sm font-semibold">
-                  ${(entry.price_better ?? 0).toLocaleString()}
-                </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-volturaGold text-sm font-semibold">$</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={draftPrices[entry.id] ?? String(entry.price_better ?? 0)}
+                  onChange={(e) =>
+                    setDraftPrices(prev => ({ ...prev, [entry.id]: e.target.value }))
+                  }
+                  onFocus={(e) => e.target.select()}
+                  className="w-20 bg-volturaNavy border border-volturaGold/25 focus:border-volturaGold/60 text-volturaGold font-semibold text-sm text-right rounded-lg px-2 py-1 outline-none"
+                />
                 <button
-                  onClick={() => { onAdd([toLineItem(entry)]); setQuery(''); setResults([]) }}
+                  onClick={() => handleAdd(entry)}
                   className="bg-volturaGold/15 text-volturaGold text-xs font-bold rounded-lg px-2.5 py-1.5 active:scale-95 transition-transform"
                 >
                   + Add
