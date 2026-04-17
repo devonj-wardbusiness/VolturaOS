@@ -1,5 +1,5 @@
 import { getEstimateById, getProposalEstimates, getLinkedInvoice } from '@/lib/actions/estimates'
-import { getAllPricebook } from '@/lib/actions/pricebook'
+import { getAllPricebook, getRecentPricebookItems } from '@/lib/actions/pricebook'
 import { EstimateBuilder } from '@/components/estimate-builder/EstimateBuilder'
 import { EstimateActions } from '@/components/estimates/EstimateActions'
 import { StatusPill } from '@/components/ui/StatusPill'
@@ -10,11 +10,12 @@ import Link from 'next/link'
 
 export default async function EstimatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  let estimate, pricebook, proposal, linkedInvoice
+  let estimate, pricebook, recents, proposal, linkedInvoice
   try {
-    ;[estimate, pricebook, proposal, linkedInvoice] = await Promise.all([
+    ;[estimate, pricebook, recents, proposal, linkedInvoice] = await Promise.all([
       getEstimateById(id),
       getAllPricebook(),
+      getRecentPricebookItems(6),
       getProposalEstimates(id),
       getLinkedInvoice(id),
     ])
@@ -46,6 +47,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
         <EstimateBuilder
           estimateId={id}
           pricebook={pricebook}
+          initialRecents={recents}
           initialCustomerId={estimate.customer.id}
           initialCustomerName={estimate.customer.name}
           initialCustomerPhone={estimate.customer.phone}

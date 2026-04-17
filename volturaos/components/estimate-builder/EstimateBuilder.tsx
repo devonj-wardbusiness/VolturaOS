@@ -22,6 +22,7 @@ import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
 import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
+import { QuickAddSheet } from './QuickAddSheet'
 import { InPersonSignature } from '@/components/estimates/InPersonSignature'
 import { MaterialList } from '@/components/estimates/MaterialList'
 import { SavingsCalculator } from '@/components/estimates/SavingsCalculator'
@@ -32,6 +33,7 @@ import { DiscountsSection } from './DiscountsSection'
 interface EstimateBuilderProps {
   estimateId: string
   pricebook: PricebookEntry[]
+  initialRecents: PricebookEntry[]
   initialCustomerId?: string
   initialCustomerName?: string
   initialCustomerPhone?: string | null
@@ -59,6 +61,7 @@ interface EstimateBuilderProps {
 export function EstimateBuilder({
   estimateId,
   pricebook,
+  initialRecents,
   initialCustomerId,
   initialCustomerName,
   initialCustomerPhone,
@@ -108,6 +111,7 @@ export function EstimateBuilder({
 
   // UI state
   const [sendOpen, setSendOpen] = useState(false)
+  const [qaOpen, setQaOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [presenting, setPresenting] = useState(false)
@@ -128,6 +132,11 @@ export function EstimateBuilder({
       ...prev,
     ])
   }, [pricebook])
+
+  // Quick add handler (from QuickAddSheet — voice / search / recents)
+  const handleQuickAdd = useCallback((items: LineItem[]) => {
+    setLineItems((prev) => [...prev, ...items])
+  }, [])
 
   // Additional item from category grid
   const handleAddItem = useCallback((entry: PricebookEntry) => {
@@ -391,7 +400,23 @@ export function EstimateBuilder({
           </div>
         )}
 
-        {/* Category grid */}
+        {/* Quick Add — primary entry point */}
+        <button
+          onClick={() => setQaOpen(true)}
+          className="w-full flex items-center justify-center gap-2 bg-volturaGold/10 border border-volturaGold/30 text-volturaGold font-semibold rounded-xl py-3 text-sm active:scale-[0.98] transition-transform"
+        >
+          <span>⚡</span> Quick Add Item
+        </button>
+
+        <QuickAddSheet
+          open={qaOpen}
+          onClose={() => setQaOpen(false)}
+          onAdd={handleQuickAdd}
+          pricebook={pricebook}
+          initialRecents={initialRecents}
+        />
+
+        {/* Category grid — still available as secondary */}
         <CategoryGrid pricebook={pricebook} onAddItem={handleAddItem} />
 
         {/* AI suggested items */}
