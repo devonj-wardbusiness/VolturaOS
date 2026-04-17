@@ -394,3 +394,19 @@ export async function listEstimates(): Promise<(Estimate & { customer: { name: s
   if (error) throw new Error(error.message)
   return (data as Record<string, unknown>[]).map(({ customers, ...e }) => ({ ...e, customer: customers })) as (Estimate & { customer: { name: string } })[]
 }
+
+export async function getSignedEstimateForJob(
+  jobId: string
+): Promise<{ id: string; total: number; name: string } | null> {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('estimates')
+    .select('id, total, name')
+    .eq('job_id', jobId)
+    .eq('status', 'Approved')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+  return data ? { id: data.id as string, total: data.total as number, name: (data.name as string) ?? 'Estimate' } : null
+}
+
