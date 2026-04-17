@@ -22,7 +22,7 @@ export async function getDashboardData() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString()
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
 
-  const [invoices, jobs, estimates, recentJobs, payments, todayJobs, unpaidInvoices, stuckLeadsRes, lastMonthPayments, referralCustomers] = await Promise.all([
+  const [invoices, jobs, estimates, recentJobs, payments, todayJobs, unpaidInvoices, stuckLeadsRes, lastMonthPayments, referralCustomers, referralsThisMonth, paidInvoices] = await Promise.all([
     admin.from('invoices').select('total, amount_paid, status, created_at'),
     admin.from('jobs').select('status, created_at'),
     admin.from('estimates').select('status, total, created_at'),
@@ -33,6 +33,8 @@ export async function getDashboardData() {
     admin.from('jobs').select('id, job_type, status, created_at, customers(name)').eq('status', 'Lead').lt('created_at', sevenDaysAgo).limit(10),
     admin.from('invoice_payments').select('amount, paid_at').gte('paid_at', lastMonthStart).lt('paid_at', monthStart),
     admin.from('customers').select('referral_source').not('referral_source', 'is', null),
+    admin.from('referrals').select('id, created_at').gte('created_at', monthStart),
+    admin.from('invoices').select('total').eq('status', 'Paid').gte('created_at', monthStart),
   ])
 
   const allInvoices = (invoices.data ?? []) as Record<string, unknown>[]
@@ -132,6 +134,15 @@ export async function getDashboardData() {
 
   const attentionItems = [...overdueInvoiceItems, ...stuckLeadItems].slice(0, 6)
 
+  // Referrals this month (from referrals table)
+  const referralsCount = (referralsThisMonth.data ?? []).length
+
+  // Avg job value this month (paid invoices)
+  const paidThisMonth = (paidInvoices.data ?? []) as { total: number }[]
+  const avgJobValue = paidThisMonth.length > 0
+    ? Math.round(paidThisMonth.reduce((sum, i) => sum + (i.total ?? 0), 0) / paidThisMonth.length)
+    : 0
+
   return {
     monthRevenue,
     lastMonthRevenue,
@@ -141,6 +152,8 @@ export async function getDashboardData() {
     pendingEstimates,
     approvedValue,
     closeRate,
+    referralsCount,
+    avgJobValue,
     sparklineData,
     attentionItems,
     recentJobs: (recentJobs.data ?? []).map((row) => {

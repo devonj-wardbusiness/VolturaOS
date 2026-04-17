@@ -10,10 +10,13 @@ interface KPICardsProps {
   pendingEstimates: number
   approvedValue: number
   closeRate: number
+  referralsCount: number
+  avgJobValue: number
   sparklineData: { date: string; amount: number }[]
 }
 
 export function KPICards(props: KPICardsProps) {
+  const { referralsCount, avgJobValue } = props
   const momDelta = props.lastMonthRevenue > 0
     ? Math.round(((props.monthRevenue - props.lastMonthRevenue) / props.lastMonthRevenue) * 100)
     : null
@@ -103,6 +106,30 @@ export function KPICards(props: KPICardsProps) {
             <Target size={14} className="text-volturaGold opacity-70 flex-shrink-0 mt-0.5" />
           </div>
           <p className="text-volturaGold text-2xl font-bold leading-none tracking-wide">{props.closeRate}%</p>
+        </div>
+
+        <div
+          className="relative bg-volturaNavy/50 border border-white/5 rounded-2xl p-3 overflow-hidden"
+          style={{ borderTop: '2px solid #a78bfa' }}
+        >
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-gray-400 text-[11px] uppercase tracking-wider leading-tight">Referrals MTD</p>
+            <span className="text-purple-400 text-xs opacity-70">👥</span>
+          </div>
+          <p className="text-purple-400 text-2xl font-bold leading-none tracking-wide">{referralsCount}</p>
+        </div>
+
+        <div
+          className="relative bg-volturaNavy/50 border border-white/5 rounded-2xl p-3 overflow-hidden"
+          style={{ borderTop: '2px solid #34d399' }}
+        >
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-gray-400 text-[11px] uppercase tracking-wider leading-tight">Avg Job Value</p>
+            <span className="text-emerald-400 text-xs opacity-70">📊</span>
+          </div>
+          <p className="text-emerald-400 text-2xl font-bold leading-none tracking-wide">
+            {avgJobValue > 0 ? `$${avgJobValue.toLocaleString()}` : '—'}
+          </p>
         </div>
       </div>
     </div>

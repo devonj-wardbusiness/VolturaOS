@@ -37,6 +37,8 @@ export default async function DashboardPage() {
           pendingEstimates={data.pendingEstimates}
           approvedValue={data.approvedValue}
           closeRate={data.closeRate}
+          referralsCount={data.referralsCount as number}
+          avgJobValue={data.avgJobValue as number}
           sparklineData={data.sparklineData}
         />
 
