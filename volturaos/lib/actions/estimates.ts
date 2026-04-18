@@ -334,6 +334,12 @@ export async function deleteTemplate(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+export async function renameTemplate(id: string, name: string): Promise<void> {
+  const admin = createAdminClient()
+  const { error } = await admin.from('estimates').update({ name }).eq('id', id).eq('is_template', true)
+  if (error) throw new Error(error.message)
+}
+
 export async function dismissFollowUp(estimateId: string): Promise<void> {
   const admin = createAdminClient()
   const { error } = await admin

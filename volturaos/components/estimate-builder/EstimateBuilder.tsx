@@ -120,6 +120,11 @@ export function EstimateBuilder({
   const [deleting, setDeleting] = useState(false)
   const [invoicing, setInvoicing] = useState(false)
 
+  // Template save modal
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
+  const [templateDraftName, setTemplateDraftName] = useState('')
+  const [templateSaving, setTemplateSaving] = useState(false)
+
   // Primary job handler (adds as flat line item, no tier)
   const handlePrimaryJobSelect = useCallback((jobType: string) => {
     setPrimaryJobType(jobType || null)
@@ -226,14 +231,21 @@ export function EstimateBuilder({
     }
   }
 
-  async function handleSaveAsTemplate() {
-    const templateName = window.prompt('Template name:', estimateName)
-    if (!templateName?.trim()) return
+  function handleSaveAsTemplate() {
+    setTemplateDraftName(estimateName || 'My Template')
+    setTemplateModalOpen(true)
+  }
+
+  async function handleConfirmSaveTemplate() {
+    if (!templateDraftName.trim()) return
+    setTemplateSaving(true)
     try {
-      await saveAsTemplate(estimateId, templateName.trim())
-      alert('Template saved!')
+      await saveAsTemplate(estimateId, templateDraftName.trim())
+      setTemplateModalOpen(false)
     } catch {
-      alert('Failed to save template.')
+      // silently fail — modal stays open
+    } finally {
+      setTemplateSaving(false)
     }
   }
 
@@ -633,6 +645,39 @@ export function EstimateBuilder({
             window.location.reload()
           }}
         />
+      )}
+      {/* Save as Template modal */}
+      {templateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setTemplateModalOpen(false)}>
+          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-bold text-lg">Save as Template</h3>
+            <p className="text-gray-400 text-sm">Give this template a name so you can reuse it on future estimates.</p>
+            <input
+              type="text"
+              value={templateDraftName}
+              onChange={e => setTemplateDraftName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleConfirmSaveTemplate()}
+              autoFocus
+              placeholder="Template name…"
+              className="w-full bg-white/7 text-white rounded-xl px-4 py-3 text-sm outline-none border border-white/10 focus:border-volturaGold/50"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setTemplateModalOpen(false)}
+                className="flex-1 py-3 rounded-xl text-gray-400 text-sm font-semibold bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmSaveTemplate}
+                disabled={templateSaving || !templateDraftName.trim()}
+                className="flex-1 py-3 rounded-xl text-volturaBlue text-sm font-bold bg-volturaGold disabled:opacity-50"
+              >
+                {templateSaving ? 'Saving…' : '📋 Save Template'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </AIContextProvider>
   )
