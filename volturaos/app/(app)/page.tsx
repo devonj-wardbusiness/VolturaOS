@@ -60,6 +60,7 @@ export default async function DashboardPage() {
           <Link href="/settings/templates" className="text-gray-500 text-xs underline">🔖 Templates</Link>
           <Link href="/agreements" className="text-gray-500 text-xs underline">🛡 Agreements</Link>
           <Link href="/tools/load-calc" className="text-gray-500 text-xs underline">🧮 Load Calc</Link>
+          <Link href="/tools/nec" className="text-gray-500 text-xs underline">⚖️ NEC Ref</Link>
         </div>
       </div>
     </>
