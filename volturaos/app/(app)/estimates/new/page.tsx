@@ -4,10 +4,10 @@ import { TemplatePicker } from '@/components/estimates/TemplatePicker'
 import { NewEstimateFlow } from '@/components/estimates/NewEstimateFlow'
 import { redirect } from 'next/navigation'
 
-export default async function NewEstimatePage({ searchParams }: { searchParams: Promise<{ customerId?: string }> }) {
-  const { customerId } = await searchParams
+export default async function NewEstimatePage({ searchParams }: { searchParams: Promise<{ customerId?: string; item?: string }> }) {
+  const { customerId, item } = await searchParams
   if (!customerId) {
-    return <NewEstimateFlow />
+    return <NewEstimateFlow preloadItemId={item} />
   }
 
   const templates = await getTemplates()

@@ -11,6 +11,17 @@ async function requireAuth() { // auth disabled
   // if (!user) redirect("/login")
 }
 
+export async function getPricebookItem(id: string): Promise<PricebookEntry | null> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('pricebook')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  return data as PricebookEntry
+}
+
 export async function getAllPricebook(): Promise<PricebookEntry[]> {
   await requireAuth()
   const admin = createAdminClient()
