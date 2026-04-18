@@ -152,6 +152,93 @@ Use NEC article numbers when explaining code to customers — it builds credibil
 
 ---
 
+### Article 220 — Load Calculations
+**Standard method vs. 220.83 optional method:**
+- Standard method (220.10–220.60): used for new construction or additions
+- 220.83 optional method: used for existing dwellings — takes 100% of first 8 kVA of all loads + 40% of remainder. PPRBD accepts this for panel upgrade permits.
+- Demand factors: electric ranges >8¾ kW use Table 220.55 (one range at 8 kVA for table demand, Column C); electric dryers use 5 kVA minimum (Table 220.54); HVAC takes 100% of largest unit (omit smaller systems per 220.60)
+- **Worked example — 200A service, 2,000 sq ft home:**
+  - General lighting: 2,000 × 3 VA = 6,000 VA
+  - Small appliance circuits: 2 × 1,500 VA = 3,000 VA
+  - Laundry circuit: 1,500 VA
+  - Range (12 kW): 8,000 VA (Table 220.55 Column C)
+  - Dryer (5.5 kW): 5,500 VA
+  - HVAC (5-ton = ~7,500 VA): 7,500 VA
+  - Total = ~31,500 VA ÷ 240V = 131A → 200A service adequate
+- Load calc required by PPRBD for all panel upgrade permit submissions
+
+### Article 314 — Box Fill
+- Box fill is calculated in cubic inches (cu in) per Table 314.16(B)
+- Conductor fill by gauge: #14 AWG = 2.0 cu in, #12 AWG = 2.25 cu in, #10 AWG = 2.5 cu in, #8 AWG = 3.0 cu in, #6 AWG = 5.0 cu in
+- Count: each conductor entering from outside = 1 count; conductors passing through = 1 count; device (outlet, switch) = 2 counts (largest conductor in box); all EGCs together = 1 count; internal clamps = 1 count (if present); luminaire studs/hickeys = 1 count each
+- **Example:** 3-way switch box — 4 #14 conductors + 1 EGC group + 1 device fill = (4 × 2.0) + (1 × 2.0) + (2 × 2.0) = 16 cu in → need a 4×2⅛" square box (30.3 cu in) or 4×1½" deep handy box (check table)
+- Common box sizes: 2×4×1½" = 10.0 cu in, 2×4×2⅛" = 14.5 cu in, 4×4×1½" = 22.5 cu in, 4×4×2⅛" = 30.3 cu in
+- Upsize box when existing box is crowded — this is the most cited inspection failure on remodel work
+
+### Article 625 — EV Charging (EVSE)
+- Level 1 EVSE: 120V/15A or 20A circuit — no special requirements beyond standard outlet
+- Level 2 EVSE: 240V, hardwired or NEMA 14-50. Circuit sized at 125% of continuous load.
+  - **80% continuous load rule:** A 50A breaker → 40A EVSE output (max). A 60A breaker → 48A EVSE output.
+  - Most common residential: 50A/240V circuit (40A EVSE), #6 AWG copper or #4 AWG aluminum
+  - For 60A circuit (48A EVSE): #4 AWG copper or #2 AWG aluminum
+- GFCI required for all 240V EVSE rated at 150V or less to ground (single-phase 240V = required) per 625.54
+- NEC 625.42 — Load management: if EVSE exceeds service capacity, load management system required (demand control)
+- NEMA 14-50 outlet: acceptable per NEC, but hardwired EVSE preferred for permanent installations (inspectors prefer hardwired)
+- Outdoor EVSE: GFCI, weatherproof enclosure, NEMA 3R or 4 rated
+- Permit required by PPRBD for all Level 2 EVSE installations
+
+### Voltage Drop
+- NEC Informational Annex B recommendation: ≤3% for branch circuits, ≤5% total (branch + feeder combined)
+- These are recommendations, not mandatory code — but inspectors and engineers expect compliance
+- **Formula:** VD = (2 × K × I × L) ÷ CM
+  - K = 12.9 (copper) or 21.2 (aluminum)
+  - I = current in amps, L = one-way length in feet, CM = circular mils of conductor
+  - Common CM values: #12 AWG = 6,530 CM, #10 = 10,380, #8 = 16,510, #6 = 26,240, #4 = 41,740, #2 = 66,360, #1/0 = 105,600, #2/0 = 133,100, #4/0 = 211,600
+- **Practical rule:** On runs over 100 ft, upsize one gauge. On runs over 150 ft, consider upsizing two gauges.
+- Most common fix: upsizing from #12 to #10 on long bedroom circuits, or #6 to #4 on EV charger runs over 100 ft
+
+### Conduit Fill — Annex C
+- **40% fill rule:** Maximum 40% of conduit interior cross-sectional area for 3+ conductors (Table 1, Chapter 9)
+- 53% fill for 1 conductor, 31% fill for 2 conductors
+- **Common scenarios (THHN/THWN):**
+  - ½" EMT: max 9 × #12 AWG THHN, or 6 × #10, or 3 × #8, or 1 × #4
+  - ¾" EMT: max 16 × #12 AWG THHN, or 10 × #10, or 6 × #8, or 3 × #6
+  - 1" EMT: max 26 × #12 AWG THHN, or 16 × #10, or 10 × #8, or 5 × #6, or 3 × #4
+  - 1¼" EMT: max 35 × #10, or 20 × #8, or 10 × #6, or 6 × #4
+- Upsize conduit when adding circuits to an existing conduit — always check fill before pulling
+
+### Article 702 — Generators & Transfer Switches
+- Standby systems (702) cover optional standby — common for residential generators
+- Transfer switch required — generator must not backfeed utility (danger to linemen)
+- **Interlock kit:** Code-compliant alternative to ATS for smaller generators. Two breakers (main + generator) mechanically interlocked so both can't be ON simultaneously.
+- **ATS (Automatic Transfer Switch):** Preferred for whole-home standby (Generac, Kohler). Automatic switching on outage.
+- Sizing: generator sized to load it will carry (not full service). Common: 7,500W portable handles ~30A 240V loads; 22kW whole-home handles full 200A service with demand factor
+- Permit required by PPRBD for: any permanent generator installation, ATS, or interlock kit. Portable generators plugged into an existing outlet do not require permit.
+- Ground bonding: portable generators used with transfer switch — bond at generator chassis only, not both (avoid parallel ground path)
+
+### Articles 690 / 706 — Solar PV & Battery Storage
+- **NEC 690 — Solar PV:**
+  - Rapid shutdown required (690.12): all roof-mounted systems must be able to de-energize conductors on the roof within 30 seconds of shutdown initiation. Module-level shutdown devices (Tigo, SolarEdge optimizers, Enphase microinverters) satisfy this.
+  - Backfeed breaker: utility-interactive inverter connects at a dedicated breaker on the load side of the main breaker. Label required: "WARNING — BACKFED BREAKER — DO NOT RELOCATE"
+  - Max backfeed rule (705.12): the sum of all breaker ampere ratings (including backfeed) cannot exceed 120% of busbar rating. Example: 200A bus → max 240A total → main is 200A, backfeed can be max 40A (10 kW solar at 240V ÷ 240V = 41.7A → round down to 40A breaker)
+  - Separate permit from electrical permit typically required — PPRBD issues combined permit if applied together
+- **NEC 706 — Battery Energy Storage Systems (BESS):**
+  - Separate disconnect required
+  - Battery system disconnects must be accessible and labeled
+  - Working clearance (110.26) applies to battery system equipment
+  - When paired with solar: combined permit; when standalone: separate permit
+
+### NEC 2026 Preview (not yet adopted in Colorado)
+**Colorado is on NEC 2023. These are upcoming changes — flag clearly when discussing:**
+- **Article 230:** Potential changes to service entrance conductor protection requirements
+- **Receptacle tamper-resistance:** Scope may expand beyond NEC 406.12 current requirements
+- **EV-ready parking:** Article 625 expansion may require EV-capable circuits in new parking structures and multi-family
+- **Arc-flash labeling:** 110.16 requirements may be broadened for commercial panels
+- **AI/monitoring systems:** New provisions for energy monitoring and demand management integration
+- **When asked about NEC 2026:** Always clarify — "NEC 2026 has not been adopted in Colorado. Colorado Springs / PPRBD enforces NEC 2023. NEC 2026 is a reference for what's coming."
+
+---
+
 ## TOOLS AVAILABLE — Full App Access
 
 **Customers:**
