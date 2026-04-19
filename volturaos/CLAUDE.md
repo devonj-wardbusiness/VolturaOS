@@ -2,6 +2,12 @@
 
 # VolturaOS — Project Context
 
+## Full briefs (read these for complete context)
+- **App brief:** `docs/VOLTURAOS-COWORK-BRIEF.md` — all routes, components, actions, DB schema, architecture rules, roadmap
+- **Business brief:** `docs/VOLTURA-BUSINESS-BRIEF.md` — Voltura Power Group, Devon's background, n8n automations, business goals
+- **Build prompt:** `docs/COWORK-LEADGEN-PROMPT.md` — prioritized build list for lead gen + SaaS
+- **Master prompt:** `docs/COWORK-MASTER-PROMPT.md` — copy-paste session starters for any context
+
 ## What this is
 Field service app for an electrical contractor (Voltura Power Group). Mobile-first. Used on the job to build estimates, show them to customers, collect signatures, and track jobs.
 
