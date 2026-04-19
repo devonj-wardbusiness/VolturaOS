@@ -3,7 +3,7 @@ import { getJobById } from '@/lib/actions/jobs'
 export const dynamic = 'force-dynamic'
 import { getOrCreateChecklist } from '@/lib/actions/checklists'
 import { getJobPhotos } from '@/lib/actions/job-photos'
-import { getSignedEstimateForJob } from '@/lib/actions/estimates'
+import { getSignedEstimateForJob, getEstimatesByCustomer } from '@/lib/actions/estimates'
 import { listChangeOrdersForJob } from '@/lib/actions/change-orders'
 import { JobDetail } from '@/components/jobs/JobDetail'
 import { notFound } from 'next/navigation'
@@ -17,18 +17,26 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   } catch {
     notFound()
   }
-  const [checklist, photos, signedEstimate, changeOrders] = await Promise.all([
+  const [checklist, photos, signedEstimate, changeOrders, customerEstimates] = await Promise.all([
     getOrCreateChecklist(job.id, job.job_type),
     getJobPhotos(job.id),
     getSignedEstimateForJob(job.id),
     listChangeOrdersForJob(job.id),
+    getEstimatesByCustomer(job.customer_id),
   ])
 
   return (
     <>
       <PageHeader title={job.customer.name} backHref="/jobs" />
       <div className="min-h-dvh pt-14">
-        <JobDetail job={job} checklist={checklist} photos={photos} signedEstimateId={signedEstimate?.id ?? null} changeOrders={changeOrders} />
+        <JobDetail
+          job={job}
+          checklist={checklist}
+          photos={photos}
+          signedEstimateId={signedEstimate?.id ?? null}
+          changeOrders={changeOrders}
+          customerEstimates={customerEstimates}
+        />
       </div>
     </>
   )

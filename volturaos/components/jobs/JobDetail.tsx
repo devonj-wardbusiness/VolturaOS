@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Job, JobChecklist, JobStatus, ChangeOrder } from '@/types'
+import type { Job, JobChecklist, JobStatus, ChangeOrder, Estimate, EstimateStatus } from '@/types'
 import { updateJobStatus, updateJob } from '@/lib/actions/jobs'
 import { StatusStepper } from './StatusStepper'
 import { JobChecklist as JobChecklistUI } from './JobChecklist'
@@ -19,12 +19,15 @@ import { SendToCrewButton } from './SendToCrewButton'
 import { GPSClockIn } from './GPSClockIn'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
+type CustomerEstimate = Pick<Estimate, 'id' | 'name' | 'total' | 'status'>
+
 interface JobDetailProps {
   job: Job & { customer: { id: string; name: string; phone: string | null; address: string | null; zip: string | null } }
   checklist: JobChecklist
   photos: JobPhotoRecord[]
   signedEstimateId: string | null
   changeOrders: ChangeOrder[]
+  customerEstimates: CustomerEstimate[]
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -33,7 +36,15 @@ const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>
   'In Progress': { label: 'Complete Job', next: 'Completed' },
 }
 
-export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrders }: JobDetailProps) {
+const STATUS_COLORS: Record<EstimateStatus, string> = {
+  Draft:    'bg-gray-700/60 text-gray-400',
+  Sent:     'bg-blue-900/40 text-blue-400',
+  Viewed:   'bg-yellow-900/30 text-yellow-400',
+  Approved: 'bg-green-900/40 text-green-400',
+  Declined: 'bg-red-900/30 text-red-400',
+}
+
+export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrders, customerEstimates }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
@@ -259,6 +270,42 @@ export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrde
           </div>
         </div>
       )}
+
+      {/* Customer Estimates */}
+      <div className="bg-volturaNavy/50 rounded-xl p-4 mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Estimates</p>
+          <button
+            onClick={() => router.push(`/estimates/new?customerId=${job.customer.id}&customerName=${encodeURIComponent(job.customer.name)}`)}
+            className="text-volturaGold text-xs font-semibold border border-volturaGold/30 px-2.5 py-1 rounded-lg"
+          >
+            + New
+          </button>
+        </div>
+        {customerEstimates.length === 0 ? (
+          <p className="text-gray-600 text-sm">No estimates yet for this customer.</p>
+        ) : (
+          <div className="space-y-2">
+            {customerEstimates.map((est) => (
+              <button
+                key={est.id}
+                onClick={() => router.push(`/estimates/${est.id}`)}
+                className="w-full flex items-center justify-between py-2.5 border-b border-white/5 last:border-0 text-left active:opacity-70"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[est.status as EstimateStatus] ?? 'bg-gray-700/60 text-gray-400'}`}>
+                    {est.status}
+                  </span>
+                  <span className="text-white text-sm truncate">{est.name || 'Estimate'}</span>
+                </div>
+                <span className="text-volturaGold font-semibold text-sm shrink-0 ml-2">
+                  ${(est.total ?? 0).toLocaleString()}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* GPS auto clock-in prompt */}
       {(job.status === 'Scheduled' || job.status === 'In Progress') && (
