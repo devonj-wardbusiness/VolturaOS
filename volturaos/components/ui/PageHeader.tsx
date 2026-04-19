@@ -37,8 +37,8 @@ export function PageHeader({ title, subtitle, backHref, action }: PageHeaderProp
         )}
       </div>
 
-      {/* Action slot */}
-      <div className="absolute right-0 pr-1">
+      {/* Action slot — padded right to clear the global search icon */}
+      <div className="absolute right-0 pr-10">
         {action}
       </div>
     </header>

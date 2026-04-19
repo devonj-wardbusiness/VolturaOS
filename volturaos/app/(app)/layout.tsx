@@ -12,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-dvh pb-16">
       <Link
         href="/search"
-        className="fixed top-3 right-16 z-[60] text-gray-400 hover:text-volturaGold p-1"
+        className="fixed top-3 right-3 z-[60] text-gray-400 hover:text-volturaGold p-1"
         aria-label="Search"
       >
         <Search size={20} />

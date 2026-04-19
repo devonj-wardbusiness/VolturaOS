@@ -522,7 +522,7 @@ export function EstimateBuilder({
         )}
         <div className="flex items-center justify-between mb-1">
           <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5">
             <SavingsCalculator lineItems={lineItems} addons={addons} />
             <PhotoEstimate
               onAddItems={(items) => {

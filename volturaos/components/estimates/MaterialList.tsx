@@ -32,11 +32,11 @@ export function MaterialList({ lineItems }: MaterialListProps) {
       <button
         onClick={handleOpen}
         disabled={!lineItems.length}
-        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-volturaGold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        title="Generate parts list from line items"
+        className="flex items-center justify-center w-9 h-9 text-base text-gray-400 hover:text-volturaGold transition-colors rounded-lg hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+        title="AI parts list"
+        aria-label="AI parts list"
       >
-        <span>📦</span>
-        <span>Parts List</span>
+        📦
       </button>
 
       {open && (

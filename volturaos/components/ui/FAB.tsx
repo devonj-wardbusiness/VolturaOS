@@ -29,7 +29,7 @@ export function FAB() {
   }, [open])
 
   return (
-    <div ref={ref} className="fixed bottom-36 right-4 z-50 flex flex-col items-end gap-2">
+    <div ref={ref} className="fixed bottom-52 right-4 z-50 flex flex-col items-end gap-2">
       {open && (
         <div className="flex flex-col items-end gap-2">
           {ACTIONS.map((action) => (
@@ -49,7 +49,9 @@ export function FAB() {
         aria-label={open ? 'Close quick actions' : 'Quick actions'}
         aria-expanded={open}
         aria-haspopup="true"
-        className="w-12 h-12 rounded-full bg-volturaGold text-volturaBlue flex items-center justify-center shadow-lg text-2xl font-bold leading-none"
+        className={`w-12 h-12 rounded-full bg-volturaGold text-volturaBlue flex items-center justify-center shadow-lg text-2xl font-bold leading-none transition-opacity ${
+          open ? 'opacity-100' : 'opacity-40 hover:opacity-80 active:opacity-100'
+        }`}
       >
         {open ? '×' : '+'}
       </button>

@@ -81,11 +81,11 @@ export function SavingsCalculator({ lineItems, addons }: SavingsCalculatorProps)
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-volturaGold transition-colors"
-        title="Show customer projected savings"
+        className="flex items-center justify-center w-9 h-9 text-base text-gray-400 hover:text-volturaGold transition-colors rounded-lg hover:bg-white/5"
+        title="Savings calculator"
+        aria-label="Savings calculator"
       >
-        <span>⚡</span>
-        <span>Savings</span>
+        ⚡
       </button>
 
       {open && (

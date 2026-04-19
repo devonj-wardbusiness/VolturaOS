@@ -81,11 +81,11 @@ export function PhotoEstimate({ onAddItems }: PhotoEstimateProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-volturaGold transition-colors"
-        title="Take a photo to auto-fill estimate items"
+        className="flex items-center justify-center w-9 h-9 text-base text-gray-400 hover:text-volturaGold transition-colors rounded-lg hover:bg-white/5"
+        title="Photo estimate — AI reads the job site"
+        aria-label="Photo estimate"
       >
-        <span>📷</span>
-        <span>Photo Estimate</span>
+        📷
       </button>
 
       {open && (
