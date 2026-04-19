@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { getTemplates } from '@/lib/actions/estimates'
 import { TemplateList } from '@/components/settings/TemplateList'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 export default async function TemplatesPage() {
   const templates = await getTemplates()
@@ -10,7 +11,9 @@ export default async function TemplatesPage() {
         <h1 className="text-white font-bold text-xl">Templates</h1>
       </div>
       {templates.length === 0 ? (
-        <p className="text-gray-500 text-sm">No templates yet. Open any estimate and tap 🔖 to save it as a template.</p>
+        <EmptyState
+          message="No templates yet — open any estimate and tap 🔖 to save one"
+        />
       ) : (
         <TemplateList templates={templates} />
       )}
