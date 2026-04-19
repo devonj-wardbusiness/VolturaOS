@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getDashboardData } from '@/lib/actions/dashboard'
 import { KPICards } from '@/components/dashboard/KPICards'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'

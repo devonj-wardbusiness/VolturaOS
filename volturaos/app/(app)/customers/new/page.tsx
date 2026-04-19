@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { QuickAddForm } from '@/components/customers/QuickAddForm'
 
 export default function NewCustomerPage() {

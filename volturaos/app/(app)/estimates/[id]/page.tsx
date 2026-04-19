@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getEstimateById, getProposalEstimates, getLinkedInvoice } from '@/lib/actions/estimates'
 import { getAllPricebook, getRecentPricebookItems } from '@/lib/actions/pricebook'
 import { EstimateBuilder } from '@/components/estimate-builder/EstimateBuilder'

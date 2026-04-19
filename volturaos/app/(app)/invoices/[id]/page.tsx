@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getInvoiceById } from '@/lib/actions/invoices'
 import { InvoiceDetail } from '@/components/invoices/InvoiceDetail'
 import { notFound } from 'next/navigation'

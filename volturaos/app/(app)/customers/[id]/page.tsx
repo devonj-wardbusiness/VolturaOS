@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getCustomerById, getCustomerHistory } from '@/lib/actions/customers'
 import { getActiveAgreement } from '@/lib/actions/agreements'
 import { notFound } from 'next/navigation'

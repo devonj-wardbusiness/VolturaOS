@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { LoadCalcTool } from '@/components/tools/LoadCalcTool'
 import { PageHeader } from '@/components/ui/PageHeader'
 

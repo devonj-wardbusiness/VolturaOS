@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getEstimatesByCustomer } from '@/lib/actions/estimates'
 import { getCustomerById } from '@/lib/actions/customers'
 import { JobForm } from '@/components/jobs/JobForm'

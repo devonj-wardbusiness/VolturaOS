@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NewInvoiceForm } from '@/components/invoices/NewInvoiceForm'
 
 export default async function NewInvoicePage({
