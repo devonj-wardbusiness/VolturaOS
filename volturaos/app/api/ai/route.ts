@@ -6,6 +6,24 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic()
 
+function friendlyAIError(error: unknown): string {
+  if (error instanceof Anthropic.APIError) {
+    switch (error.status) {
+      case 401:
+      case 403:
+        return 'AI authentication error — please contact support'
+      case 429:
+        return 'AI is busy right now — wait a moment and try again'
+      case 500:
+      case 529:
+        return 'AI service is temporarily down — try again in a minute'
+      default:
+        return 'Something went wrong with the AI — try again'
+    }
+  }
+  return 'Could not reach the AI service — check your connection'
+}
+
 export async function POST(request: Request) {
   // auth disabled — matches rest of app
   // const supabase = await createClient()
@@ -99,10 +117,7 @@ export async function POST(request: Request) {
 
         controller.close()
       } catch (error) {
-        const msg = error instanceof Anthropic.APIError
-          ? `AI error (${error.status}): ${error.message}`
-          : 'AI service unavailable'
-        controller.enqueue(encoder.encode(`\n\n[Error: ${msg}]`))
+        controller.enqueue(encoder.encode(`\n\n[Error: ${friendlyAIError(error)}]`))
         controller.close()
       }
     },
