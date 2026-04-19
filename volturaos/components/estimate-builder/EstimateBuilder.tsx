@@ -1,34 +1,24 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import type { PricebookEntry, LineItem, Addon, AIPageContext, Estimate } from '@/types'
-import { DEFAULT_ADDONS } from '@/types'
 import { CustomerSelector } from './CustomerSelector'
 import { PresentMode } from '@/components/estimates/PresentMode'
 import { SuggestedItems } from './SuggestedItems'
-
-const EstimateDownloadButton = dynamic(
-  () => import('@/components/pdf/EstimateDownloadButton').then((m) => m.EstimateDownloadButton),
-  { ssr: false, loading: () => null }
-)
 import { PrimaryJobSelector } from './PrimaryJobSelector'
 import { CategoryGrid } from './CategoryGrid'
 import { LineItemList } from './LineItemList'
 import { AddOnsPanel } from './AddOnsPanel'
 import { CustomLineItems } from './CustomLineItems'
-import { LiveTotal, calculateTotal } from './LiveTotal'
 import { SendSheet } from './SendSheet'
 import { AIContextProvider } from './AIContextProvider'
-import { saveEstimate, duplicateEstimate, deleteEstimate, saveAsTemplate, dismissFollowUp } from '@/lib/actions/estimates'
+import { dismissFollowUp } from '@/lib/actions/estimates'
 import { QuickAddSheet } from './QuickAddSheet'
 import { InPersonSignature } from '@/components/estimates/InPersonSignature'
-import { MaterialList } from '@/components/estimates/MaterialList'
-import { SavingsCalculator } from '@/components/estimates/SavingsCalculator'
-import { PhotoEstimate } from './PhotoEstimate'
-import { createInvoiceFromEstimate } from '@/lib/actions/invoices'
 import { DiscountsSection } from './DiscountsSection'
+import { useEstimateEditor } from './useEstimateEditor'
+import { EstimateBottomBar } from './EstimateBottomBar'
 
 interface EstimateBuilderProps {
   estimateId: string
@@ -73,252 +63,39 @@ export function EstimateBuilder({
 }: EstimateBuilderProps) {
   const router = useRouter()
 
-  // Customer
-  const [customerId, setCustomerId] = useState(initialCustomerId ?? null)
-  const [customerName, setCustomerName] = useState(initialCustomerName ?? null)
+  const editor = useEstimateEditor({
+    estimateId,
+    pricebook,
+    proposalCount,
+    initialCustomerId,
+    initialCustomerName,
+    initialEstimate,
+  })
 
-  // Estimate name
-  const [estimateName, setEstimateName] = useState(initialEstimate?.name ?? 'Estimate')
-
-  // Primary job type (for AI context only, no tier)
-  const [primaryJobType, setPrimaryJobType] = useState<string | null>(null)
-  const [primarySkipped, setPrimarySkipped] = useState(
-    () => (initialEstimate?.line_items ?? []).length > 0
-  )
-
-  // Line items (flat, no tiers)
-  const [lineItems, setLineItems] = useState<LineItem[]>(
-    () => initialEstimate?.line_items ?? []
-  )
-
-  // Add-ons and custom items
-  const [addons, setAddons] = useState<Addon[]>(
-    initialEstimate?.addons ?? DEFAULT_ADDONS.map((a) => ({ ...a, selected: false }))
-  )
-  const [customItems, setCustomItems] = useState<LineItem[]>([])
-  const [notes, setNotes] = useState(initialEstimate?.notes ?? '')
-
-  // Badge toggles
-  const [includesPermit, setIncludesPermit] = useState(initialEstimate?.includes_permit ?? false)
-  const [includesCleanup, setIncludesCleanup] = useState(initialEstimate?.includes_cleanup ?? true)
-  const [includesWarranty, setIncludesWarranty] = useState(initialEstimate?.includes_warranty ?? true)
-
-  const [followUpDays, setFollowUpDays] = useState(initialEstimate?.follow_up_days ?? 3)
-
-  // Margin calculator (local only, not saved)
-  const [myCost, setMyCost] = useState('')
-  const [showMargin, setShowMargin] = useState(false)
-
-  // UI state
-  const [sendOpen, setSendOpen] = useState(false)
-  const [qaOpen, setQaOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  // Modal open/close states — UI only, stay in EstimateBuilder
   const [presenting, setPresenting] = useState(false)
   const [signingInPerson, setSigningInPerson] = useState(false)
-  const [duplicating, setDuplicating] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [invoicing, setInvoicing] = useState(false)
-
-  // Template save modal
-  const [templateModalOpen, setTemplateModalOpen] = useState(false)
-  const [templateDraftName, setTemplateDraftName] = useState('')
-  const [templateSaving, setTemplateSaving] = useState(false)
-
-  // Primary job handler (adds as flat line item, no tier)
-  const handlePrimaryJobSelect = useCallback((jobType: string) => {
-    setPrimaryJobType(jobType || null)
-    setPrimarySkipped(true)
-    const entry = pricebook.find((p) => p.job_type === jobType)
-    if (!entry) return
-    const price = entry.price_better ?? entry.price_good ?? 0
-    setLineItems((prev) => [
-      { description: entry.job_type, price, is_override: false, original_price: price, category: entry.category },
-      ...prev,
-    ])
-  }, [pricebook])
-
-  // Quick add handler (from QuickAddSheet — voice / search / recents)
-  const handleQuickAdd = useCallback((items: LineItem[]) => {
-    setLineItems((prev) => [...prev, ...items])
-  }, [])
-
-  // Additional item from category grid
-  const handleAddItem = useCallback((entry: PricebookEntry) => {
-    const price = entry.price_better ?? entry.price_good ?? 0
-    setLineItems((prev) => [...prev, {
-      description: entry.job_type,
-      price,
-      is_override: false,
-      original_price: price,
-      category: entry.category,
-      footage: entry.is_footage_item ? null : undefined,
-    }])
-  }, [])
-
-  const handleFootageChange = useCallback((index: number, footage: number | null, price: number) => {
-    setLineItems((prev) => prev.map((item, i) =>
-      i === index ? { ...item, footage, price, is_override: footage !== null } : item
-    ))
-  }, [])
-
-  const handleRemoveItem = useCallback((index: number) => {
-    setLineItems((prev) => prev.filter((_, i) => i !== index))
-  }, [])
-
-  // Price override from line item tap (optionally also saves to pricebook)
-  const handlePriceUpdate = useCallback((index: number, price: number) => {
-    setLineItems((prev) => prev.map((item, i) =>
-      i === index ? { ...item, price, is_override: true, original_price: item.original_price ?? item.price } : item
-    ))
-  }, [])
-
-  // Add AI suggestion as custom line item
-  const handleAddSuggestion = useCallback((name: string, price: number) => {
-    setCustomItems((prev) => [...prev, { description: name, price, is_override: false, original_price: price }])
-  }, [])
-
-  // Addon handlers
-  const handleAddonToggle = useCallback((index: number) => {
-    setAddons((prev) => prev.map((a, i) => i === index ? { ...a, selected: !a.selected } : a))
-  }, [])
-
-  const handleAddonPriceChange = useCallback((index: number, price: number) => {
-    setAddons((prev) => prev.map((a, i) => i === index ? { ...a, price } : a))
-  }, [])
-
-  // Custom item handlers
-  const addCustomItem = useCallback(() => {
-    setCustomItems((prev) => [...prev, { description: 'Custom item', price: 0, is_override: false, original_price: null }])
-  }, [])
-
-  const updateCustomItem = useCallback((index: number, updates: Partial<LineItem>) => {
-    setCustomItems((prev) => prev.map((item, i) => i === index ? { ...item, ...updates } : item))
-  }, [])
-
-  const removeCustomItem = useCallback((index: number) => {
-    setCustomItems((prev) => prev.filter((_, i) => i !== index))
-  }, [])
-
-  const addDiscount = useCallback((description: string, amount: number) => {
-    setCustomItems((prev) => [...prev, { description, price: amount, is_override: false, original_price: null }])
-  }, [])
-
-  const allLineItems = [...lineItems, ...customItems]
-  const total = calculateTotal([], lineItems, addons, customItems)
-  // Subtotal of positive items only — used as base for discount calculations
-  const positiveSubtotal = calculateTotal([], lineItems, addons, customItems.filter((i) => i.price > 0))
-
-  async function handleSave() {
-    setSaving(true)
-    try {
-      await saveEstimate(estimateId, {
-        name: estimateName,
-        lineItems: allLineItems,
-        addons,
-        subtotal: total,
-        total,
-        notes,
-        includesPermit,
-        includesCleanup,
-        includesWarranty,
-        followUpDays,
-      })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  function handleSaveAsTemplate() {
-    setTemplateDraftName(estimateName || 'My Template')
-    setTemplateModalOpen(true)
-  }
-
-  async function handleConfirmSaveTemplate() {
-    if (!templateDraftName.trim()) return
-    setTemplateSaving(true)
-    try {
-      await saveAsTemplate(estimateId, templateDraftName.trim())
-      setTemplateModalOpen(false)
-    } catch {
-      // silently fail — modal stays open
-    } finally {
-      setTemplateSaving(false)
-    }
-  }
-
-  async function handleDelete() {
-    if (!window.confirm('Delete this estimate? This cannot be undone.')) return
-    setDeleting(true)
-    try {
-      await deleteEstimate(estimateId)
-      router.push('/estimates')
-    } catch {
-      alert('Failed to delete estimate.')
-      setDeleting(false)
-    }
-  }
-
-  async function handleDuplicate() {
-    if (duplicating || proposalCount >= 3) return
-    setDuplicating(true)
-    try {
-      // Auto-save current state first so the duplicate gets the latest data
-      await saveEstimate(estimateId, {
-        name: estimateName,
-        lineItems: allLineItems,
-        addons,
-        subtotal: total,
-        total,
-        notes,
-        includesPermit,
-        includesCleanup,
-        includesWarranty,
-        followUpDays,
-      })
-      const newEst = await duplicateEstimate(estimateId)
-      router.push(`/estimates/${newEst.id}`)
-    } catch (e) {
-      alert((e as Error).message)
-      setDuplicating(false)
-    }
-  }
-
-  async function handleCreateInvoice() {
-    if (invoicing) return
-    setInvoicing(true)
-    try {
-      const inv = await createInvoiceFromEstimate(estimateId)
-      router.push(`/invoices/${inv.id}`)
-    } catch {
-      alert('Failed to create invoice. Please try again.')
-    } finally {
-      setInvoicing(false)
-    }
-  }
+  const [sendOpen, setSendOpen] = useState(false)
+  const [qaOpen, setQaOpen] = useState(false)
 
   const aiContext: AIPageContext = {
     mode: 'estimate',
-    jobType: primaryJobType ?? undefined,
-    currentLineItems: allLineItems,
+    jobType: editor.primaryJobType ?? undefined,
+    currentLineItems: editor.allLineItems,
   }
-
-  const hasItems = allLineItems.length > 0
 
   return (
     <AIContextProvider context={aiContext}>
       <div className="px-4 pt-4 pb-40 space-y-6">
 
-        {/* Estimate name + duplicate button */}
+        {/* Estimate name + duplicate + delete */}
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <input
               type="text"
-              value={estimateName}
-              onChange={(e) => setEstimateName(e.target.value)}
-              onBlur={() => { if (!estimateName.trim()) setEstimateName('Estimate') }}
+              value={editor.estimateName}
+              onChange={(e) => editor.setEstimateName(e.target.value)}
+              onBlur={() => { if (!editor.estimateName.trim()) editor.setEstimateName('Estimate') }}
               maxLength={100}
               placeholder="Name this estimate…"
               className="bg-transparent text-white font-semibold text-lg w-full focus:outline-none placeholder:text-gray-600"
@@ -329,37 +106,38 @@ export function EstimateBuilder({
                 type="number"
                 min={1}
                 max={30}
-                value={followUpDays}
-                onChange={e => setFollowUpDays(Number(e.target.value))}
+                value={editor.followUpDays}
+                onChange={e => editor.setFollowUpDays(Number(e.target.value))}
                 className="w-12 bg-volturaNavy text-white text-xs rounded px-2 py-1 text-center"
               />
               <span className="text-gray-500 text-xs">days</span>
             </div>
           </div>
           <button
-            onClick={handleSaveAsTemplate}
+            onClick={editor.handleSaveAsTemplate}
             title="Save as template"
             className="text-gray-500 hover:text-volturaGold text-lg px-2 flex-shrink-0"
           >
             🔖
           </button>
           <button
-            onClick={handleDuplicate}
-            disabled={duplicating || proposalCount >= 3 || saving}
+            onClick={editor.handleDuplicate}
+            disabled={editor.duplicating || proposalCount >= 3 || editor.saving}
             title={proposalCount >= 3 ? 'Max 3 per proposal' : 'Duplicate this estimate'}
             className="text-volturaGold text-xs font-semibold border border-volturaGold/40 px-2.5 py-1 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed ml-3 shrink-0"
           >
-            {duplicating ? 'Copying…' : 'Duplicate'}
+            {editor.duplicating ? 'Copying…' : 'Duplicate'}
           </button>
           <button
-            onClick={handleDelete}
-            disabled={deleting}
+            onClick={editor.handleDelete}
+            disabled={editor.deleting}
             className="text-red-400 text-xs font-semibold border border-red-400/30 px-2.5 py-1 rounded-lg disabled:opacity-40 ml-1 shrink-0"
           >
-            {deleting ? '…' : 'Delete'}
+            {editor.deleting ? '…' : 'Delete'}
           </button>
         </div>
 
+        {/* Follow-up banner */}
         {initialEstimate?.follow_up_sent_at && !initialEstimate?.follow_up_dismissed && (
           <div className="flex items-center justify-between bg-volturaNavy/80 rounded-xl px-4 py-2">
             <span className="text-yellow-400 text-xs">
@@ -378,22 +156,23 @@ export function EstimateBuilder({
         )}
 
         <CustomerSelector
-          selectedId={customerId}
-          selectedName={customerName}
-          onSelect={(id, name) => { setCustomerId(id); setCustomerName(name) }}
+          selectedId={editor.customerId}
+          selectedName={editor.customerName}
+          onSelect={(id, name) => { editor.setCustomerId(id); editor.setCustomerName(name) }}
         />
-        {customerId && (
+
+        {editor.customerId && (
           <div className="flex gap-2 -mt-4">
             <button
               type="button"
-              onClick={() => router.push(`/jobs/new?customerId=${customerId}`)}
+              onClick={() => router.push(`/jobs/new?customerId=${editor.customerId}`)}
               className="text-volturaGold text-xs border border-volturaGold/30 px-3 py-1.5 rounded-lg"
             >
               + Schedule Job
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/customers/${customerId}`)}
+              onClick={() => router.push(`/customers/${editor.customerId}`)}
               className="text-gray-400 text-xs border border-white/10 px-3 py-1.5 rounded-lg"
             >
               View Customer
@@ -401,20 +180,19 @@ export function EstimateBuilder({
           </div>
         )}
 
-        {/* Primary job (optional) */}
-        {!primarySkipped && (
+        {!editor.primarySkipped && (
           <PrimaryJobSelector
             pricebook={pricebook}
-            selected={primaryJobType}
-            onSelect={handlePrimaryJobSelect}
-            onSkip={() => setPrimarySkipped(true)}
+            selected={editor.primaryJobType}
+            onSelect={editor.handlePrimaryJobSelect}
+            onSkip={() => editor.setPrimarySkipped(true)}
           />
         )}
 
-        {primarySkipped && !primaryJobType && (
+        {editor.primarySkipped && !editor.primaryJobType && (
           <div className="bg-volturaNavy/30 rounded-xl p-3 flex items-center justify-between">
             <p className="text-gray-500 text-sm">No primary job selected</p>
-            <button onClick={() => setPrimarySkipped(false)} className="text-volturaGold text-xs">Add one</button>
+            <button onClick={() => editor.setPrimarySkipped(false)} className="text-volturaGold text-xs">Add one</button>
           </div>
         )}
 
@@ -429,35 +207,32 @@ export function EstimateBuilder({
         <QuickAddSheet
           open={qaOpen}
           onClose={() => setQaOpen(false)}
-          onAdd={handleQuickAdd}
+          onAdd={editor.handleQuickAdd}
           pricebook={pricebook}
           initialRecents={initialRecents}
         />
 
-        {/* Category grid — still available as secondary */}
-        <CategoryGrid pricebook={pricebook} onAddItem={handleAddItem} />
+        <CategoryGrid pricebook={pricebook} onAddItem={editor.handleAddItem} />
 
-        {/* AI suggested items */}
         <SuggestedItems
-          currentLineItems={allLineItems}
-          onAdd={handleAddSuggestion}
+          currentLineItems={editor.allLineItems}
+          onAdd={editor.handleAddSuggestion}
         />
 
-        {/* Line items */}
         <LineItemList
-          items={lineItems}
+          items={editor.lineItems}
           pricebook={pricebook}
-          onFootageChange={handleFootageChange}
-          onRemove={handleRemoveItem}
-          onPriceUpdate={handlePriceUpdate}
+          onFootageChange={editor.handleFootageChange}
+          onRemove={editor.handleRemoveItem}
+          onPriceUpdate={editor.handlePriceUpdate}
         />
 
         {/* Badge toggles */}
         <div className="flex gap-2 flex-wrap mt-3 mb-2">
           {([
-            { key: 'permit', label: '📋 Permit', value: includesPermit, set: setIncludesPermit },
-            { key: 'cleanup', label: '🧹 Cleanup', value: includesCleanup, set: setIncludesCleanup },
-            { key: 'warranty', label: '🛡 Warranty', value: includesWarranty, set: setIncludesWarranty },
+            { key: 'permit', label: '📋 Permit', value: editor.includesPermit, set: editor.setIncludesPermit },
+            { key: 'cleanup', label: '🧹 Cleanup', value: editor.includesCleanup, set: editor.setIncludesCleanup },
+            { key: 'warranty', label: '🛡 Warranty', value: editor.includesWarranty, set: editor.setIncludesWarranty },
           ] as const).map(({ key, label, value, set }) => (
             <button
               key={key}
@@ -473,15 +248,24 @@ export function EstimateBuilder({
           ))}
         </div>
 
-        <AddOnsPanel addons={addons} onToggle={handleAddonToggle} onPriceChange={handleAddonPriceChange} />
-        <CustomLineItems items={customItems} onAdd={addCustomItem} onUpdate={updateCustomItem} onRemove={removeCustomItem} />
-        <DiscountsSection subtotal={positiveSubtotal} onAddDiscount={addDiscount} />
+        <AddOnsPanel
+          addons={editor.addons}
+          onToggle={editor.handleAddonToggle}
+          onPriceChange={editor.handleAddonPriceChange}
+        />
+        <CustomLineItems
+          items={editor.customItems}
+          onAdd={editor.addCustomItem}
+          onUpdate={editor.updateCustomItem}
+          onRemove={editor.removeCustomItem}
+        />
+        <DiscountsSection subtotal={editor.positiveSubtotal} onAddDiscount={editor.addDiscount} />
 
         <div>
           <label className="block text-gray-400 text-sm mb-1">Notes</label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={editor.notes}
+            onChange={(e) => editor.setNotes(e.target.value)}
             rows={3}
             className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold"
             placeholder="Notes for this estimate..."
@@ -489,133 +273,51 @@ export function EstimateBuilder({
         </div>
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 bg-volturaBlue border-t border-volturaNavy z-30 px-4 py-3">
-        {/* Margin calculator */}
-        {showMargin ? (
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-gray-400 text-xs">My cost $</span>
-            <input
-              type="number"
-              min={0}
-              value={myCost}
-              onChange={e => setMyCost(e.target.value)}
-              placeholder="0"
-              className="w-24 bg-volturaNavy text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50"
-            />
-            {myCost && Number(myCost) > 0 && total > 0 && (
-              <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${
-                ((total - Number(myCost)) / total) >= 0.35
-                  ? 'text-green-400 bg-green-900/30'
-                  : ((total - Number(myCost)) / total) >= 0.20
-                  ? 'text-yellow-400 bg-yellow-900/20'
-                  : 'text-red-400 bg-red-900/20'
-              }`}>
-                {Math.round(((total - Number(myCost)) / total) * 100)}% margin
-              </span>
-            )}
-            <button onClick={() => setShowMargin(false)} className="ml-auto text-gray-500 text-xs">Done</button>
-          </div>
-        ) : (
-          <button onClick={() => setShowMargin(true)} className="text-gray-500 text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
-            <span>📊</span> Margin
-          </button>
-        )}
-        <div className="flex items-center justify-between mb-1">
-          <LiveTotal primaryItems={[]} additionalItems={lineItems} addons={addons} customItems={customItems} />
-          <div className="flex items-center gap-0.5">
-            <SavingsCalculator lineItems={lineItems} addons={addons} />
-            <PhotoEstimate
-              onAddItems={(items) => {
-                items.forEach((item) => {
-                  setCustomItems((prev) => [
-                    ...prev,
-                    { description: item.description, price: item.price, is_override: false, original_price: item.price },
-                  ])
-                })
-              }}
-            />
-            <MaterialList lineItems={lineItems} />
-          </div>
-        </div>
-        {/* Signed badge */}
-        {initialEstimate?.signed_at && (
-          <div className="flex items-center gap-2 bg-green-900/30 border border-green-500/30 rounded-xl px-4 py-2 mb-2">
-            <span className="text-green-400 text-sm">✍️ Signed</span>
-            {initialEstimate.signer_name && (
-              <span className="text-green-300 text-sm font-semibold">{initialEstimate.signer_name}</span>
-            )}
-            <span className="text-green-600 text-xs ml-auto">
-              {new Date(initialEstimate.signed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </span>
-          </div>
-        )}
+      {/* Fixed bottom action bar */}
+      <EstimateBottomBar
+        total={editor.total}
+        hasItems={editor.hasItems}
+        lineItems={editor.lineItems}
+        addons={editor.addons}
+        customItems={editor.customItems}
+        status={initialEstimate?.status}
+        estimateId={estimateId}
+        customerName={editor.customerName ?? 'Customer'}
+        estimateCreatedAt={estimateCreatedAt}
+        linkedInvoiceId={linkedInvoiceId}
+        signedAt={initialEstimate?.signed_at ?? null}
+        signerName={initialEstimate?.signer_name ?? null}
+        saving={editor.saving}
+        saved={editor.saved}
+        invoicing={editor.invoicing}
+        notes={editor.notes}
+        onAddPhotoItems={(items) =>
+          items.forEach((item) => editor.handleAddSuggestion(item.description, item.price))
+        }
+        onSave={editor.handleSave}
+        onPresent={() => setPresenting(true)}
+        onSign={() => setSigningInPerson(true)}
+        onSend={() => setSendOpen(true)}
+        onCreateInvoice={editor.handleCreateInvoice}
+        onViewInvoice={() => router.push(`/invoices/${linkedInvoiceId}`)}
+      />
 
-        <div className="flex gap-2 mt-2">
-          <button onClick={handleSave} disabled={saving || !hasItems} className="flex-1 bg-volturaNavy text-white py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50">
-            {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Draft'}
-          </button>
-          <button
-            onClick={() => setPresenting(true)}
-            disabled={!hasItems}
-            className="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm disabled:opacity-50 border border-white/20"
-          >
-            Present
-          </button>
-          {!initialEstimate?.signed_at && hasItems ? (
-            <button
-              onClick={() => { handleSave(); setSigningInPerson(true) }}
-              disabled={!hasItems}
-              className="flex-1 bg-volturaGold text-volturaBlue py-2.5 rounded-xl font-bold text-sm disabled:opacity-50"
-            >
-              ✍️ Sign
-            </button>
-          ) : (
-            <button onClick={() => { handleSave(); setSendOpen(true) }} disabled={!hasItems} className="flex-1 bg-volturaGold text-volturaBlue py-2.5 rounded-xl font-bold text-sm disabled:opacity-50">
-              Send
-            </button>
-          )}
-        </div>
-        {initialEstimate?.status === 'Approved' && (
-          linkedInvoiceId ? (
-            <button
-              onClick={() => router.push(`/invoices/${linkedInvoiceId}`)}
-              className="w-full bg-green-700 text-white font-bold py-3 rounded-xl mt-2"
-            >
-              View Invoice
-            </button>
-          ) : (
-            <button
-              onClick={handleCreateInvoice}
-              disabled={invoicing}
-              className="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:opacity-50 mt-2"
-            >
-              {invoicing ? 'Creating...' : '💰 Create Invoice'}
-            </button>
-          )
-        )}
-        {hasItems && estimateCreatedAt && (
-          <div className="mt-2">
-            <EstimateDownloadButton
-              estimateId={estimateId}
-              customerName={customerName ?? 'Customer'}
-              lineItems={allLineItems}
-              addons={addons}
-              total={total}
-              notes={notes}
-              createdAt={estimateCreatedAt}
-            />
-          </div>
-        )}
-      </div>
-
-      <SendSheet open={sendOpen} onClose={() => setSendOpen(false)} estimateId={estimateId} total={total} customerPhone={initialCustomerPhone ?? null} customerName={customerName ?? 'Customer'} />
+      {/* Modals */}
+      <SendSheet
+        open={sendOpen}
+        onClose={() => setSendOpen(false)}
+        estimateId={estimateId}
+        total={editor.total}
+        customerPhone={initialCustomerPhone ?? null}
+        customerName={editor.customerName ?? 'Customer'}
+      />
 
       {signingInPerson && (
         <InPersonSignature
           estimateId={estimateId}
-          customerName={customerName}
-          total={total}
-          estimateName={estimateName}
+          customerName={editor.customerName}
+          total={editor.total}
+          estimateName={editor.estimateName}
           onClose={() => setSigningInPerson(false)}
           onSigned={() => {
             setSigningInPerson(false)
@@ -627,18 +329,27 @@ export function EstimateBuilder({
       {presenting && (
         <PresentMode
           estimateId={estimateId}
-          customerName={customerName}
+          customerName={editor.customerName}
           proposalEstimates={proposalEstimates.map((e) =>
             e.id === estimateId
-              ? { ...e, name: estimateName, line_items: allLineItems, addons, total, includes_permit: includesPermit, includes_cleanup: includesCleanup, includes_warranty: includesWarranty }
+              ? {
+                  ...e,
+                  name: editor.estimateName,
+                  line_items: editor.allLineItems,
+                  addons: editor.addons,
+                  total: editor.total,
+                  includes_permit: editor.includesPermit,
+                  includes_cleanup: editor.includesCleanup,
+                  includes_warranty: editor.includesWarranty,
+                }
               : e
           )}
-          lineItems={lineItems}
-          addons={addons}
-          customItems={customItems}
-          includesPermit={includesPermit}
-          includesCleanup={includesCleanup}
-          includesWarranty={includesWarranty}
+          lineItems={editor.lineItems}
+          addons={editor.addons}
+          customItems={editor.customItems}
+          includesPermit={editor.includesPermit}
+          includesCleanup={editor.includesCleanup}
+          includesWarranty={editor.includesWarranty}
           onClose={() => setPresenting(false)}
           onApproved={() => {
             setPresenting(false)
@@ -646,34 +357,41 @@ export function EstimateBuilder({
           }}
         />
       )}
+
       {/* Save as Template modal */}
-      {templateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setTemplateModalOpen(false)}>
-          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+      {editor.templateModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+          onClick={() => editor.setTemplateModalOpen(false)}
+        >
+          <div
+            className="bg-volturaNavy w-full max-w-lg rounded-t-2xl p-6 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
             <h3 className="text-white font-bold text-lg">Save as Template</h3>
             <p className="text-gray-400 text-sm">Give this template a name so you can reuse it on future estimates.</p>
             <input
               type="text"
-              value={templateDraftName}
-              onChange={e => setTemplateDraftName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleConfirmSaveTemplate()}
+              value={editor.templateDraftName}
+              onChange={e => editor.setTemplateDraftName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && editor.handleConfirmSaveTemplate()}
               autoFocus
               placeholder="Template name…"
               className="w-full bg-white/7 text-white rounded-xl px-4 py-3 text-sm outline-none border border-white/10 focus:border-volturaGold/50"
             />
             <div className="flex gap-3">
               <button
-                onClick={() => setTemplateModalOpen(false)}
+                onClick={() => editor.setTemplateModalOpen(false)}
                 className="flex-1 py-3 rounded-xl text-gray-400 text-sm font-semibold bg-white/5"
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirmSaveTemplate}
-                disabled={templateSaving || !templateDraftName.trim()}
+                onClick={editor.handleConfirmSaveTemplate}
+                disabled={editor.templateSaving || !editor.templateDraftName.trim()}
                 className="flex-1 py-3 rounded-xl text-volturaBlue text-sm font-bold bg-volturaGold disabled:opacity-50"
               >
-                {templateSaving ? 'Saving…' : '📋 Save Template'}
+                {editor.templateSaving ? 'Saving…' : '📋 Save Template'}
               </button>
             </div>
           </div>
