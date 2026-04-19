@@ -115,7 +115,7 @@ export function CustomerDetail({ customer, agreement }: { customer: Customer; ag
                   disabled={agreementPending}
                   className="text-red-400 text-xs disabled:opacity-50"
                 >
-                  Cancel
+                  {agreementPending ? 'Cancelling…' : 'Cancel'}
                 </button>
               </div>
               <ul className="mt-3 space-y-1">
