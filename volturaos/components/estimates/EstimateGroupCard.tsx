@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import type { Estimate, EstimateStatus } from '@/types'
+import type { Estimate, EstimateStatus, LineItem, Addon } from '@/types'
 import { StatusPill } from '@/components/ui/StatusPill'
 import { useLongPress } from '@/hooks/useLongPress'
 import { useActionSheet } from '@/components/ui/ActionSheetProvider'
@@ -15,29 +15,47 @@ interface EstimateGroupCardProps {
   status: EstimateStatus
 }
 
-export function EstimateGroupCard({ group, status }: EstimateGroupCardProps) {
+function calcSavings(lineItems: LineItem[] | null, addons: Addon[] | null): number {
+  let saved = 0
+  for (const item of lineItems ?? []) {
+    if (item.is_override && item.original_price != null && item.original_price > item.price) {
+      saved += item.original_price - item.price
+    }
+  }
+  for (const addon of addons ?? []) {
+    if (addon.selected && addon.original_price > addon.price) {
+      saved += addon.original_price - addon.price
+    }
+  }
+  return saved
+}
+
+function itemCount(lineItems: LineItem[] | null, addons: Addon[] | null): number {
+  const lines = (lineItems ?? []).length
+  const selected = (addons ?? []).filter((a) => a.selected).length
+  return lines + selected
+}
+
+function EstimateCard({ estimate }: { estimate: EstimateWithCustomer }) {
   const router = useRouter()
   const { openSheet } = useActionSheet()
-
-  const anchor = group[0]
-  const isGrouped = group.length > 1
-  const maxTotal = Math.max(...group.map((e) => e.total ?? 0))
-  const names = group.map((e) => e.name ?? 'Estimate').join(' · ')
-  const hasFollowUp = anchor.follow_up_sent_at && !anchor.follow_up_dismissed && anchor.status === 'Sent'
-  const label = `${anchor.customer?.name ?? 'Unknown'} — ${anchor.name ?? 'Estimate'}`
+  const label = `${estimate.customer?.name ?? 'Unknown'} — ${estimate.name ?? 'Estimate'}`
+  const savings = calcSavings(estimate.line_items, estimate.addons)
+  const count = itemCount(estimate.line_items, estimate.addons)
+  const hasFollowUp = estimate.follow_up_sent_at && !estimate.follow_up_dismissed && estimate.status === 'Sent'
 
   function showSheet() {
     openSheet(label, [
       {
         icon: '✏️',
         label: 'Edit',
-        onClick: () => router.push(`/estimates/${anchor.id}`),
+        onClick: () => router.push(`/estimates/${estimate.id}`),
       },
       {
         icon: '📋',
         label: 'Duplicate',
         onClick: async () => {
-          await duplicateEstimate(anchor.id)
+          await duplicateEstimate(estimate.id)
           router.refresh()
         },
       },
@@ -45,7 +63,7 @@ export function EstimateGroupCard({ group, status }: EstimateGroupCardProps) {
         icon: '🗑️',
         label: 'Delete',
         onClick: async () => {
-          await deleteEstimate(anchor.id)
+          await deleteEstimate(estimate.id)
           router.refresh()
         },
         destructive: true,
@@ -57,26 +75,66 @@ export function EstimateGroupCard({ group, status }: EstimateGroupCardProps) {
 
   return (
     <Link
-      href={`/estimates/${anchor.id}`}
-      className="block bg-volturaNavy/50 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100"
+      href={`/estimates/${estimate.id}`}
+      className="block bg-volturaNavy/60 border border-white/5 rounded-2xl p-4 active:scale-[0.98] transition-transform duration-100"
       {...bind}
     >
-      <div className="flex items-start justify-between">
-        <div className="min-w-0 flex-1 pr-3">
-          <p className="text-white font-semibold">{anchor.customer?.name ?? 'Unknown'}</p>
-          <p className="text-gray-400 text-xs mt-0.5 truncate">
-            {names}
-            {hasFollowUp && <span className="text-yellow-400 ml-1">🔔</span>}
+      {/* Top row — name + status */}
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-white font-semibold text-sm leading-snug flex-1">
+          {estimate.name || 'Estimate'}
+          {hasFollowUp && <span className="text-yellow-400 ml-1.5">🔔</span>}
+        </p>
+        <StatusPill status={estimate.status} />
+      </div>
+
+      {/* Item count */}
+      {count > 0 && (
+        <p className="text-gray-500 text-xs mt-1.5">{count} {count === 1 ? 'item' : 'items'}</p>
+      )}
+
+      {/* Divider + price row */}
+      <div className="flex items-end justify-between mt-3 pt-3 border-t border-white/5">
+        <div>
+          <p className="text-gray-500 text-[10px] uppercase tracking-widest font-semibold mb-0.5">Total</p>
+          <p className="text-volturaGold font-bold text-lg leading-none">
+            ${(estimate.total ?? 0).toLocaleString()}
           </p>
-          {isGrouped && (
-            <p className="text-volturaGold/70 text-xs mt-0.5">{group.length} estimates</p>
-          )}
         </div>
-        <div className="text-right flex-shrink-0">
-          <StatusPill status={status} />
-          {maxTotal > 0 && <p className="text-volturaGold font-bold text-sm mt-1">${maxTotal.toLocaleString()}</p>}
-        </div>
+        {savings > 0 && (
+          <div className="text-right">
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-semibold mb-0.5">You Save</p>
+            <p className="text-green-400 font-semibold text-sm leading-none">
+              ${savings.toFixed(0)}
+            </p>
+          </div>
+        )}
       </div>
     </Link>
+  )
+}
+
+export function EstimateGroupCard({ group, status }: EstimateGroupCardProps) {
+  const anchor = group[0]
+  const customerName = anchor.customer?.name ?? 'Unknown'
+
+  return (
+    <div className="space-y-2">
+      {/* Group header — customer name + overall status */}
+      <div className="flex items-center justify-between px-1 pt-2">
+        <div className="min-w-0">
+          <p className="text-white font-bold text-base truncate">{customerName}</p>
+          {group.length > 1 && (
+            <p className="text-gray-600 text-xs">{group.length} options</p>
+          )}
+        </div>
+        <StatusPill status={status} />
+      </div>
+
+      {/* One card per estimate in the group */}
+      {group.map((est) => (
+        <EstimateCard key={est.id} estimate={est} />
+      ))}
+    </div>
   )
 }

@@ -43,7 +43,7 @@ export default async function EstimatesPage() {
         {groups.length === 0 ? (
           <EmptyState message="No estimates yet — tap + to create one" ctaLabel="+ New Estimate" ctaHref="/estimates/new" />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-6">
             {groups.map((group) => {
               const anchor = group[0]
               const status = groupStatus(group)
