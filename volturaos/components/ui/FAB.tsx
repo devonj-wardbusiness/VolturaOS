@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const ACTIONS = [
@@ -10,6 +11,7 @@ const ACTIONS = [
 ]
 
 export function FAB() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -27,6 +29,10 @@ export function FAB() {
       document.removeEventListener('touchstart', handleClick)
     }
   }, [open])
+
+  // Hide on estimate builder — it has its own Quick Add and the action bar is tall
+  const isEstimateBuilder = /^\/estimates\/[^/]+$/.test(pathname)
+  if (isEstimateBuilder) return null
 
   return (
     <div ref={ref} className="fixed bottom-52 right-4 z-50 flex flex-col items-end gap-2">

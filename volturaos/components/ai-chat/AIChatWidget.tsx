@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useContext, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import type { AIPageContext } from '@/types'
 import { AIContextContext } from '@/components/estimate-builder/AIContextProvider'
 import { ChatModeTab } from './ChatModeTab'
@@ -12,6 +13,7 @@ interface ChatMessage {
 }
 
 export function AIChatWidget() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<AIPageContext['mode']>('chat')
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -108,7 +110,7 @@ export function AIChatWidget() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-40 right-4 z-50 w-12 h-12 rounded-full bg-volturaGold text-volturaBlue shadow-lg flex items-center justify-center text-xl opacity-40 hover:opacity-90 active:opacity-100 transition-opacity"
+        className="fixed bottom-24 left-4 z-50 w-11 h-11 rounded-full bg-volturaGold text-volturaBlue shadow-lg flex items-center justify-center text-lg opacity-40 hover:opacity-90 active:opacity-100 transition-opacity"
         aria-label="Open AI Assistant"
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
