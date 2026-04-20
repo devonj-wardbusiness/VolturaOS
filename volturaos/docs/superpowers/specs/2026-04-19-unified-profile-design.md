@@ -218,14 +218,15 @@ The `getJobWithContext` action therefore fetches everything the old page did, pl
 
 - `listTodayJobs()` — added to `lib/actions/jobs.ts`. Filters `status IN ('Scheduled', 'In Progress')`, orders by `scheduled_time ASC NULLS LAST, created_at ASC`. Returns each job with its customer join (`id, name, phone, address`).
 - `updateJob()` — already exists, no changes needed.
-- `listJobsByCustomer(customerId)` — added to `lib/actions/jobs.ts` for the customer page jobs section.
+
+The `getJobWithContext` action calls `getOrCreateChecklist` (from `lib/actions/checklists.ts`), `getJobPhotos` (from `lib/actions/job-photos.ts`), and `listChangeOrdersForJob` (from `lib/actions/change-orders.ts`) — these exist in separate action files, not in `jobs.ts`. Import them where needed.
 
 ### New type
 
 ```ts
 // types/index.ts
 export type JobWithContext = {
-  job: Job & { customer: Customer }
+  job: Job & { customer: Pick<Customer, 'id' | 'name' | 'phone' | 'email' | 'address'> }
   estimates: Estimate[]
   invoices: Invoice[]
   jobHistory: Job[]
