@@ -137,6 +137,21 @@ export async function listInvoices(filters?: {
   })) as (Invoice & { customer: { name: string } })[]
 }
 
+/**
+ * Returns all invoices for a customer. Used by the Unified Profile Invoice tab.
+ */
+export async function listCustomerInvoices(customerId: string): Promise<import('@/types').Invoice[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('invoices')
+    .select('*')
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as import('@/types').Invoice[]
+}
+
 export async function getPublicInvoice(id: string): Promise<{
   invoice: Invoice & { line_items: LineItem[] | null }
   customer: { name: string; address: string | null }

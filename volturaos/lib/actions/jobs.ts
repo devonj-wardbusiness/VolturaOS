@@ -354,6 +354,69 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
   }
 }
 
+/**
+ * Fetches a job with its customer (including email).
+ * Used by the Unified Profile page. The caller then fetches
+ * checklist/photos/estimates/invoices in a second parallel batch.
+ */
+export async function getJobWithContext(id: string): Promise<Job & {
+  customer: Pick<import('@/types').Customer, 'id' | 'name' | 'phone' | 'email' | 'address'>
+}> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('jobs')
+    .select('*, customers(id, name, phone, email, address)')
+    .eq('id', id)
+    .single()
+  if (error) throw new Error(error.message)
+  const { customers, ...job } = data as Record<string, unknown>
+  return { ...job, customer: customers } as Job & {
+    customer: Pick<import('@/types').Customer, 'id' | 'name' | 'phone' | 'email' | 'address'>
+  }
+}
+
+/**
+ * Returns all Scheduled + In Progress jobs, ordered by scheduled_time
+ * (nulls last) then created_at. Used by the Today view.
+ */
+export async function listTodayJobs(): Promise<(Job & {
+  customer: { id: string; name: string; address: string | null }
+})[]> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('jobs')
+    .select('*, customers(id, name, address)')
+    .in('status', ['Scheduled', 'In Progress'])
+    .order('scheduled_time', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true })
+    .limit(50)
+  if (error) throw new Error(error.message)
+  return (data as Record<string, unknown>[]).map(({ customers, ...j }) => ({
+    ...j,
+    customer: customers,
+  })) as (Job & { customer: { id: string; name: string; address: string | null } })[]
+}
+
+/**
+ * Returns all jobs for a customer, excluding the current job.
+ * Used by the History tab.
+ */
+export async function listCustomerJobs(customerId: string, excludeJobId: string): Promise<Job[]> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('jobs')
+    .select('*')
+    .eq('customer_id', customerId)
+    .neq('id', excludeJobId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Job[]
+}
+
 export async function deleteJob(id: string): Promise<void> {
   const admin = createAdminClient()
   const { error } = await admin.from('jobs').delete().eq('id', id)

@@ -393,6 +393,29 @@ export async function getEstimatesByCustomer(customerId: string): Promise<Pick<E
   return (data ?? []) as Pick<Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'notes' | 'includes_permit' | 'includes_cleanup' | 'includes_warranty'>[]
 }
 
+/**
+ * Returns estimates for a customer with created_at included.
+ * Used by the Unified Profile Estimates tab (needs created_at for the History timeline).
+ */
+export async function listCustomerEstimates(customerId: string): Promise<Array<
+  Pick<import('@/types').Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'created_at'>
+>> {
+  await requireAuth()
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('estimates')
+    .select('id, name, total, status, line_items, addons, created_at')
+    .eq('customer_id', customerId)
+    .eq('is_template', false)
+    .not('status', 'eq', 'Declined')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Array<
+    Pick<import('@/types').Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'created_at'>
+  >
+}
+
 export async function listEstimates(): Promise<(Estimate & { customer: { name: string } })[]> {
   await requireAuth()
   const admin = createAdminClient()
