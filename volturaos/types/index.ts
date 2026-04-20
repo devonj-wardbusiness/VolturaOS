@@ -262,6 +262,17 @@ export interface ChangeOrder {
   created_at: string
 }
 
+export type JobWithContext = {
+  job: Job & { customer: Pick<Customer, 'id' | 'name' | 'phone' | 'email' | 'address'> }
+  checklist: JobChecklist
+  photos: import('@/lib/actions/job-photos').JobPhotoRecord[]
+  signedEstimateId: string | null
+  changeOrders: ChangeOrder[]
+  estimates: Array<Pick<Estimate, 'id' | 'name' | 'total' | 'status' | 'line_items' | 'addons' | 'created_at'>>
+  invoices: Invoice[]
+  jobHistory: Job[]
+}
+
 export const DEFAULT_ADDONS: Omit<Addon, 'selected'>[] = [
   { name: 'Whole-home surge protector', price: 500, original_price: 500 },
   { name: 'AFCI breaker upgrade', price: 350, original_price: 350 },
