@@ -1,43 +1,45 @@
-import { getJobById } from '@/lib/actions/jobs'
-
 export const dynamic = 'force-dynamic'
+
+import { getJobWithContext, listCustomerJobs } from '@/lib/actions/jobs'
 import { getOrCreateChecklist } from '@/lib/actions/checklists'
 import { getJobPhotos } from '@/lib/actions/job-photos'
-import { getSignedEstimateForJob, getEstimatesByCustomer } from '@/lib/actions/estimates'
+import { getSignedEstimateForJob, listCustomerEstimates } from '@/lib/actions/estimates'
 import { listChangeOrdersForJob } from '@/lib/actions/change-orders'
-import { JobDetail } from '@/components/jobs/JobDetail'
+import { listCustomerInvoices } from '@/lib/actions/invoices'
+import { UnifiedProfile } from '@/components/profile/UnifiedProfile'
 import { notFound } from 'next/navigation'
-import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function JobPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+
   let job
   try {
-    job = await getJobById(id)
+    job = await getJobWithContext(id)
   } catch {
     notFound()
   }
-  const [checklist, photos, signedEstimate, changeOrders, customerEstimates] = await Promise.all([
-    getOrCreateChecklist(job.id, job.job_type),
-    getJobPhotos(job.id),
-    getSignedEstimateForJob(job.id),
-    listChangeOrdersForJob(job.id),
-    getEstimatesByCustomer(job.customer_id),
-  ])
+
+  const [checklist, photos, signedEstimate, changeOrders, estimates, invoices, jobHistory] =
+    await Promise.all([
+      getOrCreateChecklist(job.id, job.job_type),
+      getJobPhotos(job.id),
+      getSignedEstimateForJob(job.id),
+      listChangeOrdersForJob(job.id),
+      listCustomerEstimates(job.customer_id),
+      listCustomerInvoices(job.customer_id),
+      listCustomerJobs(job.customer_id, job.id),
+    ])
 
   return (
-    <>
-      <PageHeader title={job.customer.name} backHref="/jobs" />
-      <div className="min-h-dvh pt-14">
-        <JobDetail
-          job={job}
-          checklist={checklist}
-          photos={photos}
-          signedEstimateId={signedEstimate?.id ?? null}
-          changeOrders={changeOrders}
-          customerEstimates={customerEstimates}
-        />
-      </div>
-    </>
+    <UnifiedProfile
+      job={job}
+      checklist={checklist}
+      photos={photos}
+      signedEstimateId={signedEstimate?.id ?? null}
+      changeOrders={changeOrders}
+      estimates={estimates}
+      invoices={invoices}
+      jobHistory={jobHistory}
+    />
   )
 }
