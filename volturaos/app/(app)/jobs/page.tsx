@@ -1,29 +1,24 @@
 export const dynamic = 'force-dynamic'
 
-import { Suspense } from 'react'
-import { listJobs } from '@/lib/actions/jobs'
-import { JobBoard } from '@/components/jobs/JobBoard'
+import { listTodayJobs } from '@/lib/actions/jobs'
+import { TodayView } from '@/components/jobs/TodayView'
 import { PageHeader } from '@/components/ui/PageHeader'
 import Link from 'next/link'
 
 export default async function JobsPage() {
-  const jobs = await listJobs()
+  const jobs = await listTodayJobs()
   return (
     <>
       <PageHeader
-        title="Jobs"
+        title="Today"
         action={
-          <div className="flex items-center gap-2">
-            <Link href="/jobs" className="text-volturaGold text-xs font-semibold">List</Link>
-            <Link href="/jobs/calendar" className="text-gray-400 text-xs">Cal</Link>
-            <Link href="/jobs/new" className="text-volturaGold text-sm font-bold">+ New</Link>
-          </div>
+          <Link href="/jobs/new" className="text-volturaGold text-sm font-bold">
+            + New
+          </Link>
         }
       />
-      <div className="px-4 pt-14 pb-6">
-        <Suspense>
-          <JobBoard jobs={jobs} />
-        </Suspense>
+      <div className="pt-14">
+        <TodayView jobs={jobs} />
       </div>
     </>
   )
