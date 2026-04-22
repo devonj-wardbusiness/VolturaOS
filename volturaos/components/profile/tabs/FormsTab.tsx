@@ -44,9 +44,10 @@ export function FormsTab({ forms: initialForms, jobId, customerId, customerPhone
   function handleDelete(form: Form) {
     openSheet(form.form_type.replace(/_/g, ' '), [
       {
+        icon: '🗑️',
         label: 'Delete',
-        variant: 'destructive' as const,
-        action: () => {
+        destructive: true,
+        onClick: () => {
           startTransition(async () => {
             await deleteForm(form.id)
             setForms(prev => prev.filter(f => f.id !== form.id))

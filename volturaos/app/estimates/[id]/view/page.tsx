@@ -20,7 +20,7 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
   const solo = estimates[0]
 
   // Form branch — render form view instead of estimate content
-  const formType = (solo as Record<string, unknown>).form_type as string | null
+  const formType = (solo as unknown as Record<string, unknown>).form_type as string | null
   if (formType) {
     return (
       <div className="min-h-dvh bg-volturaBlue px-4 py-8 max-w-lg mx-auto">
