@@ -1,0 +1,74 @@
+-- Add new pricebook categories for lighting, fans, doorbells, and accessories
+-- Run in Supabase SQL Editor
+-- Prices are starting points — adjust in Settings → Pricebook
+
+INSERT INTO pricebook_items (name, description, unit_price, category) VALUES
+
+-- Indoor Lighting
+('Light Fixture Installation', 'Install customer-supplied light fixture (existing wiring)', 125, 'Indoor Lighting'),
+('Light Fixture Replacement', 'Swap existing fixture for new (customer-supplied)', 95, 'Indoor Lighting'),
+('Chandelier Installation', 'Install chandelier up to 50 lbs (existing box)', 195, 'Indoor Lighting'),
+('Under-Cabinet Lighting', 'Install under-cabinet LED strip or puck lights', 250, 'Indoor Lighting'),
+
+-- Outdoor Lighting
+('Exterior Fixture Installation', 'Install exterior wall sconce or porch light', 150, 'Outdoor Lighting'),
+('Post Light Installation', 'Install post-mounted outdoor light (existing conduit)', 295, 'Outdoor Lighting'),
+('Soffit Light Installation (per light)', 'Install soffit-mounted downlight', 165, 'Outdoor Lighting'),
+('Landscape Lighting Circuit', 'Low-voltage landscape lighting circuit and transformer', 395, 'Outdoor Lighting'),
+
+-- Ceiling Fans
+('Ceiling Fan Installation (existing box)', 'Install ceiling fan on existing rated box', 150, 'Ceiling Fans'),
+('Ceiling Fan Installation (new fan-rated box)', 'Install fan-rated box and ceiling fan', 250, 'Ceiling Fans'),
+('Ceiling Fan Replacement', 'Swap existing fan for new (customer-supplied)', 125, 'Ceiling Fans'),
+('Ceiling Fan with Remote Install', 'Install ceiling fan with wireless remote receiver', 175, 'Ceiling Fans'),
+
+-- Surface Mount
+('Surface Mount Fixture Install', 'Install flush/semi-flush mount fixture (existing wiring)', 125, 'Surface Mount'),
+('Surface Mount Fixture Replacement', 'Replace existing surface mount fixture', 85, 'Surface Mount'),
+('Vanity Bar Install', 'Install bathroom vanity light bar', 125, 'Surface Mount'),
+
+-- Recessed Cans
+('Recessed Can Installation (per can)', 'New construction or remodel recessed can, labor only', 185, 'Recessed Cans'),
+('Recessed Can Retrofit (per can)', 'Convert existing fixture to recessed can, labor only', 95, 'Recessed Cans'),
+('LED Recessed Can (per can)', 'Supply and install LED wafer/recessed can', 125, 'Recessed Cans'),
+('4" Recessed Can (per can)', 'Supply and install 4" LED recessed light', 115, 'Recessed Cans'),
+('6" Recessed Can (per can)', 'Supply and install 6" LED recessed light', 125, 'Recessed Cans'),
+
+-- Bathroom Fans
+('Bathroom Fan Replacement', 'Replace existing bathroom exhaust fan (same location)', 195, 'Bathroom Fans'),
+('Bathroom Fan Installation (new)', 'Install new bath fan with new circuit and duct run', 425, 'Bathroom Fans'),
+('Bathroom Fan w/ Light Replacement', 'Replace combo bath fan/light unit', 225, 'Bathroom Fans'),
+('Bathroom Fan w/ Heat Lamp', 'Replace combo bath fan/heat lamp unit', 275, 'Bathroom Fans'),
+
+-- Doorbells
+('Doorbell Installation', 'Install wired doorbell button and chime', 125, 'Doorbells'),
+('Doorbell Chime Replacement', 'Replace doorbell chime unit', 75, 'Doorbells'),
+('Wireless Doorbell Installation', 'Install wireless doorbell kit (customer-supplied)', 65, 'Doorbells'),
+
+-- Ring Doorbells
+('Ring Video Doorbell Installation', 'Install Ring Video Doorbell (hardwired, customer-supplied)', 150, 'Ring Doorbells'),
+('Ring Video Doorbell Pro Install', 'Install Ring Pro (requires existing doorbell wiring)', 165, 'Ring Doorbells'),
+('Ring Doorbell + Transformer', 'Install Ring doorbell and upgrade transformer', 225, 'Ring Doorbells'),
+
+-- Transformers
+('Doorbell Transformer Replacement', 'Replace low-voltage doorbell transformer', 85, 'Transformers'),
+('Low Voltage Transformer Install', 'Install new low-voltage transformer (landscape/doorbell)', 125, 'Transformers'),
+('Irrigation Transformer Install', 'Install or replace irrigation system transformer', 145, 'Transformers'),
+
+-- Ring Floodlights
+('Ring Floodlight Camera Install', 'Install Ring Floodlight Cam (customer-supplied)', 195, 'Ring Floodlights'),
+('Ring Spotlight Camera Install', 'Install Ring Spotlight Cam (customer-supplied)', 175, 'Ring Floodlights'),
+('Ring Floodlight (no camera)', 'Install Ring Floodlight without camera', 150, 'Ring Floodlights'),
+
+-- Junction Boxes
+('Junction Box Installation', 'Install new junction box and cover', 125, 'Junction Boxes'),
+('Junction Box Replacement', 'Replace damaged or missing junction box', 85, 'Junction Boxes'),
+('Weatherproof Box Install', 'Install weatherproof outdoor junction box', 145, 'Junction Boxes'),
+('Junction Box Repair', 'Repair/secure loose or damaged junction box', 65, 'Junction Boxes'),
+
+-- Disconnects
+('AC Disconnect Installation', 'Install 60A non-fused AC disconnect', 295, 'Disconnects'),
+('AC Disconnect Replacement', 'Replace existing AC disconnect', 250, 'Disconnects'),
+('Fused Disconnect Installation', 'Install fused disconnect (60A)', 350, 'Disconnects'),
+('Generator Disconnect', 'Install manual transfer disconnect for generator', 450, 'Disconnects'),
+('Pool/Spa Disconnect', 'Install pool or spa safety disconnect', 325, 'Disconnects');

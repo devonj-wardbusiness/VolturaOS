@@ -17,9 +17,21 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Dedicated Circuits (Romex)': '🔌',
   'Dedicated Circuits (Conduit/EMT)': '🔧',
   'Circuit Extensions': '🔗',
-  'Devices': '💡',
+  'Devices': '🔲',
   'Trenching': '🚧',
   'Service Calls': '🔍',
+  'Indoor Lighting': '💡',
+  'Outdoor Lighting': '🌟',
+  'Ceiling Fans': '🌀',
+  'Surface Mount': '🔆',
+  'Recessed Cans': '⭕',
+  'Bathroom Fans': '💨',
+  'Doorbells': '🔔',
+  'Ring Doorbells': '📹',
+  'Transformers': '⚙️',
+  'Ring Floodlights': '🔦',
+  'Junction Boxes': '📦',
+  'Disconnects': '🔴',
 }
 
 export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: PrimaryJobSelectorProps) {
