@@ -4,8 +4,9 @@ import { LineItemsList } from '@/components/estimates/LineItemsList'
 import { BadgeRow } from '@/components/estimates/BadgeRow'
 import { ProgressTracker } from '@/components/estimates/ProgressTracker'
 import { ReferralForm } from '@/components/estimates/ReferralForm'
+import { PublicFormView } from '@/components/forms/PublicFormView'
 import { notFound } from 'next/navigation'
-import type { Addon } from '@/types'
+import type { Addon, Form } from '@/types'
 
 export default async function PublicEstimateView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -17,6 +18,26 @@ export default async function PublicEstimateView({ params }: { params: Promise<{
 
   // For solo view, use the first (and only) estimate
   const solo = estimates[0]
+
+  // Form branch — render form view instead of estimate content
+  const formType = (solo as Record<string, unknown>).form_type as string | null
+  if (formType) {
+    return (
+      <div className="min-h-dvh bg-volturaBlue px-4 py-8 max-w-lg mx-auto">
+        <header className="mb-8">
+          <h1 className="text-volturaGold text-3xl font-bold tracking-widest">VOLTURA</h1>
+          <p className="text-gray-400 text-sm">Power Group — Colorado Springs, CO</p>
+          <p className="text-gray-400 text-xs mt-1">License #3001608</p>
+        </header>
+        <div className="bg-volturaNavy rounded-2xl p-5 mb-6">
+          <p className="text-gray-400 text-sm mb-1">Document for</p>
+          <p className="text-white text-xl font-bold">{customer.name}</p>
+        </div>
+        <PublicFormView form={solo as unknown as Form} customerName={customer.name} />
+      </div>
+    )
+  }
+
   const lineItems = solo.line_items ?? []
   const addons = (solo.addons ?? []).filter((a: Addon) => a.selected)
   const total = solo.total ?? 0
