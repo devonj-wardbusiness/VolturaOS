@@ -48,6 +48,21 @@ export interface Job {
   review_requested_at: string | null
 }
 
+export type FormType = 'material_list' | 'permission_to_cut' | 'safety_waiver'
+
+export interface Form {
+  id: string
+  job_id: string
+  customer_id: string
+  form_type: FormType
+  status: 'Draft' | 'Sent' | 'Viewed' | 'Approved'
+  line_items: { name: string; qty: string }[] | null  // material_list only
+  signer_name: string | null
+  signature_data: string | null
+  signed_at: string | null
+  created_at: string
+}
+
 export type PermitStatus = 'Not Applied' | 'Applied' | 'Approved' | 'Inspected' | 'Final'
 
 export interface JobTimeEntry {
