@@ -6,6 +6,7 @@ import { getJobPhotos } from '@/lib/actions/job-photos'
 import { getSignedEstimateForJob, listCustomerEstimates } from '@/lib/actions/estimates'
 import { listChangeOrdersForJob } from '@/lib/actions/change-orders'
 import { listCustomerInvoices } from '@/lib/actions/invoices'
+import { listJobForms } from '@/lib/actions/forms'
 import { UnifiedProfile } from '@/components/profile/UnifiedProfile'
 import { notFound } from 'next/navigation'
 
@@ -19,7 +20,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
     notFound()
   }
 
-  const [checklist, photos, signedEstimate, changeOrders, estimates, invoices, jobHistory] =
+  const [checklist, photos, signedEstimate, changeOrders, estimates, invoices, jobHistory, forms] =
     await Promise.all([
       getOrCreateChecklist(job.id, job.job_type),
       getJobPhotos(job.id),
@@ -28,6 +29,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       listCustomerEstimates(job.customer_id),
       listCustomerInvoices(job.customer_id),
       listCustomerJobs(job.customer_id, job.id),
+      listJobForms(job.id),
     ])
 
   return (
@@ -40,6 +42,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       estimates={estimates}
       invoices={invoices}
       jobHistory={jobHistory}
+      forms={forms}
     />
   )
 }

@@ -8,7 +8,7 @@ import { HistoryTab } from './tabs/HistoryTab'
 import { EstimatesTab } from './tabs/EstimatesTab'
 import { InvoiceTab } from './tabs/InvoiceTab'
 import { FormsTab } from './tabs/FormsTab'
-import type { Job, JobChecklist, ChangeOrder, Invoice, EstimateStatus, LineItem, Addon } from '@/types'
+import type { Job, JobChecklist, ChangeOrder, Invoice, EstimateStatus, LineItem, Addon, Form } from '@/types'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 type EstimateSlice = {
@@ -32,6 +32,7 @@ interface UnifiedProfileProps {
   estimates: EstimateSlice[]
   invoices: Invoice[]
   jobHistory: Job[]
+  forms: Form[]
 }
 
 export function UnifiedProfile({
@@ -43,6 +44,7 @@ export function UnifiedProfile({
   estimates,
   invoices,
   jobHistory,
+  forms,
 }: UnifiedProfileProps) {
   const [activeTab, setActiveTab] = useState<TabId>('job')
 
@@ -94,7 +96,14 @@ export function UnifiedProfile({
         {activeTab === 'invoice' && (
           <InvoiceTab invoices={invoices} customerId={job.customer.id} />
         )}
-        {activeTab === 'forms' && <FormsTab />}
+        {activeTab === 'forms' && (
+          <FormsTab
+            forms={forms}
+            jobId={job.id}
+            customerId={job.customer.id}
+            customerPhone={job.customer.phone}
+          />
+        )}
       </div>
     </>
   )
