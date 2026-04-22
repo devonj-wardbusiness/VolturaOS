@@ -11,6 +11,7 @@ interface PrimaryJobSelectorProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
+  // Standalone categories
   'Breakers': '⚡',
   'Panel Rejuvenations': '🔲',
   'Car Chargers': '🚗',
@@ -20,26 +21,49 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Devices': '🔲',
   'Trenching': '🚧',
   'Service Calls': '🔍',
-  'Indoor Lighting': '💡',
-  'Outdoor Lighting': '🌟',
-  'Ceiling Fans': '🌀',
-  'Surface Mount': '🔆',
-  'Recessed Cans': '⭕',
-  'Bathroom Fans': '💨',
   'Doorbells': '🔔',
   'Ring Doorbells': '📹',
   'Transformers': '⚙️',
-  'Ring Floodlights': '🔦',
   'Junction Boxes': '📦',
   'Disconnects': '🔴',
+  // Parent categories
+  'Indoor Lighting': '💡',
+  'Outdoor Lighting': '🌟',
+  // Child categories
+  'Fixtures': '💡',
+  'Ceiling Fans': '🌀',
+  'Recessed Cans': '⭕',
+  'Surface Mount': '🔆',
+  'Bathroom Fans': '💨',
+  'Exterior Fixtures': '🏮',
+  'Ring Floodlights': '🔦',
+  'Landscape Lighting': '🌿',
+  'Post Lights': '🗼',
+  'Soffit Lights': '🏠',
 }
 
 export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: PrimaryJobSelectorProps) {
+  const [activeParent, setActiveParent] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
-  const categories = Array.from(new Set(pricebook.filter((p) => !p.is_footage_item).map((p) => p.category).filter(Boolean)))
+  // Parse categories from pricebook (same logic as CategoryGrid)
+  const allCategories = Array.from(
+    new Set(pricebook.filter((p) => !p.is_footage_item).map((p) => p.category).filter(Boolean))
+  )
 
-  // Filter non-footage items (footage items are add-ons, not primary jobs)
+  const parents = new Map<string, string[]>()
+  const standalones: string[] = []
+
+  for (const cat of allCategories) {
+    if (cat.includes(' / ')) {
+      const [parent, child] = cat.split(' / ').map((s) => s.trim())
+      if (!parents.has(parent)) parents.set(parent, [])
+      if (!parents.get(parent)!.includes(child)) parents.get(parent)!.push(child)
+    } else {
+      standalones.push(cat)
+    }
+  }
+
   const filteredEntries = activeCategory
     ? pricebook.filter((p) => p.category === activeCategory && !p.is_footage_item)
     : []
@@ -59,26 +83,72 @@ export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: Pr
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="text-gray-400 text-sm">Primary Job</label>
-        <button onClick={onSkip} className="text-gray-500 text-xs underline">Skip</button>
+        <label className="text-gray-400 text-sm">
+          {activeParent ? (
+            <button
+              onClick={() => { setActiveParent(null); setActiveCategory(null) }}
+              className="flex items-center gap-1 text-volturaGold"
+            >
+              ← {activeParent}
+            </button>
+          ) : (
+            'Primary Job'
+          )}
+        </label>
+        {!activeParent && (
+          <button onClick={onSkip} className="text-gray-500 text-xs underline">Skip</button>
+        )}
       </div>
 
-      {/* Category pills */}
-      <div className="flex gap-1.5 flex-wrap mb-2">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              activeCategory === cat
-                ? 'bg-volturaGold text-volturaBlue'
-                : 'bg-volturaNavy/50 text-gray-400'
-            }`}
-          >
-            {CATEGORY_ICONS[cat] ?? '📋'} {cat}
-          </button>
-        ))}
-      </div>
+      {/* Root view: parent + standalone category pills */}
+      {!activeParent && (
+        <div className="flex gap-1.5 flex-wrap mb-2">
+          {Array.from(parents.keys()).map((parent) => (
+            <button
+              key={parent}
+              onClick={() => { setActiveParent(parent); setActiveCategory(null) }}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-volturaNavy/50 text-gray-400"
+            >
+              {CATEGORY_ICONS[parent] ?? '📋'} {parent}
+            </button>
+          ))}
+          {standalones.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                activeCategory === cat
+                  ? 'bg-volturaGold text-volturaBlue'
+                  : 'bg-volturaNavy/50 text-gray-400'
+              }`}
+            >
+              {CATEGORY_ICONS[cat] ?? '📋'} {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Sub-category view: children of active parent */}
+      {activeParent && (
+        <div className="flex gap-1.5 flex-wrap mb-2">
+          {(parents.get(activeParent) ?? []).map((child) => {
+            const fullCat = `${activeParent} / ${child}`
+            return (
+              <button
+                key={child}
+                onClick={() => setActiveCategory(activeCategory === fullCat ? null : fullCat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  activeCategory === fullCat
+                    ? 'bg-volturaGold text-volturaBlue'
+                    : 'bg-volturaNavy/50 text-gray-400'
+                }`}
+              >
+                {CATEGORY_ICONS[child] ?? '📋'} {child}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {/* Items in selected category */}
       {activeCategory && (
