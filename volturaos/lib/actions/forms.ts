@@ -85,7 +85,8 @@ export async function sendFormLinkSMS(formId: string): Promise<void> {
     .select('customer_id, customers(name, phone, sms_opt_out)')
     .eq('id', formId)
     .single()
-  if (error || !data) return
+  if (error) throw new Error(error.message)
+  if (!data) throw new Error('Form not found')
 
   const row = data as Record<string, unknown>
   const customer = row.customers as { name: string; phone: string | null; sms_opt_out: boolean } | null

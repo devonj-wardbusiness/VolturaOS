@@ -31,7 +31,7 @@ export function MaterialListSheet({ form, onClose, onSave }: MaterialListSheetPr
   function updateItem(index: number, field: 'name' | 'qty', value: string) {
     const next = items.map((item, i) => i === index ? { ...item, [field]: value } : item)
     setItems(next)
-    persist(next)
+    // persist on blur, not on every keystroke
   }
 
   function removeItem(index: number) {
@@ -63,12 +63,14 @@ export function MaterialListSheet({ form, onClose, onSave }: MaterialListSheetPr
               placeholder="Item name"
               value={item.name}
               onChange={e => updateItem(i, 'name', e.target.value)}
+              onBlur={() => persist(items)}
             />
             <input
               className="w-20 bg-volturaNavy text-white rounded-xl px-3 py-3 text-sm outline-none text-center placeholder:text-gray-600"
               placeholder="Qty"
               value={item.qty}
               onChange={e => updateItem(i, 'qty', e.target.value)}
+              onBlur={() => persist(items)}
             />
             <button
               onClick={() => removeItem(i)}
