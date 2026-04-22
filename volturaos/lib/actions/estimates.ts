@@ -7,6 +7,7 @@ import { sendTelegram } from '@/lib/telegram'
 import { syncToSheets } from '@/lib/sheets'
 import { sendSMS } from '@/lib/sms'
 import type { Estimate, EstimateStatus, LineItem, Addon } from '@/types'
+import { FORM_TEMPLATES } from '@/lib/form-templates'
 
 async function requireAuth() { // auth disabled
   // const supabase = await createClient()
@@ -283,7 +284,20 @@ export async function signEstimate(
     })
     .eq('id', id)
   if (error) throw new Error(error.message)
-  void sendTelegram(`✍️ Estimate signed in person by ${signerName}`)
+  // Form-aware Telegram: fetch form_type to send the right message
+  const { data: row } = await admin
+    .from('estimates')
+    .select('form_type, jobs(job_type)')
+    .eq('id', id)
+    .single()
+
+  if (row?.form_type) {
+    const label = FORM_TEMPLATES[row.form_type as string]?.title ?? row.form_type
+    const jobTitle = ((row.jobs as unknown as Record<string, unknown> | null)?.job_type as string) ?? 'unknown job'
+    void sendTelegram(`✍️ ${label} signed by ${signerName} — Job: ${jobTitle}`)
+  } else {
+    void sendTelegram(`✍️ Estimate signed in person by ${signerName}`)
+  }
 }
 
 export async function deleteEstimate(id: string): Promise<void> {
@@ -386,6 +400,7 @@ export async function getEstimatesByCustomer(customerId: string): Promise<Pick<E
     .select('id, name, total, status, line_items, addons, notes, includes_permit, includes_cleanup, includes_warranty')
     .eq('customer_id', customerId)
     .eq('is_template', false)
+    .is('form_type', null)
     .not('status', 'eq', 'Declined')
     .order('created_at', { ascending: false })
     .limit(20)
@@ -407,6 +422,7 @@ export async function listCustomerEstimates(customerId: string): Promise<Array<
     .select('id, name, total, status, line_items, addons, created_at')
     .eq('customer_id', customerId)
     .eq('is_template', false)
+    .is('form_type', null)
     .not('status', 'eq', 'Declined')
     .order('created_at', { ascending: false })
     .limit(20)
@@ -419,7 +435,7 @@ export async function listCustomerEstimates(customerId: string): Promise<Array<
 export async function listEstimates(): Promise<(Estimate & { customer: { name: string } })[]> {
   await requireAuth()
   const admin = createAdminClient()
-  const { data, error } = await admin.from('estimates').select('*, customers(name)').eq('is_template', false).order('created_at', { ascending: false }).limit(100)
+  const { data, error } = await admin.from('estimates').select('*, customers(name)').eq('is_template', false).is('form_type', null).order('created_at', { ascending: false }).limit(100)
   if (error) throw new Error(error.message)
   return (data as Record<string, unknown>[]).map(({ customers, ...e }) => ({ ...e, customer: customers })) as (Estimate & { customer: { name: string } })[]
 }
@@ -433,6 +449,7 @@ export async function getSignedEstimateForJob(
     .select('id, total, name')
     .eq('job_id', jobId)
     .eq('status', 'Approved')
+    .is('form_type', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
