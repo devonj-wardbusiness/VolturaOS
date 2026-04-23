@@ -139,6 +139,26 @@ ALTER TABLE home_inspections
 }
 ```
 
+### New types in `health-score/types.ts`
+
+```typescript
+export interface ChecklistItem {
+  jobType: string          // matches pricebook job_type
+  description: string      // human label shown in checklist
+  reason: string           // e.g. "NEC 230.67 — required on this service"
+  priority: 'critical' | 'important' | 'recommended'
+  price: number | null     // looked up from pricebook; null if no match
+}
+
+export interface InspectionResult {
+  inspection: HomeInspection   // the saved DB row
+  score: number
+  checklist: ChecklistItem[]   // generated from findings, prices looked up
+}
+```
+
+`createInspection()` returns `InspectionResult`. Checklist generation and pricebook lookup happen inside the server action before returning — the client receives everything in one call. `ScoreStep` and `ChecklistStep` both receive the full `InspectionResult` via wizard state set after the action resolves.
+
 ### Updated `InspectionInput` type
 
 ```typescript
