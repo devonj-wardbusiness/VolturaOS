@@ -84,7 +84,7 @@ Required in dwelling units for 125V/250V 15A and 20A receptacles in:
 - Whole-home surge protective device (SPD) is now **mandatory** on ALL new service installations
 - Type 2 SPD minimum, installed at or downstream of the service disconnect
 - This means: every panel upgrade, every new service = add a surge protector. It's not optional.
-- Typical cost: $225–$575 installed. Always add to panel upgrade estimates.
+- Typical cost: $650 installed. Always add to panel upgrade estimates.
 
 **406.12 — Tamper-Resistant Receptacles**
 - ALL 15A and 20A 125V receptacles in dwelling units must be tamper-resistant (TR)
