@@ -88,6 +88,13 @@ export interface HomeInspection {
   has_surge: boolean
   grounding_ok: boolean
   wiring_type: string | null
+  panel_brand: string | null
+  service_size: number | null
+  has_smoke: boolean
+  smoke_count: number
+  has_co: boolean
+  has_outdoor_gfci: boolean
+  room_flags: Record<string, string[]>
   notes: string | null
   created_at: string
 }
@@ -224,6 +231,14 @@ export interface ChecklistItem {
   label: string
   checked: boolean
   required: boolean
+}
+
+export interface InspectionChecklistItem {
+  jobType: string
+  description: string
+  reason: string
+  priority: 'critical' | 'important' | 'recommended'
+  price: number | null
 }
 
 export interface JobChecklist {
