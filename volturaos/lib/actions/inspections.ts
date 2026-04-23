@@ -73,14 +73,14 @@ interface ChecklistRule {
 const CHECKLIST_RULES: ChecklistRule[] = [
   {
     condition: (i) => HAZARDOUS_BRANDS.has(i.panelBrand),
-    jobType: 'Panel Rejuvenation',
+    jobType: '42 Circuit Panel Rejuvenation',
     description: 'Panel Replacement',
     reason: `{panelBrand} panels are a known fire hazard — replacement strongly recommended`,
     priority: 'critical',
   },
   {
     condition: (i) => i.serviceSize <= 60,
-    jobType: 'Service Upgrade',
+    jobType: '200A Service Upgrade',
     description: 'Service Upgrade (60A → 200A)',
     reason: '60A service is undersized for modern electrical loads',
     priority: 'critical',
@@ -94,21 +94,21 @@ const CHECKLIST_RULES: ChecklistRule[] = [
   },
   {
     condition: (i) => !i.hasGfci,
-    jobType: 'GFCI Outlet Installation',
+    jobType: 'GFCI Outlet — 20A',
     description: 'GFCI Outlet Installation',
     reason: 'NEC 210.8 — required in kitchens, bathrooms, garages, and outdoors',
     priority: 'critical',
   },
   {
     condition: (i) => HAZARDOUS_WIRING.has(i.wiringType),
-    jobType: 'Dedicated Circuit (Romex)',
+    jobType: '15-20 Amp Dedicated Up To 30 Ft.',
     description: 'Wiring Update (Knob-and-Tube)',
     reason: 'Knob-and-tube wiring is a fire hazard and uninsurable in most cases',
     priority: 'critical',
   },
   {
     condition: (i) => !i.hasAfci,
-    jobType: 'AFCI Breaker Installation',
+    jobType: 'AFCI Breaker — Single Pole 20A',
     description: 'AFCI Breaker Installation',
     reason: 'NEC 210.12 — required in all living spaces',
     priority: 'important',
@@ -129,7 +129,7 @@ const CHECKLIST_RULES: ChecklistRule[] = [
   },
   {
     condition: (i) => i.panelCondition === 'Poor' || i.panelCondition === 'Replace',
-    jobType: 'Panel Rejuvenation',
+    jobType: '20 Circuit Panel Rejuvenation',
     description: 'Panel Service / Rejuvenation',
     reason: `Panel condition is {panelCondition} — maintenance or replacement needed`,
     priority: 'important',
