@@ -39,15 +39,12 @@ export function EstimatesTab({ estimates, customerId }: EstimatesTabProps) {
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 56px - 64px)' }}>
       {/* Action buttons */}
-      <div className="px-4 pt-4 pb-3 flex gap-2">
-        <button className="flex-1 bg-volturaGold text-volturaBlue font-black text-[11px] py-2.5 rounded-full uppercase tracking-wide">
-          💳 Financing
-        </button>
+      <div className="px-4 pt-4 pb-3">
         <Link
           href={`/estimates/new?customerId=${customerId}`}
-          className="flex-1 text-center border border-white/10 text-gray-400 text-[11px] py-2.5 rounded-full uppercase tracking-wide font-bold"
+          className="block w-full text-center border border-white/10 text-gray-400 text-[11px] py-2.5 rounded-full uppercase tracking-wide font-bold"
         >
-          + Add
+          + New Estimate
         </Link>
       </div>
 
