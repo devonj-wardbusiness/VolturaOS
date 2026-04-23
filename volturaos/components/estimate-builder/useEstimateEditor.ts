@@ -47,10 +47,17 @@ export function useEstimateEditor({
   )
   const [followUpDays, setFollowUpDays] = useState(initialEstimate?.follow_up_days ?? 3)
 
-  // Items
-  const [lineItems, setLineItems] = useState<LineItem[]>(
-    () => initialEstimate?.line_items ?? []
-  )
+  // Items — sync pricebook prices for non-overridden items on load
+  const [lineItems, setLineItems] = useState<LineItem[]>(() => {
+    const items = initialEstimate?.line_items ?? []
+    return items.map(item => {
+      if (item.is_override) return item
+      const pbEntry = pricebook.find(p => p.job_type === item.description)
+      if (!pbEntry) return item
+      const currentPrice = pbEntry.price_better ?? pbEntry.price_good ?? 0
+      return { ...item, price: currentPrice, original_price: currentPrice }
+    })
+  })
   const [addons, setAddons] = useState<Addon[]>(
     initialEstimate?.addons ?? DEFAULT_ADDONS.map((a) => ({ ...a, selected: false }))
   )
