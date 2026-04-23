@@ -456,3 +456,38 @@ export async function getSignedEstimateForJob(
   return data ? { id: data.id as string, total: data.total as number, name: (data.name as string) ?? 'Estimate' } : null
 }
 
+export async function createEstimateFromChecklist(
+  customerId: string,
+  jobId: string | undefined,
+  items: import('@/types').InspectionChecklistItem[],
+): Promise<string> {
+  const admin = createAdminClient()
+
+  const lineItems: LineItem[] = items.map(item => ({
+    description: item.description,
+    price: item.price ?? 0,
+    is_override: false,
+    original_price: item.price ?? 0,
+    pricebook_description: item.reason,
+  }))
+
+  const total = lineItems.reduce((sum, li) => sum + li.price, 0)
+
+  const { data, error } = await admin
+    .from('estimates')
+    .insert({
+      customer_id: customerId,
+      job_id: jobId ?? null,
+      status: 'Draft',
+      name: 'Electrical Health Score Estimate',
+      tier_selected: null,
+      line_items: lineItems,
+      total,
+    })
+    .select('id')
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data.id as string
+}
+

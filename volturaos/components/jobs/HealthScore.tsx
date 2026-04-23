@@ -47,9 +47,7 @@ export function HealthScore({ customerId, jobId, customerName }: HealthScoreProp
   const [panelAge, setPanelAge] = useState(20)
   const [panelCondition, setPanelCondition] = useState('Fair')
   const [hasAfci, setHasAfci] = useState(false)
-  const [afciRooms, setAfciRooms] = useState(0)
   const [hasGfci, setHasGfci] = useState(false)
-  const [gfciLocations, setGfciLocations] = useState(0)
   const [hasSurge, setHasSurge] = useState(false)
   const [groundingOk, setGroundingOk] = useState(false)
   const [wiringType, setWiringType] = useState('Copper')
@@ -58,8 +56,11 @@ export function HealthScore({ customerId, jobId, customerName }: HealthScoreProp
   function handleSave() {
     const input: InspectionInput = {
       customerId, jobId: jobId ?? null,
-      panelAge, panelCondition, hasAfci, afciRooms,
-      hasGfci, gfciLocations, hasSurge, groundingOk, wiringType, notes,
+      panelBrand: '', serviceSize: 200,
+      panelAge, panelCondition, hasAfci,
+      hasGfci, hasSurge, groundingOk, wiringType,
+      hasSmoke: false, smokeCount: 0, hasCo: false, hasOutdoorGfci: false,
+      roomFlags: {}, notes,
     }
     startTransition(async () => {
       const inspection = await createInspection(input)
@@ -157,15 +158,6 @@ export function HealthScore({ customerId, jobId, customerName }: HealthScoreProp
                       </div>
                       <Toggle value={hasAfci} onChange={setHasAfci} />
                     </div>
-                    {hasAfci && (
-                      <div>
-                        <label className="text-gray-400 text-xs uppercase tracking-wider block mb-1.5">Rooms protected</label>
-                        <div className="flex items-center gap-3">
-                          <input type="range" min={0} max={15} value={afciRooms} onChange={(e) => setAfciRooms(+e.target.value)} className="flex-1 accent-amber-400" />
-                          <span className="text-volturaGold font-bold text-sm w-8 text-right">{afciRooms}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* GFCI */}
@@ -177,15 +169,6 @@ export function HealthScore({ customerId, jobId, customerName }: HealthScoreProp
                       </div>
                       <Toggle value={hasGfci} onChange={setHasGfci} />
                     </div>
-                    {hasGfci && (
-                      <div>
-                        <label className="text-gray-400 text-xs uppercase tracking-wider block mb-1.5">Locations covered (bath, garage, outdoor, kitchen…)</label>
-                        <div className="flex items-center gap-3">
-                          <input type="range" min={0} max={10} value={gfciLocations} onChange={(e) => setGfciLocations(+e.target.value)} className="flex-1 accent-amber-400" />
-                          <span className="text-volturaGold font-bold text-sm w-8 text-right">{gfciLocations}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Surge + Grounding */}
