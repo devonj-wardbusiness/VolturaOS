@@ -12,17 +12,18 @@ interface RoomIssueSheetProps {
 
 export function RoomIssueSheet({ roomId, flags, onChange, onClose }: RoomIssueSheetProps) {
   if (!roomId) return null
-  const room = ROOMS.find(r => r.id === roomId)
-  const current = flags[roomId] ?? []
+  const id: string = roomId
+  const room = ROOMS.find(r => r.id === id)
+  const current = flags[id] ?? []
   const availableIssues = ROOM_ISSUES.filter(issue =>
-    !issue.rooms || issue.rooms.includes(roomId)
+    !issue.rooms || issue.rooms.includes(id)
   )
 
   function toggle(issueId: string) {
     const next = current.includes(issueId)
       ? current.filter(i => i !== issueId)
       : [...current, issueId]
-    onChange(roomId, next)
+    onChange(id, next)
   }
 
   return (
@@ -52,7 +53,7 @@ export function RoomIssueSheet({ roomId, flags, onChange, onClose }: RoomIssueSh
         })}
         {current.length > 0 && (
           <button
-            onClick={() => onChange(roomId, [])}
+            onClick={() => onChange(id, [])}
             className="w-full text-xs text-gray-500 py-2"
           >
             Clear all issues
