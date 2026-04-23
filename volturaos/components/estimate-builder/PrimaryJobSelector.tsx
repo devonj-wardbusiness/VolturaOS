@@ -1,6 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Zap, CircuitBoard, Car, Plug, Wrench, Link, ToggleLeft, Hammer,
+  Search, Bell, Video, Settings, Package, Power,
+  Lightbulb, Sun, Lamp, Fan, Circle, LampCeiling, Wind,
+  LampWallDown, Flashlight, Leaf, Building2, Home,
+} from 'lucide-react'
 import type { PricebookEntry } from '@/types'
 
 interface PrimaryJobSelectorProps {
@@ -10,43 +17,39 @@ interface PrimaryJobSelectorProps {
   onSkip: () => void
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  // Standalone categories
-  'Breakers': '⚡',
-  'Panel Rejuvenations': '🔲',
-  'Car Chargers': '🚗',
-  'Dedicated Circuits (Romex)': '🔌',
-  'Dedicated Circuits (Conduit/EMT)': '🔧',
-  'Circuit Extensions': '🔗',
-  'Devices': '🔲',
-  'Trenching': '🚧',
-  'Service Calls': '🔍',
-  'Doorbells': '🔔',
-  'Ring Doorbells': '📹',
-  'Transformers': '⚙️',
-  'Junction Boxes': '📦',
-  'Disconnects': '🔴',
-  // Parent categories
-  'Indoor Lighting': '💡',
-  'Outdoor Lighting': '🌟',
-  // Child categories
-  'Fixtures': '💡',
-  'Ceiling Fans': '🌀',
-  'Recessed Cans': '⭕',
-  'Surface Mount': '🔆',
-  'Bathroom Fans': '💨',
-  'Exterior Fixtures': '🏮',
-  'Ring Floodlights': '🔦',
-  'Landscape Lighting': '🌿',
-  'Post Lights': '🗼',
-  'Soffit Lights': '🏠',
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  'Breakers': Zap,
+  'Panel Rejuvenations': CircuitBoard,
+  'Car Chargers': Car,
+  'Dedicated Circuits (Romex)': Plug,
+  'Dedicated Circuits (Conduit/EMT)': Wrench,
+  'Circuit Extensions': Link,
+  'Devices': ToggleLeft,
+  'Trenching': Hammer,
+  'Service Calls': Search,
+  'Doorbells': Bell,
+  'Ring Doorbells': Video,
+  'Transformers': Settings,
+  'Junction Boxes': Package,
+  'Disconnects': Power,
+  'Indoor Lighting': Lightbulb,
+  'Outdoor Lighting': Sun,
+  'Fixtures': Lamp,
+  'Ceiling Fans': Fan,
+  'Recessed Cans': Circle,
+  'Surface Mount': LampCeiling,
+  'Bathroom Fans': Wind,
+  'Exterior Fixtures': LampWallDown,
+  'Ring Floodlights': Flashlight,
+  'Landscape Lighting': Leaf,
+  'Post Lights': Building2,
+  'Soffit Lights': Home,
 }
 
 export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: PrimaryJobSelectorProps) {
   const [activeParent, setActiveParent] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
-  // Parse categories from pricebook (same logic as CategoryGrid)
   const allCategories = Array.from(
     new Set(pricebook.filter((p) => !p.is_footage_item).map((p) => p.category).filter(Boolean))
   )
@@ -80,6 +83,25 @@ export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: Pr
     )
   }
 
+  function CategoryPill({ label, active, onClick, icon: Icon }: {
+    label: string
+    active: boolean
+    onClick: () => void
+    icon: LucideIcon
+  }) {
+    return (
+      <button
+        onClick={onClick}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+          active ? 'bg-volturaGold text-volturaBlue' : 'bg-volturaNavy/50 text-gray-400'
+        }`}
+      >
+        <Icon size={12} strokeWidth={2} />
+        {label}
+      </button>
+    )
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -100,57 +122,46 @@ export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: Pr
         )}
       </div>
 
-      {/* Root view: parent + standalone category pills */}
       {!activeParent && (
         <div className="flex gap-1.5 flex-wrap mb-2">
           {Array.from(parents.keys()).map((parent) => (
-            <button
+            <CategoryPill
               key={parent}
+              label={parent}
+              active={false}
+              icon={CATEGORY_ICONS[parent] ?? Package}
               onClick={() => { setActiveParent(parent); setActiveCategory(null) }}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-volturaNavy/50 text-gray-400"
-            >
-              {CATEGORY_ICONS[parent] ?? '📋'} {parent}
-            </button>
+            />
           ))}
           {standalones.map((cat) => (
-            <button
+            <CategoryPill
               key={cat}
+              label={cat}
+              active={activeCategory === cat}
+              icon={CATEGORY_ICONS[cat] ?? Package}
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeCategory === cat
-                  ? 'bg-volturaGold text-volturaBlue'
-                  : 'bg-volturaNavy/50 text-gray-400'
-              }`}
-            >
-              {CATEGORY_ICONS[cat] ?? '📋'} {cat}
-            </button>
+            />
           ))}
         </div>
       )}
 
-      {/* Sub-category view: children of active parent */}
       {activeParent && (
         <div className="flex gap-1.5 flex-wrap mb-2">
           {(parents.get(activeParent) ?? []).map((child) => {
             const fullCat = `${activeParent} / ${child}`
             return (
-              <button
+              <CategoryPill
                 key={child}
+                label={child}
+                active={activeCategory === fullCat}
+                icon={CATEGORY_ICONS[child] ?? Package}
                 onClick={() => setActiveCategory(activeCategory === fullCat ? null : fullCat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  activeCategory === fullCat
-                    ? 'bg-volturaGold text-volturaBlue'
-                    : 'bg-volturaNavy/50 text-gray-400'
-                }`}
-              >
-                {CATEGORY_ICONS[child] ?? '📋'} {child}
-              </button>
+              />
             )
           })}
         </div>
       )}
 
-      {/* Items in selected category */}
       {activeCategory && (
         <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto">
           {filteredEntries.map((p) => (

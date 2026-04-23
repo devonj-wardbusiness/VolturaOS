@@ -11,9 +11,10 @@ interface LineItemRowProps {
   onFootageChange: (footage: number | null, price: number) => void
   onRemove: () => void
   onPriceUpdate?: (price: number, pricebookId?: string) => void
+  onDescriptionUpdate?: (desc: string) => void
 }
 
-export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, onPriceUpdate }: LineItemRowProps) {
+export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate }: LineItemRowProps) {
   const [expanded, setExpanded] = useState(false)
   const [editingPrice, setEditingPrice] = useState(false)
   const [draftPrice, setDraftPrice] = useState(String(item.price))
@@ -66,6 +67,16 @@ export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, o
           <p className="text-white text-sm truncate">{item.description}</p>
           {item.footage && (
             <p className="text-gray-500 text-xs">{item.footage}ft</p>
+          )}
+          {item.pricebook_description !== undefined && onDescriptionUpdate && (
+            <input
+              type="text"
+              value={item.pricebook_description}
+              onChange={(e) => onDescriptionUpdate(e.target.value)}
+              placeholder="Add customer description…"
+              className="w-full text-xs text-gray-400 bg-transparent outline-none placeholder-gray-600 focus:text-gray-300 mt-0.5"
+              onClick={(e) => e.stopPropagation()}
+            />
           )}
         </div>
 

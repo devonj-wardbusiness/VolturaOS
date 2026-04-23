@@ -9,9 +9,10 @@ interface LineItemListProps {
   onFootageChange: (index: number, footage: number | null, price: number) => void
   onRemove: (index: number) => void
   onPriceUpdate?: (index: number, price: number, pricebookId?: string) => void
+  onDescriptionUpdate?: (index: number, desc: string) => void
 }
 
-export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPriceUpdate }: LineItemListProps) {
+export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate }: LineItemListProps) {
   if (items.length === 0) return null
 
   function findEntry(item: LineItem): PricebookEntry | undefined {
@@ -42,6 +43,7 @@ export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPr
             onFootageChange={(ft, price) => onFootageChange(i, ft, price)}
             onRemove={() => onRemove(i)}
             onPriceUpdate={onPriceUpdate ? (price, pbId) => onPriceUpdate(i, price, pbId) : undefined}
+            onDescriptionUpdate={onDescriptionUpdate ? (desc) => onDescriptionUpdate(i, desc) : undefined}
           />
         ))}
       </div>

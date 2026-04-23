@@ -112,7 +112,14 @@ export function useEstimateEditor({
       original_price: price,
       category: entry.category,
       footage: entry.is_footage_item ? null : undefined,
+      pricebook_description: entry.description_good ?? undefined,
     }])
+  }, [])
+
+  const handleDescriptionUpdate = useCallback((index: number, desc: string) => {
+    setLineItems((prev) => prev.map((item, i) =>
+      i === index ? { ...item, pricebook_description: desc } : item
+    ))
   }, [])
 
   const handleFootageChange = useCallback((index: number, footage: number | null, price: number) => {
@@ -268,7 +275,7 @@ export function useEstimateEditor({
     // Item callbacks
     handlePrimaryJobSelect,
     handleAddItem, handleQuickAdd,
-    handleRemoveItem, handlePriceUpdate, handleFootageChange,
+    handleRemoveItem, handlePriceUpdate, handleFootageChange, handleDescriptionUpdate,
     handleAddonToggle, handleAddonPriceChange,
     addCustomItem, updateCustomItem, removeCustomItem,
     addDiscount, handleAddSuggestion,

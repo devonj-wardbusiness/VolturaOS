@@ -1,39 +1,46 @@
 'use client'
 
 import { useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Zap, CircuitBoard, Car, Plug, Wrench, Link, ToggleLeft, Hammer,
+  Search, Bell, Video, Settings, Package, Power,
+  Lightbulb, Sun, Lamp, Fan, Circle, LampCeiling, Wind,
+  LampWallDown, Flashlight, Leaf, Building2, Home,
+} from 'lucide-react'
 import type { PricebookEntry } from '@/types'
 import { CategorySheet } from './CategorySheet'
 
-const CATEGORY_ICONS: Record<string, string> = {
-  // Standalone categories
-  'Breakers': '⚡',
-  'Panel Rejuvenations': '🔲',
-  'Car Chargers': '🚗',
-  'Dedicated Circuits (Romex)': '🔌',
-  'Dedicated Circuits (Conduit/EMT)': '🔧',
-  'Circuit Extensions': '🔗',
-  'Devices': '🔲',
-  'Trenching': '🚧',
-  'Service Calls': '🔍',
-  'Doorbells': '🔔',
-  'Ring Doorbells': '📹',
-  'Transformers': '⚙️',
-  'Junction Boxes': '📦',
-  'Disconnects': '🔴',
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  // Standalone
+  'Breakers': Zap,
+  'Panel Rejuvenations': CircuitBoard,
+  'Car Chargers': Car,
+  'Dedicated Circuits (Romex)': Plug,
+  'Dedicated Circuits (Conduit/EMT)': Wrench,
+  'Circuit Extensions': Link,
+  'Devices': ToggleLeft,
+  'Trenching': Hammer,
+  'Service Calls': Search,
+  'Doorbells': Bell,
+  'Ring Doorbells': Video,
+  'Transformers': Settings,
+  'Junction Boxes': Package,
+  'Disconnects': Power,
   // Parent categories
-  'Indoor Lighting': '💡',
-  'Outdoor Lighting': '🌟',
-  // Child categories (shown in sub-grid)
-  'Fixtures': '💡',
-  'Ceiling Fans': '🌀',
-  'Recessed Cans': '⭕',
-  'Surface Mount': '🔆',
-  'Bathroom Fans': '💨',
-  'Exterior Fixtures': '🏮',
-  'Ring Floodlights': '🔦',
-  'Landscape Lighting': '🌿',
-  'Post Lights': '🗼',
-  'Soffit Lights': '🏠',
+  'Indoor Lighting': Lightbulb,
+  'Outdoor Lighting': Sun,
+  // Child categories
+  'Fixtures': Lamp,
+  'Ceiling Fans': Fan,
+  'Recessed Cans': Circle,
+  'Surface Mount': LampCeiling,
+  'Bathroom Fans': Wind,
+  'Exterior Fixtures': LampWallDown,
+  'Ring Floodlights': Flashlight,
+  'Landscape Lighting': Leaf,
+  'Post Lights': Building2,
+  'Soffit Lights': Home,
 }
 
 interface CategoryGridProps {
@@ -41,11 +48,28 @@ interface CategoryGridProps {
   onAddItem: (entry: PricebookEntry) => void
 }
 
+function CategoryTile({ label, count, icon: Icon, onClick }: {
+  label: string
+  count: number
+  icon: LucideIcon
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-volturaNavy/50 rounded-xl p-3 text-center hover:bg-volturaNavy transition-colors"
+    >
+      <Icon size={22} className="mx-auto mb-1 text-volturaGold/70" strokeWidth={1.5} />
+      <span className="text-white text-xs font-semibold block leading-tight">{label}</span>
+      <span className="text-gray-500 text-xs">{count} items</span>
+    </button>
+  )
+}
+
 export function CategoryGrid({ pricebook, onAddItem }: CategoryGridProps) {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
   const [activeParent, setActiveParent] = useState<string | null>(null)
 
-  // Parse categories: "Parent / Child" format for sub-categories, plain for standalone
   const allCategories = Array.from(new Set(pricebook.map(p => p.category).filter(Boolean)))
 
   const parents = new Map<string, string[]>()
@@ -65,7 +89,6 @@ export function CategoryGrid({ pricebook, onAddItem }: CategoryGridProps) {
     ? pricebook.filter(p => p.category === openCategory)
     : []
 
-  // Sub-category view: drilled into a parent (e.g. "Indoor Lighting")
   if (activeParent) {
     const children = parents.get(activeParent) ?? []
     return (
@@ -81,15 +104,13 @@ export function CategoryGrid({ pricebook, onAddItem }: CategoryGridProps) {
             const fullCat = `${activeParent} / ${child}`
             const count = pricebook.filter(p => p.category === fullCat).length
             return (
-              <button
+              <CategoryTile
                 key={child}
+                label={child}
+                count={count}
+                icon={CATEGORY_ICONS[child] ?? Package}
                 onClick={() => setOpenCategory(fullCat)}
-                className="bg-volturaNavy/50 rounded-xl p-3 text-center hover:bg-volturaNavy transition-colors"
-              >
-                <span className="text-2xl block mb-1">{CATEGORY_ICONS[child] ?? '📋'}</span>
-                <span className="text-white text-xs font-semibold block">{child}</span>
-                <span className="text-gray-500 text-xs">{count} items</span>
-              </button>
+              />
             )
           })}
         </div>
@@ -105,7 +126,6 @@ export function CategoryGrid({ pricebook, onAddItem }: CategoryGridProps) {
     )
   }
 
-  // Root view: parent categories + standalones
   return (
     <div>
       <label className="block text-gray-400 text-sm mb-2">Add Line Items</label>
@@ -113,29 +133,25 @@ export function CategoryGrid({ pricebook, onAddItem }: CategoryGridProps) {
         {Array.from(parents.keys()).map(parent => {
           const count = pricebook.filter(p => p.category?.startsWith(parent + ' / ')).length
           return (
-            <button
+            <CategoryTile
               key={parent}
+              label={parent}
+              count={count}
+              icon={CATEGORY_ICONS[parent] ?? Package}
               onClick={() => setActiveParent(parent)}
-              className="bg-volturaNavy/50 rounded-xl p-3 text-center hover:bg-volturaNavy transition-colors"
-            >
-              <span className="text-2xl block mb-1">{CATEGORY_ICONS[parent] ?? '📋'}</span>
-              <span className="text-white text-xs font-semibold block">{parent}</span>
-              <span className="text-gray-500 text-xs">{count} items</span>
-            </button>
+            />
           )
         })}
         {standalones.map(cat => {
           const count = pricebook.filter(p => p.category === cat).length
           return (
-            <button
+            <CategoryTile
               key={cat}
+              label={cat}
+              count={count}
+              icon={CATEGORY_ICONS[cat] ?? Package}
               onClick={() => setOpenCategory(cat)}
-              className="bg-volturaNavy/50 rounded-xl p-3 text-center hover:bg-volturaNavy transition-colors"
-            >
-              <span className="text-2xl block mb-1">{CATEGORY_ICONS[cat] ?? '📋'}</span>
-              <span className="text-white text-xs font-semibold block">{cat}</span>
-              <span className="text-gray-500 text-xs">{count} items</span>
-            </button>
+            />
           )
         })}
       </div>
