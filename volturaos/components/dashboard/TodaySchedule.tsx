@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface TodayJob {
   id: string
@@ -20,6 +23,7 @@ const STATUS_DOT: Record<string, string> = {
 }
 
 export function TodaySchedule({ jobs }: TodayScheduleProps) {
+  const router = useRouter()
   if (jobs.length === 0) return null
 
   return (
@@ -38,17 +42,15 @@ export function TodaySchedule({ jobs }: TodayScheduleProps) {
           const dot = STATUS_DOT[job.status] ?? 'bg-gray-400'
 
           return (
-            <Link
+            <div
               key={job.id}
-              href={`/jobs/${job.id}`}
-              className="flex items-center gap-3 bg-volturaGold/10 border border-volturaGold/20 rounded-2xl px-4 py-3 active:scale-[0.98] transition-transform"
+              onClick={() => router.push(`/jobs/${job.id}`)}
+              className="flex items-center gap-3 bg-volturaGold/10 border border-volturaGold/20 rounded-2xl px-4 py-3 active:scale-[0.98] transition-transform cursor-pointer"
             >
               {/* Time */}
               <div className="text-center w-10 flex-shrink-0">
                 {timeStr ? (
-                  <>
-                    <p className="text-volturaGold font-bold text-sm leading-none">{timeStr.slice(0, 5)}</p>
-                  </>
+                  <p className="text-volturaGold font-bold text-sm leading-none">{timeStr}</p>
                 ) : (
                   <p className="text-gray-500 text-xs">TBD</p>
                 )}
@@ -75,7 +77,7 @@ export function TodaySchedule({ jobs }: TodayScheduleProps) {
                   </a>
                 )}
               </div>
-            </Link>
+            </div>
           )
         })}
       </div>
