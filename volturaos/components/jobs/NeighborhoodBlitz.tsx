@@ -65,7 +65,7 @@ export function NeighborhoodBlitz({ jobId, jobType, zip }: NeighborhoodBlitzProp
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
-          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl overflow-hidden max-h-[80vh] flex flex-col">
+          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl overflow-hidden max-h-[80dvh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
               <div>

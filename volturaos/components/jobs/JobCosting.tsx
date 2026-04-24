@@ -135,7 +135,7 @@ export function JobCosting({ jobId }: { jobId: string }) {
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end justify-center">
-          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl overflow-hidden max-h-[80vh] flex flex-col">
+          <div className="bg-volturaNavy w-full max-w-lg rounded-t-2xl overflow-hidden max-h-[80dvh] flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
               <h2 className="text-white font-bold text-base">Labor & Materials</h2>
               <button onClick={() => setOpen(false)} className="text-gray-500 text-xl">✕</button>

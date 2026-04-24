@@ -8,7 +8,7 @@ import { HistoryTab } from './tabs/HistoryTab'
 import { EstimatesTab } from './tabs/EstimatesTab'
 import { InvoiceTab } from './tabs/InvoiceTab'
 import { FormsTab } from './tabs/FormsTab'
-import type { Job, JobChecklist, ChangeOrder, Invoice, EstimateStatus, LineItem, Addon, Form } from '@/types'
+import type { Job, JobChecklist, ChangeOrder, Invoice, EstimateStatus, LineItem, Addon, Form, HomeInspection } from '@/types'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
 type EstimateSlice = {
@@ -33,6 +33,7 @@ interface UnifiedProfileProps {
   invoices: Invoice[]
   jobHistory: Job[]
   forms: Form[]
+  inspections: HomeInspection[]
 }
 
 export function UnifiedProfile({
@@ -45,6 +46,7 @@ export function UnifiedProfile({
   invoices,
   jobHistory,
   forms,
+  inspections,
 }: UnifiedProfileProps) {
   const [activeTab, setActiveTab] = useState<TabId>('job')
 
@@ -68,7 +70,10 @@ export function UnifiedProfile({
       <ProfileSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Scrollable content — offset for fixed header + sidebar */}
-      <div className="ml-[60px] pt-14 pb-16 min-h-dvh">
+      <div
+        className="ml-[60px] md:ml-[72px] min-h-dvh"
+        style={{ paddingTop: 'var(--header-h)', paddingBottom: 'var(--nav-h)' }}
+      >
         {activeTab === 'job' && (
           <JobTab
             job={jobWithZip}
@@ -77,6 +82,7 @@ export function UnifiedProfile({
             signedEstimateId={signedEstimateId}
             changeOrders={changeOrders}
             customerEstimates={estimates as Array<Pick<import('@/types').Estimate, 'id' | 'name' | 'total' | 'status'>>}
+            inspections={inspections}
           />
         )}
         {activeTab === 'history' && (

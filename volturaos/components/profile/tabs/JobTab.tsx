@@ -1,4 +1,4 @@
-import type { Job, JobChecklist, ChangeOrder, Estimate } from '@/types'
+import type { Job, JobChecklist, ChangeOrder, Estimate, HomeInspection } from '@/types'
 import { JobDetail } from '@/components/jobs/JobDetail'
 import type { JobPhotoRecord } from '@/lib/actions/job-photos'
 
@@ -9,6 +9,7 @@ interface JobTabProps {
   signedEstimateId: string | null
   changeOrders: ChangeOrder[]
   customerEstimates: Array<Pick<Estimate, 'id' | 'name' | 'total' | 'status'>>
+  inspections: HomeInspection[]
 }
 
 export function JobTab(props: JobTabProps) {

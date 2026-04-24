@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Job, JobChecklist, JobStatus, ChangeOrder, Estimate, EstimateStatus } from '@/types'
+import type { Job, JobChecklist, JobStatus, ChangeOrder, Estimate, EstimateStatus, HomeInspection } from '@/types'
 import { updateJobStatus, updateJob } from '@/lib/actions/jobs'
 import { StatusStepper } from './StatusStepper'
 import { JobChecklist as JobChecklistUI } from './JobChecklist'
@@ -28,6 +28,25 @@ interface JobDetailProps {
   signedEstimateId: string | null
   changeOrders: ChangeOrder[]
   customerEstimates: CustomerEstimate[]
+  inspections?: HomeInspection[]
+}
+
+function scoreGrade(score: number): string {
+  if (score >= 90) return 'A'
+  if (score >= 80) return 'B'
+  if (score >= 70) return 'C'
+  if (score >= 60) return 'D'
+  return 'F'
+}
+
+function formatNoteTimestamp(): string {
+  return new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
 }
 
 const NEXT_STATUS: Partial<Record<JobStatus, { label: string; next: JobStatus }>> = {
@@ -44,11 +63,12 @@ const STATUS_COLORS: Record<EstimateStatus, string> = {
   Declined: 'bg-red-900/30 text-red-400',
 }
 
-export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrders, customerEstimates }: JobDetailProps) {
+export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrders, customerEstimates, inspections }: JobDetailProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState(job.notes || '')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [newNoteText, setNewNoteText] = useState('')
   const [editingSchedule, setEditingSchedule] = useState(false)
   const [scheduledDate, setScheduledDate] = useState(job.scheduled_date || '')
   const [scheduledTime, setScheduledTime] = useState(job.scheduled_time || '')
@@ -67,6 +87,15 @@ export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrde
       await updateJob(job.id, { notes })
       setEditingNotes(false)
     })
+  }
+
+  function handleAddNote() {
+    if (!newNoteText.trim()) return
+    const entry = `[${formatNoteTimestamp()}] ${newNoteText.trim()}`
+    const updated = notes ? `${notes}\n${entry}` : entry
+    setNotes(updated)
+    setNewNoteText('')
+    startTransition(() => updateJob(job.id, { notes: updated }))
   }
 
   function handleSaveSchedule() {
@@ -328,6 +357,39 @@ export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrde
         />
       )}
 
+      {/* Inspection History */}
+      {inspections && inspections.length > 0 && (
+        <div className="bg-volturaNavy/50 rounded-xl p-4">
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3">Past Health Scores</p>
+          <div className="space-y-2.5">
+            {inspections.slice(0, 3).map((insp) => {
+              const grade = scoreGrade(insp.score)
+              const colorClass = insp.score >= 80
+                ? 'text-green-400 bg-green-900/30'
+                : insp.score >= 60
+                ? 'text-yellow-400 bg-yellow-900/30'
+                : 'text-red-400 bg-red-900/30'
+              return (
+                <div key={insp.id} className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-full flex flex-col items-center justify-center shrink-0 ${colorClass}`}>
+                    <span className="font-bold text-sm leading-none">{insp.score}</span>
+                    <span className="text-[10px] font-semibold leading-none mt-0.5">{grade}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white/80 text-sm font-medium">
+                      {insp.panel_brand ? `${insp.panel_brand} · ` : ''}{insp.service_size ? `${insp.service_size}A` : ''}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      {new Date(insp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Maintenance Plans */}
       {(job.status === 'Completed' || job.status === 'Paid') && (
         <MaintenancePlan
@@ -347,28 +409,57 @@ export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrde
             <VoiceNotes
               jobType={job.job_type}
               onTranscript={(text) => {
-                setNotes((prev) => prev ? `${prev}\n${text}` : text)
-                setEditingNotes(true)
+                const entry = `[${formatNoteTimestamp()}] ${text}`
+                const updated = notes ? `${notes}\n${entry}` : entry
+                setNotes(updated)
+                startTransition(() => updateJob(job.id, { notes: updated }))
               }}
             />
             {!editingNotes ? (
               <button onClick={() => setEditingNotes(true)} className="text-volturaGold text-xs">Edit</button>
             ) : (
-              <button onClick={handleSaveNotes} disabled={isPending} className="text-volturaGold text-xs font-semibold">
-                {isPending ? 'Saving...' : 'Save'}
-              </button>
+              <div className="flex gap-2">
+                <button onClick={handleSaveNotes} disabled={isPending} className="text-volturaGold text-xs font-semibold">
+                  {isPending ? 'Saving...' : 'Save'}
+                </button>
+                <button onClick={() => setEditingNotes(false)} className="text-gray-500 text-xs">Cancel</button>
+              </div>
             )}
           </div>
         </div>
+
         {editingNotes ? (
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            className="w-full bg-volturaBlue text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50 resize-none"
+            rows={5}
+            className="w-full bg-volturaBlue text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50 resize-none mb-2"
           />
         ) : (
-          <p className="text-white/80 text-sm whitespace-pre-wrap">{notes || 'No notes'}</p>
+          <>
+            {notes ? (
+              <p className="text-white/80 text-sm whitespace-pre-wrap mb-3">{notes}</p>
+            ) : (
+              <p className="text-gray-600 text-sm mb-3">No notes yet</p>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newNoteText}
+                onChange={(e) => setNewNoteText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote() }}
+                placeholder="Add a note…"
+                className="flex-1 bg-volturaBlue text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-volturaGold/50 placeholder-gray-600"
+              />
+              <button
+                onClick={handleAddNote}
+                disabled={!newNoteText.trim() || isPending}
+                className="bg-volturaGold/10 border border-volturaGold/30 text-volturaGold font-semibold px-4 rounded-lg text-sm disabled:opacity-40 active:bg-volturaGold/20"
+              >
+                Add
+              </button>
+            </div>
+          </>
         )}
       </div>
 

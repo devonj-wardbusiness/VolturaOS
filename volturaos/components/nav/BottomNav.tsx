@@ -15,8 +15,11 @@ const tabs: { href: string; label: string; Icon: LucideIcon; also?: string[] }[]
 export function BottomNav() {
   const pathname = usePathname()
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-[#0D0F1A]/95 backdrop-blur-sm border-t border-white/5 z-40">
-      <div className="flex h-full">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-[#0D0F1A]/95 backdrop-blur-sm border-t border-white/5 z-40"
+      style={{ height: 'var(--nav-h)', paddingBottom: 'var(--sab)' }}
+    >
+      <div className="flex h-16">
         {tabs.map(({ href, label, Icon, also }) => {
           const active =
             pathname === href ||

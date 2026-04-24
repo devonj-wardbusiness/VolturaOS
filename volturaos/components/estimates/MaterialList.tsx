@@ -52,7 +52,7 @@ export function MaterialList({ lineItems }: MaterialListProps) {
             </div>
 
             {/* Content */}
-            <div className="px-5 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="px-5 py-4 max-h-[60dvh] overflow-y-auto">
               {loading ? (
                 <div className="flex items-center gap-3 py-8 justify-center">
                   <div className="w-5 h-5 border-2 border-volturaGold border-t-transparent rounded-full animate-spin" />

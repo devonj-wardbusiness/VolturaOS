@@ -12,6 +12,14 @@
   --font-display: 'Barlow Condensed', sans-serif;
 }
 
+/* Safe area inset variables — used across fixed headers, sidebars, and bottom bars */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --header-h: calc(3.5rem + env(safe-area-inset-top, 0px));  /* h-14 + notch */
+  --nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));    /* h-16 + home bar */
+}
+
 html {
   background-color: #0D0F1A;
   color: #f1f5f9;
@@ -32,4 +40,31 @@ body {
 .price-input {
   min-height: 44px;
   font-size: 1.25rem;
+}
+
+/* Safe-area padding utilities (referenced in ActionSheet, AIChatWidget, etc.) */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Fix date/time/select native controls on Android dark-theme Chrome.
+   Without this, text is invisible (white-on-white) in dark mode. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"] {
+  color-scheme: dark;
+}
+select {
+  color-scheme: dark;
 }

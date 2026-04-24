@@ -24,7 +24,10 @@ interface ProfileSidebarProps {
 
 export function ProfileSidebar({ activeTab, onTabChange }: ProfileSidebarProps) {
   return (
-    <aside className="fixed top-14 bottom-16 left-0 w-[60px] bg-[#0c0f1a] border-r border-white/5 z-40 flex flex-col items-center py-2 gap-1">
+    <aside
+      className="fixed left-0 z-40 bg-[#0c0f1a] border-r border-white/5 flex flex-col items-center py-2 gap-1 w-[60px] md:w-[72px]"
+      style={{ top: 'var(--header-h)', bottom: 'var(--nav-h)' }}
+    >
       {TABS.map(tab => {
         const isActive = activeTab === tab.id
         return (
@@ -33,7 +36,7 @@ export function ProfileSidebar({ activeTab, onTabChange }: ProfileSidebarProps) 
             onClick={() => !tab.disabled && onTabChange(tab.id)}
             disabled={tab.disabled}
             title={tab.disabled ? 'Coming soon' : tab.label}
-            className="w-full flex flex-col items-center gap-0.5 py-3 text-center transition-colors"
+            className="w-full flex flex-col items-center gap-0.5 py-3 md:py-4 text-center transition-colors"
             style={{
               background: isActive ? '#1A1F6E' : 'transparent',
               borderLeft: isActive ? '3px solid #C9A227' : '3px solid transparent',
@@ -41,9 +44,9 @@ export function ProfileSidebar({ activeTab, onTabChange }: ProfileSidebarProps) 
               cursor: tab.disabled ? 'not-allowed' : 'pointer',
             }}
           >
-            <span className="text-base">{tab.icon}</span>
+            <span className="text-lg md:text-xl">{tab.icon}</span>
             <span
-              className="text-[9px] font-semibold uppercase tracking-wider leading-none"
+              className="text-[9px] md:text-[11px] font-semibold uppercase tracking-wider leading-none"
               style={{ color: isActive ? '#C9A227' : '#3a4060' }}
             >
               {tab.label}
