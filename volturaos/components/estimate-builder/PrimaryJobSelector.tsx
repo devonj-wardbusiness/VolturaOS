@@ -168,9 +168,12 @@ export function PrimaryJobSelector({ pricebook, selected, onSelect, onSkip }: Pr
             <button
               key={p.id}
               onClick={() => onSelect(p.job_type)}
-              className="text-left px-4 py-3 rounded-xl text-sm bg-volturaNavy/50 text-white hover:bg-volturaNavy transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm bg-volturaNavy/50 text-white hover:bg-volturaNavy transition-colors"
             >
-              {p.job_type}
+              <span className="text-left">{p.job_type}</span>
+              <span className="text-volturaGold font-semibold ml-3 shrink-0">
+                ${(p.price_better ?? p.price_good ?? 0).toLocaleString()}
+              </span>
             </button>
           ))}
           {filteredEntries.length === 0 && (

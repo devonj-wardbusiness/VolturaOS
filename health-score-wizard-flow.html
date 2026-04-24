@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Score Wizard — Flow Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1e; color: #fff; font-family: -apple-system, sans-serif; padding: 24px 16px; }
+  h1 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 28px; }
+  .flow { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; }
+  .phone { width: 200px; flex-shrink: 0; }
+  .phone-label { font-size: 11px; font-weight: 700; color: #f5c842; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; text-align: center; }
+  .screen { background: #111827; border: 1.5px solid #1f2937; border-radius: 20px; padding: 14px 12px; min-height: 380px; display: flex; flex-direction: column; }
+  .progress { display: flex; gap: 3px; margin-bottom: 14px; }
+  .dot { flex: 1; height: 3px; border-radius: 2px; background: #1f2937; }
+  .dot.active { background: #f5c842; }
+  .dot.done { background: #374151; }
+  .step-title { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+  .step-sub { font-size: 10px; color: #6b7280; margin-bottom: 12px; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-size: 9px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { font-size: 9px; padding: 3px 8px; border-radius: 20px; border: 1px solid #374151; color: #9ca3af; }
+  .chip.sel { background: #f5c842; color: #0a0f1e; border-color: #f5c842; font-weight: 700; }
+  .chip.danger { border-color: #ef4444; color: #ef4444; }
+  .chip.danger.sel { background: #ef4444; color: white; }
+  .slider-row { display: flex; align-items: center; gap: 6px; }
+  .slider-bar { flex: 1; height: 3px; background: #374151; border-radius: 2px; position: relative; }
+  .slider-fill { height: 100%; background: #f5c842; border-radius: 2px; width: 55%; }
+  .slider-val { font-size: 10px; color: #f5c842; font-weight: 700; width: 20px; text-align: right; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1f2937; }
+  .toggle-label { font-size: 10px; color: #d1d5db; }
+  .toggle-label small { display: block; font-size: 9px; color: #4b5563; }
+  .toggle { width: 28px; height: 15px; border-radius: 10px; background: #f5c842; position: relative; flex-shrink: 0; }
+  .toggle.off { background: #374151; }
+  .toggle-knob { width: 11px; height: 11px; background: white; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+  .toggle.off .toggle-knob { right: auto; left: 2px; }
+  .rooms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .room-tile { background: #0d1525; border: 1px solid #1f2937; border-radius: 8px; padding: 6px 8px; font-size: 9px; color: #9ca3af; }
+  .room-tile.flagged { border-color: #f97316; color: #f97316; }
+  .room-tile .room-icon { font-size: 14px; display: block; margin-bottom: 2px; }
+  .score-ring { text-align: center; padding: 8px 0; }
+  .ring-svg { width: 80px; height: 80px; }
+  .score-num { font-size: 22px; font-weight: 800; }
+  .score-grade { font-size: 13px; color: #eab308; font-weight: 700; }
+  .finding { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid #1f2937; }
+  .finding-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .finding-dot.red { background: #ef4444; }
+  .finding-dot.yellow { background: #eab308; }
+  .finding-dot.green { background: #22c55e; }
+  .finding-text { font-size: 9px; color: #d1d5db; }
+  .checklist-item { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #1f2937; }
+  .check-box { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid #374151; flex-shrink: 0; }
+  .check-box.checked { background: #f5c842; border-color: #f5c842; }
+  .check-label { flex: 1; font-size: 9px; color: #d1d5db; }
+  .check-label small { display: block; color: #6b7280; font-size: 8px; }
+  .check-price { font-size: 9px; color: #f5c842; font-weight: 700; }
+  .priority-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 0 2px; }
+  .priority-label.critical { color: #ef4444; }
+  .priority-label.important { color: #eab308; }
+  .priority-label.recommended { color: #22c55e; }
+  .btn { width: 100%; padding: 8px; border-radius: 10px; font-size: 10px; font-weight: 700; text-align: center; margin-top: 8px; }
+  .btn-gold { background: #f5c842; color: #0a0f1e; }
+  .btn-outline { border: 1px solid #374151; color: #9ca3af; }
+  .flag-banner { background: #1a0a0a; border: 1px solid #ef4444; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; font-size: 9px; color: #ef4444; }
+  .flag-banner strong { display: block; font-size: 10px; }
+  .mt-auto { margin-top: auto; }
+</style>
+</head>
+<body>
+
+<h1>⚡ Health Score — 5-Step Wizard</h1>
+<p class="sub">Mobile mockup of each step. Scroll right to see all 5.</p>
+
+<div class="flow">
+
+  <!-- Step 1: Panel -->
+  <div class="phone">
+    <div class="phone-label">Step 1 — Panel</div>
+    <div class="screen">
+      <div class="progress">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="step-title">Panel</div>
+      <div class="step-sub">Start at the electrical panel</div>
+
+      <div class="field">
+        <div class="field-label">Brand</div>
+        <div class="chips">
+          <span class="chip sel">Square D</span>
+          <span class="chip">Eaton</span>
+          <span class="chip">Leviton</span>
+          <span class="chip">Siemens</span>
+          <span class="chip danger">FPE / Stab-Lok</span>
+          <span class="chip danger">Zinsco</span>
+          <span class="chip danger">Pushmatic</span>
+          <span class="chip">Other</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Service Size</div>
+        <div class="chips">
+          <span class="chip danger">60A</span>
+          <span class="chip">100A</span>
+          <span class="chip">150A</span>
+          <span class="chip sel">200A</span>
+          <span class="chip">400A</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Age — 18 yrs</div>
+        <div class="slider-row">
+          <div class="slider-bar"><div class="slider-fill" style="width:30%"></div></div>
+          <div class="slider-val">18</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Condition</div>
+        <div class="chips">
+          <span class="chip sel">Good</span>
+          <span class="chip">Fair</span>
+          <span class="chip">Poor</span>
+          <span class="chip danger">Replace</span>
+        </div>
+      </div>
+
+      <div class="mt-auto">
+        <div class="btn btn-gold">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Safety -->
+  <div class="phone">
+    <div class="phone-label">Step 2 — Safety</div>
+    <div class="screen">
+      <div class="progress">
+        <div class="dot done"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="step-title">Safety Features</div>
+      <div class="step-sub">Code compliance check</div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">AFCI Breakers<small>NEC 210.12</small></div>
+        <div class="toggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">GFCI Protection<small>NEC 210.8</small></div>
+        <div class="toggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Whole-Home Surge<small>NEC 230.67</small></div>
+        <div class="toggle off"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Grounding OK<small>NEC 250</small></div>
+        <div class="toggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Smoke Detectors<small>NFPA 72</small></div>
+        <div class="toggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">CO Detectors<small>State code</small></div>
+        <div class="toggle off"><div class="toggle-knob"></div></div>
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <div class="field-label">Wiring Type</div>
+        <div class="chips">
+          <span class="chip sel">Copper</span>
+          <span class="chip">Cu/Al</span>
+          <span class="chip">Aluminum</span>
+          <span class="chip danger">Knob+Tube</span>
+          <span class="chip">Mixed</span>
+        </div>
+      </div>
+
+      <div class="mt-auto">
+        <div class="btn btn-gold">Next →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Rooms -->
+  <div class="phone">
+    <div class="phone-label">Step 3 — Rooms</div>
+    <div class="screen">
+      <div class="progress">
+        <div class="dot done"></div><div class="dot done"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="step-title">Room Walkthrough</div>
+      <div class="step-sub">Tap a room to flag issues</div>
+
+      <div class="rooms-grid">
+        <div class="room-tile flagged">
+          <span class="room-icon">🍳</span>
+          Kitchen
+          <div style="font-size:8px;margin-top:2px">No GFCI · Old outlets</div>
+        </div>
+        <div class="room-tile flagged">
+          <span class="room-icon">🚿</span>
+          Bathroom 1
+          <div style="font-size:8px;margin-top:2px">No exhaust fan</div>
+        </div>
+        <div class="room-tile">
+          <span class="room-icon">🛏</span>
+          Bedroom 1
+          <div style="font-size:8px;margin-top:2px;color:#4b5563">No issues</div>
+        </div>
+        <div class="room-tile">
+          <span class="room-icon">🛏</span>
+          Bedroom 2
+          <div style="font-size:8px;margin-top:2px;color:#4b5563">No issues</div>
+        </div>
+        <div class="room-tile flagged">
+          <span class="room-icon">🚗</span>
+          Garage
+          <div style="font-size:8px;margin-top:2px">No GFCI · No outdoor outlet</div>
+        </div>
+        <div class="room-tile">
+          <span class="room-icon">🌿</span>
+          Exterior
+          <div style="font-size:8px;margin-top:2px;color:#4b5563">No issues</div>
+        </div>
+      </div>
+
+      <div style="margin-top:8px;font-size:9px;color:#6b7280">
+        Tapping a room opens an issue checklist (GFCI, outlets, lighting, fans…)
+      </div>
+
+      <div class="mt-auto">
+        <div class="btn btn-gold">Calculate Score →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Score -->
+  <div class="phone">
+    <div class="phone-label">Step 4 — Score</div>
+    <div class="screen">
+      <div class="progress">
+        <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot active"></div><div class="dot"></div>
+      </div>
+      <div class="step-title">Electrical Health Score</div>
+      <div class="step-sub">Mike Johnson · 123 Main St</div>
+
+      <div class="score-ring">
+        <svg class="ring-svg" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#1e293b" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#eab308" stroke-width="8"
+            stroke-dasharray="140 201" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+          <text x="40" y="36" text-anchor="middle" fill="white" font-size="18" font-weight="800" font-family="sans-serif">67</text>
+          <text x="40" y="50" text-anchor="middle" fill="#eab308" font-size="11" font-weight="800" font-family="sans-serif">D</text>
+        </svg>
+      </div>
+
+      <div style="font-size:10px;color:#9ca3af;text-align:center;margin-bottom:10px">Needs attention — 3 issues found</div>
+
+      <div class="finding"><div class="finding-dot red"></div><div class="finding-text"><strong>No surge protector</strong> — NEC 230.67 required on this service</div></div>
+      <div class="finding"><div class="finding-dot red"></div><div class="finding-text"><strong>Kitchen GFCI missing</strong> — code violation, shock hazard</div></div>
+      <div class="finding"><div class="finding-dot yellow"></div><div class="finding-text"><strong>No CO detectors</strong> — recommended by state code</div></div>
+      <div class="finding"><div class="finding-dot green"></div><div class="finding-text">Panel brand, age, and condition are good</div></div>
+
+      <div class="mt-auto">
+        <div class="btn btn-gold">See Upgrade Plan →</div>
+        <div class="btn btn-outline" style="margin-top:4px">Save Only</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Checklist -->
+  <div class="phone">
+    <div class="phone-label">Step 5 — Estimate</div>
+    <div class="screen">
+      <div class="progress">
+        <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot active"></div>
+      </div>
+      <div class="step-title">Upgrade Plan</div>
+      <div class="step-sub">Select items to quote</div>
+
+      <div class="priority-label critical">⚠ Critical</div>
+      <div class="checklist-item">
+        <div class="check-box checked"></div>
+        <div class="check-label">Whole-Home Surge Protector<small>NEC 230.67 — required</small></div>
+        <div class="check-price">$650</div>
+      </div>
+      <div class="checklist-item">
+        <div class="check-box checked"></div>
+        <div class="check-label">GFCI Outlet — Kitchen<small>Code violation</small></div>
+        <div class="check-price">$185</div>
+      </div>
+
+      <div class="priority-label important">→ Important</div>
+      <div class="checklist-item">
+        <div class="check-box checked"></div>
+        <div class="check-label">CO Detector Installation<small>State code compliance</small></div>
+        <div class="check-price">$95</div>
+      </div>
+
+      <div class="priority-label recommended">✓ Recommended</div>
+      <div class="checklist-item">
+        <div class="check-box"></div>
+        <div class="check-label">Bathroom Exhaust Fan<small>Moisture + mold prevention</small></div>
+        <div class="check-price">$425</div>
+      </div>
+
+      <div style="font-size:9px;color:#6b7280;margin-top:6px">3 selected · Est. $930</div>
+
+      <div class="mt-auto">
+        <div class="btn btn-gold">Create Estimate →</div>
+        <div class="btn btn-outline" style="margin-top:4px">Share Report with Customer</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:24px;background:#111827;border-radius:16px;padding:16px;font-size:13px;color:#9ca3af;line-height:1.6">
+  <strong style="color:#f5c842;display:block;margin-bottom:6px">How scoring works (new algorithm)</strong>
+  Start at 100. Deduct for issues, with weight matching real safety risk:<br><br>
+  🔴 <strong>Hazardous panel brand</strong> (FPE/Zinsco/Pushmatic): −40 · caps max score at 50<br>
+  🔴 <strong>Knob-and-tube wiring</strong>: −25<br>
+  🔴 <strong>60A service</strong>: −15<br>
+  🟡 <strong>No GFCI</strong>: −15 · <strong>No AFCI</strong>: −10 · <strong>Panel condition Poor/Replace</strong>: −10/−20<br>
+  🟡 <strong>Panel age &gt;40yr</strong>: −10 · <strong>Aluminum wiring</strong>: −8<br>
+  🟢 <strong>Surge protector</strong>: +5 · <strong>Smoke detectors</strong>: +5 · <strong>CO detectors</strong>: +3
+</div>
+
+</body>
+</html>

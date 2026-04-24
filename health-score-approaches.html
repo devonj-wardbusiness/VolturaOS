@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Score — Approach Options</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1e; color: #fff; font-family: -apple-system, sans-serif; padding: 24px 16px; max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 28px; }
+  .card { background: #111827; border: 2px solid #1f2937; border-radius: 16px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: border-color 0.15s; }
+  .card:hover { border-color: #374151; }
+  .card.selected { border-color: #f5c842; }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .letter { width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #f5c842; flex-shrink: 0; }
+  .card.selected .letter { background: #f5c842; color: #0a0f1e; }
+  .card-title { font-size: 16px; font-weight: 700; }
+  .card-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+  .steps { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .step { display: flex; align-items: center; gap: 10px; background: #0d1525; border-radius: 10px; padding: 10px 12px; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: #1f2937; font-size: 11px; font-weight: 700; color: #9ca3af; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-text { font-size: 13px; color: #d1d5db; }
+  .step-note { font-size: 11px; color: #6b7280; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pros, .cons { background: #0d1525; border-radius: 10px; padding: 10px 12px; }
+  .pros-title { font-size: 11px; font-weight: 700; color: #22c55e; margin-bottom: 6px; }
+  .cons-title { font-size: 11px; font-weight: 700; color: #ef4444; margin-bottom: 6px; }
+  li { font-size: 12px; color: #9ca3af; margin-left: 14px; margin-bottom: 3px; }
+  .rec { background: #1a1200; border: 1px solid #f5c842/30; border-radius: 10px; padding: 10px 14px; margin-top: 16px; font-size: 13px; color: #f5c842; }
+  .rec strong { display: block; margin-bottom: 2px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+
+<h1>⚡ Health Score — Approach Options</h1>
+<p class="sub">Click one to select. Tell me which feels right in the terminal.</p>
+
+<div class="card" onclick="this.classList.toggle('selected')">
+  <div class="card-header">
+    <div class="letter">A</div>
+    <div>
+      <div class="card-title">Enhanced Modal</div>
+      <div class="card-sub">Same pattern, more fields — one long scroll</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div><div class="step-text">Panel section — brand, age, condition, service size</div></div></div>
+    <div class="step"><div class="step-num">2</div><div><div class="step-text">Safety — AFCI, GFCI, surge, smoke/CO, grounding</div></div></div>
+    <div class="step"><div class="step-num">3</div><div><div class="step-text">Wiring type + notes</div></div></div>
+    <div class="step"><div class="step-num">4</div><div><div class="step-text">Score → upgrade checklist → create estimate</div></div></div>
+  </div>
+  <div class="pros-cons">
+    <div class="pros"><div class="pros-title">PROS</div><ul><li>Minimal new code</li><li>Fast to fill out</li></ul></div>
+    <div class="cons"><div class="cons-title">CONS</div><ul><li>Gets long on mobile</li><li>No room walkthrough</li><li>Feels like a form</li></ul></div>
+  </div>
+</div>
+
+<div class="card selected" onclick="this.classList.toggle('selected')">
+  <div class="card-header">
+    <div class="letter">B</div>
+    <div>
+      <div class="card-title">Stepped Wizard</div>
+      <div class="card-sub">One screen at a time — guided, mobile-first ⭐ Recommended</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div><div class="step-text">Panel — brand (flags FPE/Zinsco), age, condition, service size</div><div class="step-note">Hazardous brands auto-flagged in red</div></div></div>
+    <div class="step"><div class="step-num">2</div><div><div class="step-text">Safety features — AFCI, GFCI, surge, grounding, smoke/CO</div></div></div>
+    <div class="step"><div class="step-num">3</div><div><div class="step-text">Room checklist — tap rooms to flag issues (outlets, lighting, fans)</div><div class="step-note">Kitchen · Baths · Bedrooms · Garage · Exterior · Basement</div></div></div>
+    <div class="step"><div class="step-num">4</div><div><div class="step-text">Score ring + grade + prioritized upgrade checklist</div></div></div>
+    <div class="step"><div class="step-num">5</div><div><div class="step-text">✓ Select items → Create Estimate / Share with Customer</div></div></div>
+  </div>
+  <div class="pros-cons">
+    <div class="pros"><div class="pros-title">PROS</div><ul><li>Clean on a phone</li><li>Natural job-site flow</li><li>Room data = better upsells</li></ul></div>
+    <div class="cons"><div class="cons-title">CONS</div><ul><li>More screens to build</li><li>DB schema changes</li></ul></div>
+  </div>
+</div>
+
+<div class="card" onclick="this.classList.toggle('selected')">
+  <div class="card-header">
+    <div class="letter">C</div>
+    <div>
+      <div class="card-title">Assessment + Report Split</div>
+      <div class="card-sub">Separate fill-out mode and customer-facing report view</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div><div class="step-text">Same wizard as B for data entry</div></div></div>
+    <div class="step"><div class="step-num">2</div><div><div class="step-text">Generates a shareable "Home Electrical Report" page</div><div class="step-note">Public URL like /estimates/[id]/view</div></div></div>
+    <div class="step"><div class="step-num">3</div><div><div class="step-text">Customer sees: score, issues, upgrade costs, Voltura branding</div></div></div>
+    <div class="step"><div class="step-num">4</div><div><div class="step-text">You tap "Create Estimate" from the report</div></div></div>
+  </div>
+  <div class="pros-cons">
+    <div class="pros"><div class="pros-title">PROS</div><ul><li>Strong leave-behind</li><li>Looks professional</li><li>Lead gen potential</li></ul></div>
+    <div class="cons"><div class="cons-title">CONS</div><ul><li>Most complex build</li><li>New public route needed</li><li>Overkill for now</li></ul></div>
+  </div>
+</div>
+
+<div class="rec">
+  <strong>My recommendation</strong>
+  B — Stepped Wizard. Best mobile UX for a job site. Room checklist gives you richer data for upsells. C's shareable report is a great Phase 2 addition once B is working.
+</div>
+
+</body>
+</html>

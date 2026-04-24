@@ -3,7 +3,7 @@
 -- Run in Supabase SQL Editor → volturaos database
 -- Prices are starting points — adjust in Settings → Pricebook
 
-INSERT INTO pricebook_items (name, description, unit_price, category) VALUES
+INSERT INTO pricebook (name, description, unit_price, category) VALUES
 
 -- ── Indoor Lighting / Fixtures ─────────────────────────────────────────────
 ('Light Fixture Installation', 'Install customer-supplied light fixture (existing wiring)', 125, 'Indoor Lighting / Fixtures'),

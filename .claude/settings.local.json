@@ -133,7 +133,20 @@
       "Bash(node brainstorm-server.cjs --project-dir \"C:/Users/Devon/VolturaOS/volturaos\")",
       "Bash(curl -s http://localhost:55106)",
       "Bash(xargs cat *)",
-      "Bash(find /c/Users/Devon/VolturaOS/volturaos/components -type f -name \"*.tsx\" -exec wc -l {} \\\\;)"
+      "Bash(find /c/Users/Devon/VolturaOS/volturaos/components -type f -name \"*.tsx\" -exec wc -l {} \\\\;)",
+      "Bash(find \"C:\\\\Users\\\\Devon\\\\VolturaOS\\\\volturaos\\\\lib\\\\actions\" -name \"*.ts\" -exec grep -h \"^export\" {} \\\\;)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(node scripts/add-form-columns.mjs)",
+      "Bash(node --env-file=.env.local scripts/add-form-columns.mjs)",
+      "Bash(grep -E \"^\\(toggle|fan|lightbulb|wind|circle$|sun$|power$|bell$|video$|settings$|package$|car$|hammer$|search$|link$|wrench$|zap$\\)\")",
+      "Bash(bash volturaos/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.4/skills/brainstorming/scripts/start-server.sh --project-dir /c/Users/Devon/VolturaOS)",
+      "Bash(bash /c/Users/Devon/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.4/skills/brainstorming/scripts/start-server.sh --project-dir /c/Users/Devon/VolturaOS)",
+      "Bash(node -e ' *)",
+      "Bash(node --env-file=.env.local -e ' *)",
+      "Bash(findstr /i \"supabase\")",
+      "Bash(find /c/Users/Devon/VolturaOS/volturaos/components -name \"*.tsx\" -exec grep -l \"type=\\\\\"date\\\\\"\\\\|type=\\\\\"time\\\\\"\" {} \\\\;)",
+      "Bash(sed -n '406,425p' lib/actions/jobs.ts)",
+      "Bash(sed -n '415,435p' lib/actions/estimates.ts)"
     ]
   }
 }

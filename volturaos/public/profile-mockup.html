@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VolturaOS — Unified Profile Mockup</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080c14; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, 'SF Pro Display', sans-serif; gap: 40px; flex-wrap: wrap; padding: 40px 20px; }
+  .scene-label { color: #3a4060; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-align: center; margin-bottom: 12px; }
+  .phone { width: 375px; height: 812px; background: #0f1623; border-radius: 44px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.8); border: 1px solid #1e2230; position: relative; display: flex; flex-direction: column; flex-shrink: 0; }
+  .status-bar { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .status-time { color: #fff; font-size: 15px; font-weight: 600; }
+  .status-icons { color: #fff; font-size: 13px; display: flex; gap: 6px; }
+</style>
+</head>
+<body>
+<script type="text/babel">
+
+const GOLD = '#f5c842';
+const NAVY = '#1a2540';
+const BLUE = '#0f1623';
+const DIM = '#3a4060';
+const MUTED = '#6b7280';
+
+/* ─── TODAY VIEW ─────────────────────────────── */
+const JOBS_TODAY = [
+  { id: 1, customer: 'Mike Johnson', type: 'Panel Upgrade', time: '8:00 AM', address: '123 Elm St', status: 'Scheduled', statusColor: '#3ab8ff' },
+  { id: 2, customer: 'Sarah Chen', type: 'EV Charger Install', time: '11:30 AM', address: '456 Oak Ave', status: 'In Progress', statusColor: '#f5c842' },
+  { id: 3, customer: 'Tom Williams', type: 'New Circuit', time: '2:00 PM', address: '789 Pine Rd', status: 'Scheduled', statusColor: '#3ab8ff' },
+];
+
+function TodayView({ onJobTap }) {
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '12px 20px 16px', borderBottom: `1px solid #1e2538` }}>
+        <div style={{ color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Saturday, April 19</div>
+        <div style={{ color: '#fff', fontSize: 22, fontWeight: 800 }}>Today</div>
+        <div style={{ color: MUTED, fontSize: 12, marginTop: 4 }}>3 jobs scheduled</div>
+      </div>
+
+      {/* Job cards */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {JOBS_TODAY.map(job => (
+          <div key={job.id} onClick={() => onJobTap(job)}
+            style={{ background: NAVY, borderRadius: 16, padding: '14px 16px', cursor: 'pointer', border: `1.5px solid #1e2538`, display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Time column */}
+            <div style={{ flexShrink: 0, textAlign: 'center', width: 52 }}>
+              <div style={{ color: GOLD, fontSize: 12, fontWeight: 800 }}>{job.time.split(' ')[0]}</div>
+              <div style={{ color: MUTED, fontSize: 10 }}>{job.time.split(' ')[1]}</div>
+            </div>
+            <div style={{ width: 1, height: 40, background: '#1e2538', flexShrink: 0 }} />
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{job.customer}</div>
+              <div style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>{job.type}</div>
+              <div style={{ color: DIM, fontSize: 11, marginTop: 2 }}>📍 {job.address}</div>
+            </div>
+            {/* Status */}
+            <div style={{ flexShrink: 0 }}>
+              <span style={{ background: job.statusColor + '22', color: job.statusColor, fontSize: 9, fontWeight: 700, borderRadius: 6, padding: '3px 7px', letterSpacing: 0.5, textTransform: 'uppercase' }}>{job.status}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom nav */}
+      <BottomNav active="Today" onNav={() => {}} />
+    </div>
+  );
+}
+
+/* ─── BOTTOM NAV ─────────────────────────────── */
+const NAV_TABS = [
+  { label: 'Home', icon: '⚡' },
+  { label: 'Customers', icon: '👥' },
+  { label: 'Today', icon: '📅' },
+  { label: 'Invoices', icon: '💰' },
+  { label: 'Search', icon: '🔍' },
+];
+
+function BottomNav({ active, onNav }) {
+  return (
+    <div style={{ background: '#0c0f1a', borderTop: `1px solid #1e2230`, padding: '10px 0 24px', display: 'flex', flexShrink: 0 }}>
+      {NAV_TABS.map(t => (
+        <button key={t.label} onClick={() => onNav(t.label)}
+          style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <span style={{ fontSize: 20 }}>{t.icon}</span>
+          <span style={{ fontSize: 9, fontWeight: 600, color: active === t.label ? GOLD : DIM, letterSpacing: 0.3 }}>{t.label}</span>
+          {active === t.label && <div style={{ width: 4, height: 4, borderRadius: '50%', background: GOLD, marginTop: -2 }} />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ─── UNIFIED PROFILE ────────────────────────── */
+const ESTIMATES_DATA = [
+  { id: 1, title: 'Panel Upgrade — 200A', items: 3, price: 3200, savings: 320, status: 'Approved' },
+  { id: 2, title: 'Surge Protection Add-On', items: 1, price: 485, savings: 48.50, status: 'Sent' },
+  { id: 3, title: 'EV Charger Rough-In', items: 2, price: 890, savings: 89, status: 'Draft' },
+];
+
+const HISTORY_DATA = [
+  { date: 'Apr 14, 2026', type: 'Job', label: 'Panel Upgrade', amount: null, status: 'Completed', icon: '🔧' },
+  { date: 'Apr 12, 2026', type: 'Invoice', label: 'Invoice #4412', amount: 3200, status: 'Paid', icon: '💰' },
+  { date: 'Apr 10, 2026', type: 'Estimate', label: 'Panel Upgrade — 200A', amount: 3200, status: 'Approved', icon: '📄' },
+  { date: 'Mar 3, 2026', type: 'Job', label: 'Service Call — Breaker', amount: null, status: 'Completed', icon: '🔧' },
+  { date: 'Mar 3, 2026', type: 'Invoice', label: 'Invoice #3891', amount: 185, status: 'Paid', icon: '💰' },
+];
+
+const STATUS_COLOR = {
+  Approved: '#3fd47a', Sent: '#3ab8ff', Draft: '#6b7280',
+  Completed: '#3fd47a', Paid: '#3fd47a', Scheduled: '#3ab8ff', 'In Progress': GOLD,
+};
+
+function UnifiedProfile({ job, onBack }) {
+  const [tab, setTab] = React.useState(job ? 'Job' : 'History');
+  const [selectedEst, setSelectedEst] = React.useState(null);
+
+  const SIDEBAR_TABS = [
+    { id: 'Job', icon: '🔧', label: 'Job' },
+    { id: 'History', icon: '📍', label: 'History' },
+    { id: 'Estimates', icon: '📄', label: 'Estimates' },
+    { id: 'Invoice', icon: '💲', label: 'Invoice' },
+    { id: 'Forms', icon: '📋', label: 'Forms', soon: true },
+  ];
+
+  const customer = job
+    ? { name: job.customer, phone: '(719) 555-0182', address: job.address, type: 'Residential' }
+    : { name: 'Sarah Chen', phone: '(719) 555-0182', address: '456 Oak Ave', type: 'Residential' };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Top bar */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid #1e2538`, display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: GOLD, fontSize: 18, cursor: 'pointer' }}>←</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>{customer.name}</div>
+          <div style={{ color: MUTED, fontSize: 11 }}>{customer.phone} · {customer.type}</div>
+        </div>
+        {job && (
+          <span style={{ background: STATUS_COLOR['In Progress'] + '22', color: STATUS_COLOR['In Progress'], fontSize: 9, fontWeight: 700, borderRadius: 6, padding: '3px 8px', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            {job.status}
+          </span>
+        )}
+      </div>
+
+      {/* Body: sidebar + content */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* ── LEFT SIDEBAR ── */}
+        <div style={{ width: 68, background: '#0c0f1a', borderRight: `1px solid #1e2230`, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 16, paddingBottom: 12, gap: 0, flexShrink: 0 }}>
+          {/* Logo mark */}
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg, #1A1F6E, #2E4BA0)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, fontSize: 16 }}>⚡</div>
+
+          {/* Nav items */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+            {SIDEBAR_TABS.map(item => {
+              const isActive = tab === item.id;
+              return (
+                <button key={item.id} onClick={() => !item.soon && setTab(item.id)}
+                  style={{ background: isActive ? '#1A1F6E' : 'none', border: 'none', borderLeft: isActive ? `3px solid ${GOLD}` : '3px solid transparent', cursor: item.soon ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '10px 4px', width: '100%', opacity: item.soon ? 0.35 : 1 }}>
+                  <span style={{ fontSize: 17 }}>{item.icon}</span>
+                  <span style={{ fontSize: 8, fontWeight: 600, letterSpacing: 0.4, color: isActive ? GOLD : DIM, textTransform: 'uppercase' }}>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bottom util icons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+            <div style={{ width: 28, height: 1, background: '#1e2538', marginBottom: 4 }} />
+            {['✏️', '📷', '🕐'].map((ic, i) => (
+              <button key={i} style={{ background: 'none', border: 'none', fontSize: 17, cursor: 'pointer', padding: '5px 0', opacity: 0.45 }}>{ic}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── CONTENT AREA ── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+          {/* JOB TAB */}
+          {tab === 'Job' && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Customer card */}
+              <div style={{ background: NAVY, borderRadius: 14, padding: '14px 16px' }}>
+                <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{customer.name}</div>
+                <div style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>📍 {customer.address}</div>
+                <a style={{ display: 'block', marginTop: 10, background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 12, textAlign: 'center', padding: '9px', borderRadius: 10, textDecoration: 'none' }}>📞 Call {customer.name.split(' ')[0]}</a>
+              </div>
+              {/* Status stepper */}
+              <div style={{ background: NAVY, borderRadius: 14, padding: '14px 16px' }}>
+                <div style={{ color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>Progress</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                  {['Lead', 'Scheduled', 'In Progress', 'Done'].map((s, i) => {
+                    const done = i < 2; const active = i === 2;
+                    return (
+                      <React.Fragment key={s}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: done || active ? GOLD : '#1e2538', border: `2px solid ${done || active ? GOLD : '#2a3050'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {done && <span style={{ color: '#0f1623', fontSize: 11, fontWeight: 800 }}>✓</span>}
+                            {active && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0f1623', display: 'block' }} />}
+                          </div>
+                          <span style={{ fontSize: 8, color: active ? GOLD : done ? '#9ca3af' : DIM, marginTop: 4, fontWeight: 600 }}>{s}</span>
+                        </div>
+                        {i < 3 && <div style={{ flex: 1, height: 2, background: done ? GOLD : '#1e2538', marginBottom: 16, maxWidth: 20 }} />}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Action */}
+              <button style={{ background: GOLD, color: '#0f1623', fontWeight: 800, fontSize: 14, padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer' }}>✅ Complete Job</button>
+              {/* Notes preview */}
+              <div style={{ background: NAVY, borderRadius: 14, padding: '14px 16px' }}>
+                <div style={{ color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Notes</div>
+                <div style={{ color: '#9ca3af', fontSize: 12, lineHeight: 1.5 }}>200A panel upgrade. Replace main breaker. Customer wants surge protection add-on discussed on site.</div>
+              </div>
+            </div>
+          )}
+
+          {/* HISTORY TAB */}
+          {tab === 'History' && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 20px' }}>
+              {/* Contact header */}
+              <div style={{ background: NAVY, borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>{customer.name}</div>
+                    <div style={{ color: MUTED, fontSize: 12, marginTop: 2 }}>{customer.phone}</div>
+                    <div style={{ color: MUTED, fontSize: 12 }}>📍 {customer.address}</div>
+                  </div>
+                  <span style={{ background: '#1e2538', color: MUTED, fontSize: 10, fontWeight: 600, borderRadius: 8, padding: '3px 8px' }}>{customer.type}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button style={{ flex: 1, background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 11, padding: '8px', borderRadius: 10, border: 'none', cursor: 'pointer' }}>📞 Call</button>
+                  <button style={{ flex: 1, background: NAVY, color: GOLD, fontWeight: 700, fontSize: 11, padding: '8px', borderRadius: 10, border: `1px solid ${GOLD}33`, cursor: 'pointer' }}>💰 Invoice</button>
+                  <button style={{ flex: 1, background: NAVY, color: '#9ca3af', fontWeight: 700, fontSize: 11, padding: '8px', borderRadius: 10, border: `1px solid #1e2538`, cursor: 'pointer' }}>✏️ Edit</button>
+                </div>
+              </div>
+              {/* Timeline */}
+              <div style={{ color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 4 }}>Activity</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {HISTORY_DATA.map((item, i) => (
+                  <div key={i} style={{ background: NAVY, borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 18 }}>{item.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: '#fff', fontWeight: 600, fontSize: 13 }}>{item.label}</div>
+                      <div style={{ color: MUTED, fontSize: 11, marginTop: 1 }}>{item.date}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      {item.amount && <div style={{ color: GOLD, fontWeight: 700, fontSize: 13 }}>${item.amount.toLocaleString()}</div>}
+                      <span style={{ color: STATUS_COLOR[item.status] || MUTED, fontSize: 10, fontWeight: 600 }}>{item.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ESTIMATES TAB */}
+          {tab === 'Estimates' && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Actions header */}
+              <div style={{ padding: '12px 14px 10px', borderBottom: `1px solid #1e2538`, flexShrink: 0 }}>
+                <div style={{ color: '#fff', fontWeight: 700, fontSize: 16, marginBottom: 10 }}>Estimates</div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 7 }}>
+                  <button style={{ flex: 1, background: GOLD, border: 'none', borderRadius: 20, color: '#0f1117', fontWeight: 800, fontSize: 10, padding: '8px 6px', cursor: 'pointer', letterSpacing: 0.5, textTransform: 'uppercase' }}>💳 Financing</button>
+                  <button style={{ flex: 1, background: 'none', border: `1.5px solid #2E4BA0`, borderRadius: 20, color: '#3ab8ff', fontWeight: 700, fontSize: 10, padding: '8px 6px', cursor: 'pointer', letterSpacing: 0.5, textTransform: 'uppercase' }}>🧮 Calculate</button>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button style={{ flex: 1, background: 'none', border: `1.5px solid #1e2538`, borderRadius: 20, color: '#8a93b0', fontWeight: 700, fontSize: 10, padding: '8px 6px', cursor: 'pointer', letterSpacing: 0.5, textTransform: 'uppercase' }}>+ Add</button>
+                  <button style={{ flex: 1, background: 'none', border: `1.5px solid #1e2538`, borderRadius: 20, color: '#8a93b0', fontWeight: 700, fontSize: 10, padding: '8px 6px', cursor: 'pointer', letterSpacing: 0.5, textTransform: 'uppercase' }}>📊 Present</button>
+                </div>
+              </div>
+
+              {/* Cards */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {ESTIMATES_DATA.map(est => {
+                  const sc = STATUS_COLOR[est.status];
+                  const isSel = selectedEst === est.id;
+                  return (
+                    <div key={est.id} onClick={() => setSelectedEst(isSel ? null : est.id)}
+                      style={{ background: '#161b29', border: `1.5px solid ${isSel ? GOLD : '#1e2538'}`, borderRadius: 14, padding: '14px 14px 12px', cursor: 'pointer', boxShadow: isSel ? `0 0 0 3px ${GOLD}20` : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ color: '#dde3f5', fontWeight: 600, fontSize: 13, lineHeight: 1.35, flex: 1 }}>{est.title}</span>
+                        <span style={{ background: sc + '22', color: sc, fontSize: 9, fontWeight: 700, borderRadius: 6, padding: '3px 7px', letterSpacing: 0.5, textTransform: 'uppercase', flexShrink: 0, marginLeft: 8 }}>{est.status}</span>
+                      </div>
+                      <span style={{ background: '#1e2538', color: MUTED, fontSize: 10, fontWeight: 600, borderRadius: 6, padding: '2px 8px' }}>{est.items} Items</span>
+                      <div style={{ height: 1, background: '#1e2538', margin: '10px 0' }} />
+                      <div style={{ display: 'flex' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: MUTED, fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 3 }}>Total</div>
+                          <div style={{ color: '#dde3f5', fontWeight: 700, fontSize: 15 }}>${est.price.toLocaleString()}</div>
+                        </div>
+                        <div style={{ width: 1, background: '#1e2538', marginInline: 12, alignSelf: 'stretch' }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: MUTED, fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 3 }}>Savings</div>
+                          <div style={{ color: GOLD, fontWeight: 700, fontSize: 15 }}>${est.savings.toLocaleString()}</div>
+                        </div>
+                      </div>
+                      {isSel && (
+                        <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
+                          {['Edit', 'Send', 'Present', 'Invoice'].map(a => (
+                            <button key={a} onClick={e => e.stopPropagation()}
+                              style={{ flex: 1, background: a === 'Invoice' ? GOLD : '#1e2538', border: 'none', borderRadius: 8, color: a === 'Invoice' ? '#0f1117' : '#8a93b0', fontWeight: 700, fontSize: 10, padding: '7px 2px', cursor: 'pointer' }}>{a}</button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div style={{ background: '#0c0f1a', borderTop: `1px solid #1a1f2e`, padding: '10px 14px 16px', display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+                <div>
+                  <div style={{ color: MUTED, fontSize: 9, fontWeight: 700, letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 2 }}>Total (3 Estimates)</div>
+                  <div style={{ color: GOLD, fontWeight: 800, fontSize: 18 }}>$4,575.00</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ color: MUTED, fontSize: 9, fontWeight: 700, letterSpacing: 0.7, textTransform: 'uppercase', marginBottom: 2 }}>Total Savings</div>
+                  <div style={{ color: '#3fd47a', fontWeight: 700, fontSize: 14 }}>$457.50</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* INVOICE TAB */}
+          {tab === 'Invoice' && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ background: NAVY, borderRadius: 14, padding: '16px' }}>
+                <div style={{ color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Invoice #4421</div>
+                <div style={{ color: GOLD, fontWeight: 800, fontSize: 28, marginBottom: 4 }}>$3,200.00</div>
+                <span style={{ background: '#3fd47a22', color: '#3fd47a', fontSize: 10, fontWeight: 700, borderRadius: 6, padding: '3px 8px' }}>PAID</span>
+                <div style={{ height: 1, background: '#1e2538', margin: '14px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div><div style={{ color: MUTED, fontSize: 10 }}>Paid via</div><div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>Zelle</div></div>
+                  <div style={{ textAlign: 'right' }}><div style={{ color: MUTED, fontSize: 10 }}>Date</div><div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>Apr 14, 2026</div></div>
+                </div>
+              </div>
+              <button style={{ background: GOLD, color: '#0f1623', fontWeight: 800, fontSize: 13, padding: '13px', borderRadius: 14, border: 'none', cursor: 'pointer' }}>🔗 Share Invoice Link</button>
+              <button style={{ background: NAVY, color: '#9ca3af', fontWeight: 700, fontSize: 13, padding: '13px', borderRadius: 14, border: `1px solid #1e2538`, cursor: 'pointer' }}>+ New Invoice</button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APP SHELL ──────────────────────────────── */
+function App() {
+  const [screen, setScreen] = React.useState('today'); // 'today' | 'profile'
+  const [activeJob, setActiveJob] = React.useState(null);
+
+  function handleJobTap(job) { setActiveJob(job); setScreen('profile'); }
+  function handleBack() { setScreen('today'); setActiveJob(null); }
+
+  return (
+    <div>
+      <div className="scene-label">{screen === 'today' ? '① TODAY VIEW — tap a job →' : '② UNIFIED PROFILE — tap sidebar tabs'}</div>
+      <div className="phone">
+        <div className="status-bar">
+          <span className="status-time">{screen === 'today' ? '9:08' : '9:12'}</span>
+          <span className="status-icons">▲ ◀ 🔋</span>
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {screen === 'today'
+            ? <TodayView onJobTap={handleJobTap} />
+            : <UnifiedProfile job={activeJob} onBack={handleBack} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<div id="root"></div>
+</body>
+</html>
