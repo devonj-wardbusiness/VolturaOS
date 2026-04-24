@@ -1,34 +1,36 @@
 export const dynamic = 'force-dynamic'
 
-import { getCustomerById, getCustomerHistory } from '@/lib/actions/customers'
+import { getCustomerById } from '@/lib/actions/customers'
 import { getActiveAgreement } from '@/lib/actions/agreements'
+import { listCustomerJobs } from '@/lib/actions/jobs'
+import { listCustomerEstimates } from '@/lib/actions/estimates'
+import { listCustomerInvoices } from '@/lib/actions/invoices'
+import { CustomerProfile } from '@/components/profile/CustomerProfile'
 import { notFound } from 'next/navigation'
-import { EquipmentSection } from '@/components/customers/EquipmentSection'
-import { CustomerDetail } from '@/components/customers/CustomerDetail'
-import { CustomerHistory } from '@/components/customers/CustomerHistory'
-import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  let customer, agreement, history
+
+  let customer, agreement, jobs, estimates, invoices
   try {
-    ;[customer, agreement, history] = await Promise.all([
+    ;[customer, agreement, jobs, estimates, invoices] = await Promise.all([
       getCustomerById(id),
       getActiveAgreement(id),
-      getCustomerHistory(id),
+      listCustomerJobs(id),
+      listCustomerEstimates(id),
+      listCustomerInvoices(id),
     ])
   } catch {
     notFound()
   }
 
   return (
-    <>
-      <PageHeader title={customer.name} backHref="/customers" />
-      <div className="px-4 pt-14 pb-6">
-        <CustomerDetail customer={customer} agreement={agreement} />
-        <EquipmentSection customerId={customer.id} equipment={customer.equipment} />
-        <CustomerHistory items={history} />
-      </div>
-    </>
+    <CustomerProfile
+      customer={customer}
+      agreement={agreement}
+      jobs={jobs}
+      estimates={estimates}
+      invoices={invoices}
+    />
   )
 }

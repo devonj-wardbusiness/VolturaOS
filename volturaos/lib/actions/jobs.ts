@@ -403,14 +403,15 @@ export async function listTodayJobs(): Promise<(Job & {
  * Returns all jobs for a customer, excluding the current job.
  * Used by the History tab.
  */
-export async function listCustomerJobs(customerId: string, excludeJobId: string): Promise<Job[]> {
+export async function listCustomerJobs(customerId: string, excludeJobId?: string): Promise<Job[]> {
   await requireAuth()
   const admin = createAdminClient()
-  const { data, error } = await admin
+  let query = admin
     .from('jobs')
     .select('*')
     .eq('customer_id', customerId)
-    .neq('id', excludeJobId)
+  if (excludeJobId) query = query.neq('id', excludeJobId)
+  const { data, error } = await query
     .order('created_at', { ascending: false })
     .limit(20)
   if (error) throw new Error(error.message)
