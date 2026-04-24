@@ -14,7 +14,7 @@ const TABS: Tab[] = [
   { id: 'history',   icon: '📍', label: 'History' },
   { id: 'estimates', icon: '📄', label: 'Estimates' },
   { id: 'invoice',   icon: '💲', label: 'Invoice' },
-  { id: 'forms',     icon: '📋', label: 'Forms', disabled: true },
+  { id: 'forms',     icon: '📋', label: 'Forms' },
 ]
 
 interface ProfileSidebarProps {
