@@ -41,6 +41,8 @@ export async function saveEstimate(id: string, updates: {
   includesCleanup?: boolean
   includesWarranty?: boolean
   followUpDays?: number
+  validUntil?: string | null
+  paymentTerms?: string | null
 }): Promise<Estimate> {
   await requireAuth()
   const admin = createAdminClient()
@@ -58,6 +60,8 @@ export async function saveEstimate(id: string, updates: {
       includes_cleanup: updates.includesCleanup ?? true,
       includes_warranty: updates.includesWarranty ?? true,
       follow_up_days: updates.followUpDays ?? 3,
+      valid_until: updates.validUntil ?? null,
+      payment_terms: updates.paymentTerms ?? null,
     })
     .eq('id', id)
     .select()

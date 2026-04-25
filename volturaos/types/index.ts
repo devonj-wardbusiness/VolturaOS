@@ -178,6 +178,8 @@ export interface Estimate {
   signer_name: string | null
   signature_data: string | null
   signed_at: string | null
+  valid_until: string | null
+  payment_terms: string | null
 }
 
 export interface Invoice {

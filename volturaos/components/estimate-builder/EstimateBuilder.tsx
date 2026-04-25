@@ -45,6 +45,8 @@ interface EstimateBuilderProps {
     follow_up_dismissed?: boolean
     signed_at?: string | null
     signer_name?: string | null
+    valid_until?: string | null
+    payment_terms?: string | null
   }
 }
 
@@ -253,6 +255,7 @@ export function EstimateBuilder({
           addons={editor.addons}
           onToggle={editor.handleAddonToggle}
           onPriceChange={editor.handleAddonPriceChange}
+          onAddCustom={editor.handleAddCustomAddon}
         />
         <CustomLineItems
           items={editor.customItems}
@@ -270,6 +273,38 @@ export function EstimateBuilder({
             rows={3}
             className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold"
             placeholder="Notes for this estimate..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-sm mb-1">Valid until <span className="text-gray-600">(optional)</span></label>
+          <input
+            type="date"
+            value={editor.validUntil ?? ''}
+            onChange={e => editor.setValidUntil(e.target.value || null)}
+            className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold"
+            style={{ colorScheme: 'dark' }}
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-400 text-sm mb-2">Payment terms <span className="text-gray-600">(optional)</span></label>
+          <div className="flex gap-2 flex-wrap mb-2">
+            {['50% deposit to schedule', 'Full payment on completion', 'Net 15'].map(preset => (
+              <button
+                key={preset}
+                onClick={() => editor.setPaymentTerms(preset)}
+                className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${editor.paymentTerms === preset ? 'bg-volturaGold text-volturaBlue font-semibold' : 'bg-volturaNavy/50 text-gray-400'}`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <input
+            value={editor.paymentTerms ?? ''}
+            onChange={e => editor.setPaymentTerms(e.target.value || null)}
+            placeholder="Custom terms..."
+            className="w-full bg-volturaNavy text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-volturaGold"
           />
         </div>
       </div>

@@ -146,7 +146,8 @@
       "Bash(findstr /i \"supabase\")",
       "Bash(find /c/Users/Devon/VolturaOS/volturaos/components -name \"*.tsx\" -exec grep -l \"type=\\\\\"date\\\\\"\\\\|type=\\\\\"time\\\\\"\" {} \\\\;)",
       "Bash(sed -n '406,425p' lib/actions/jobs.ts)",
-      "Bash(sed -n '415,435p' lib/actions/estimates.ts)"
+      "Bash(sed -n '415,435p' lib/actions/estimates.ts)",
+      "Bash(xargs wc *)"
     ]
   }
 }

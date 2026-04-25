@@ -22,6 +22,7 @@ function toLineItem(entry: PricebookEntry, price: number): LineItem {
     original_price: basePrice(entry),
     tier: 'better',
     category: entry.category,
+    pricebook_description: entry.description_good ?? entry.description_better ?? undefined,
   }
 }
 

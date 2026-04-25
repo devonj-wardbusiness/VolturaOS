@@ -22,6 +22,8 @@ interface UseEstimateEditorOptions {
     includes_cleanup: boolean
     includes_warranty: boolean
     follow_up_days?: number
+    valid_until?: string | null
+    payment_terms?: string | null
   }
 }
 
@@ -46,6 +48,8 @@ export function useEstimateEditor({
     () => (initialEstimate?.line_items ?? []).length > 0
   )
   const [followUpDays, setFollowUpDays] = useState(initialEstimate?.follow_up_days ?? 3)
+  const [validUntil, setValidUntil] = useState<string | null>(initialEstimate?.valid_until ?? null)
+  const [paymentTerms, setPaymentTerms] = useState<string | null>(initialEstimate?.payment_terms ?? null)
 
   // Items — sync pricebook prices for non-overridden items on load
   const [lineItems, setLineItems] = useState<LineItem[]>(() => {
@@ -101,7 +105,7 @@ export function useEstimateEditor({
     if (!entry) return
     const price = entry.price_better ?? entry.price_good ?? 0
     setLineItems((prev) => [
-      { description: entry.job_type, price, is_override: false, original_price: price, category: entry.category },
+      { description: entry.job_type, price, is_override: false, original_price: price, category: entry.category, pricebook_description: entry.description_good ?? entry.description_better ?? undefined },
       ...prev,
     ])
   }, [pricebook])
@@ -162,6 +166,10 @@ export function useEstimateEditor({
     setAddons((prev) => prev.map((a, i) => i === index ? { ...a, price } : a))
   }, [])
 
+  const handleAddCustomAddon = useCallback((name: string, price: number) => {
+    setAddons((prev) => [...prev, { name, price, selected: true, original_price: price }])
+  }, [])
+
   const addCustomItem = useCallback(() => {
     setCustomItems((prev) => [
       ...prev,
@@ -197,8 +205,10 @@ export function useEstimateEditor({
       includesCleanup,
       includesWarranty,
       followUpDays,
+      validUntil,
+      paymentTerms,
     })
-  }, [estimateId, estimateName, addons, notes, includesPermit, includesCleanup, includesWarranty, followUpDays])
+  }, [estimateId, estimateName, addons, notes, includesPermit, includesCleanup, includesWarranty, followUpDays, validUntil, paymentTerms])
 
   const handleSave = useCallback(async () => {
     setSaving(true)
@@ -276,6 +286,8 @@ export function useEstimateEditor({
     primaryJobType, setPrimaryJobType,
     primarySkipped, setPrimarySkipped,
     followUpDays, setFollowUpDays,
+    validUntil, setValidUntil,
+    paymentTerms, setPaymentTerms,
     // Items
     lineItems, addons, customItems,
     notes, setNotes,
@@ -283,7 +295,7 @@ export function useEstimateEditor({
     handlePrimaryJobSelect,
     handleAddItem, handleQuickAdd,
     handleRemoveItem, handlePriceUpdate, handleFootageChange, handleDescriptionUpdate,
-    handleAddonToggle, handleAddonPriceChange,
+    handleAddonToggle, handleAddonPriceChange, handleAddCustomAddon,
     addCustomItem, updateCustomItem, removeCustomItem,
     addDiscount, handleAddSuggestion,
     // Badge toggles

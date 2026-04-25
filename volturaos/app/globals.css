@@ -68,3 +68,17 @@ input[type="week"] {
 select {
   color-scheme: dark;
 }
+
+/* Print styles — used by PrintButton on public estimate view */
+@media print {
+  .print\:hidden { display: none !important; }
+  body { background: #fff !important; color: #111 !important; }
+  .bg-volturaBlue { background: #fff !important; }
+  .bg-volturaNavy,
+  [class*="bg-volturaNavy"] { background: #f4f4f4 !important; border: 1px solid #ddd !important; }
+  .text-volturaGold, [class*="text-volturaGold"] { color: #8a6914 !important; }
+  .text-white { color: #111 !important; }
+  .text-gray-400, .text-gray-500 { color: #555 !important; }
+  .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 6px !important; }
+  a { text-decoration: none !important; color: inherit !important; }
+}
