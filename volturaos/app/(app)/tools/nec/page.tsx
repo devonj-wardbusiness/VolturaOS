@@ -23,7 +23,7 @@ export default async function NecPage() {
   return (
     <>
       <PageHeader title="NEC Quick Reference" backHref="/settings" />
-      <div className="min-h-dvh pt-14">
+      <div className="min-h-dvh" style={{paddingTop: "var(--header-h)"}}>
         {/* Dark page header */}
         <div className="bg-[#0d1f3c] px-4 py-3 flex items-center justify-between border-b border-[#1a2f50]">
           <div>

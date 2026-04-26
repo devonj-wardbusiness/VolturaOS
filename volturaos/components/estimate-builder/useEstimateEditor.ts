@@ -143,6 +143,12 @@ export function useEstimateEditor({
     setLineItems((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
+  const handleQuantityChange = useCallback((index: number, quantity: number, newTotal: number, unitPrice: number) => {
+    setLineItems((prev) => prev.map((item, i) =>
+      i === index ? { ...item, quantity, price: newTotal, unit_price: unitPrice, is_override: true } : item
+    ))
+  }, [])
+
   const handlePriceUpdate = useCallback((index: number, price: number) => {
     setLineItems((prev) => prev.map((item, i) =>
       i === index
@@ -294,7 +300,7 @@ export function useEstimateEditor({
     // Item callbacks
     handlePrimaryJobSelect,
     handleAddItem, handleQuickAdd,
-    handleRemoveItem, handlePriceUpdate, handleFootageChange, handleDescriptionUpdate,
+    handleRemoveItem, handlePriceUpdate, handleFootageChange, handleDescriptionUpdate, handleQuantityChange,
     handleAddonToggle, handleAddonPriceChange, handleAddCustomAddon,
     addCustomItem, updateCustomItem, removeCustomItem,
     addDiscount, handleAddSuggestion,

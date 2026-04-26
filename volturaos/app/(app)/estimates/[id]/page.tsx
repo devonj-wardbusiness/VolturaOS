@@ -39,7 +39,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
           </Link>
         }
       />
-      <div className="min-h-dvh pt-14">
+      <div className="min-h-dvh" style={{paddingTop: "var(--header-h)"}}>
         <ProgressTracker sentAt={estimate.sent_at} viewedAt={estimate.viewed_at} status={estimate.status} />
         <EstimateActions
           estimateId={id}

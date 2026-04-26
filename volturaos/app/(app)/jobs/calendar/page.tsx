@@ -35,7 +35,7 @@ export default async function JobCalendarPage({
           </div>
         }
       />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
         <JobCalendar jobs={jobs} year={year} month={monthNum} />
       </div>
     </>

@@ -10,10 +10,14 @@ export default async function NewInvoicePage({
   const params = await searchParams
   return (
     <div className="min-h-dvh bg-volturaBlue">
-      <header className="px-4 pt-4 pb-2 flex items-center gap-3">
-        <a href="/invoices" className="text-gray-400 text-sm">&larr; Invoices</a>
-        <h1 className="text-volturaGold text-xl font-bold">New Invoice</h1>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-[#0D0F1A]/90 backdrop-blur-sm border-b border-white/5 px-4 flex items-center gap-3"
+        style={{ height: 'var(--header-h)', paddingTop: 'var(--sat)' }}
+      >
+        <a href="/invoices" className="text-volturaGold text-xl p-1 -ml-1">←</a>
+        <h1 className="text-white font-bold text-base">New Invoice</h1>
       </header>
+      <div style={{ paddingTop: 'var(--header-h)' }} />
       <NewInvoiceForm
         jobId={params.jobId}
         customerId={params.customerId}

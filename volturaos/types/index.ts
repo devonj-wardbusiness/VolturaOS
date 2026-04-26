@@ -141,6 +141,8 @@ export interface LineItem {
   category?: string
   footage?: number | null
   is_primary?: boolean
+  quantity?: number       // default 1; price stores TOTAL (unit_price × quantity)
+  unit_price?: number     // stored when quantity > 1, to allow recalculation
 }
 
 export interface Addon {

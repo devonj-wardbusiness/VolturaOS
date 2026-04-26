@@ -228,6 +228,7 @@ export function EstimateBuilder({
           onRemove={editor.handleRemoveItem}
           onPriceUpdate={editor.handlePriceUpdate}
           onDescriptionUpdate={editor.handleDescriptionUpdate}
+          onQuantityChange={editor.handleQuantityChange}
         />
 
         {/* Badge toggles */}

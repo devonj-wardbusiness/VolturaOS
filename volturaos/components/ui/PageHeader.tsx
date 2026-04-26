@@ -15,7 +15,10 @@ export function PageHeader({ title, subtitle, backHref, action }: PageHeaderProp
   const router = useRouter()
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#0D0F1A]/90 backdrop-blur-sm border-b border-white/5 flex items-center">
+    <header
+      className="fixed top-0 left-0 right-0 z-50 bg-[#0D0F1A]/90 backdrop-blur-sm border-b border-white/5 flex items-center"
+      style={{ height: 'var(--header-h)', paddingTop: 'var(--sat)' }}
+    >
       {/* Back button */}
       <div className="absolute left-0 pl-2">
         {backHref && (

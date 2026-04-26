@@ -39,7 +39,7 @@ export default async function EstimatesPage() {
         title="Estimates"
         action={<Link href="/estimates/new" className="text-volturaGold text-sm pr-4">+ New</Link>}
       />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
         {groups.length === 0 ? (
           <EmptyState message="No estimates yet — tap + to create one" ctaLabel="+ New Estimate" ctaHref="/estimates/new" />
         ) : (

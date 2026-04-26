@@ -10,9 +10,10 @@ interface LineItemListProps {
   onRemove: (index: number) => void
   onPriceUpdate?: (index: number, price: number, pricebookId?: string) => void
   onDescriptionUpdate?: (index: number, desc: string) => void
+  onQuantityChange?: (index: number, quantity: number, newTotal: number, unitPrice: number) => void
 }
 
-export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate }: LineItemListProps) {
+export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate, onQuantityChange }: LineItemListProps) {
   if (items.length === 0) return null
 
   function findEntry(item: LineItem): PricebookEntry | undefined {
@@ -44,6 +45,7 @@ export function LineItemList({ items, pricebook, onFootageChange, onRemove, onPr
             onRemove={() => onRemove(i)}
             onPriceUpdate={onPriceUpdate ? (price, pbId) => onPriceUpdate(i, price, pbId) : undefined}
             onDescriptionUpdate={onDescriptionUpdate ? (desc) => onDescriptionUpdate(i, desc) : undefined}
+            onQuantityChange={onQuantityChange ? (qty, total, up) => onQuantityChange(i, qty, total, up) : undefined}
           />
         ))}
       </div>

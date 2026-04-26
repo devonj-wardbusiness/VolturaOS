@@ -29,7 +29,7 @@ export default function QuickQuotePage() {
   return (
     <>
       <PageHeader title="Quick Quote" backHref="back" />
-      <div className="px-4 pt-14 pb-8 space-y-5">
+      <div className="px-4 pb-8 space-y-5" style={{paddingTop: "var(--header-h)"}}>
 
         {/* Job description */}
         <div>

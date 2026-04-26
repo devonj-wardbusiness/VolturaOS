@@ -16,7 +16,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   return (
     <>
       <PageHeader title={invoice.customer.name} backHref="/invoices" />
-      <div className="min-h-dvh pt-14">
+      <div className="min-h-dvh" style={{paddingTop: "var(--header-h)"}}>
         <InvoiceDetail invoice={invoice} />
       </div>
     </>

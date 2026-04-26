@@ -7,7 +7,7 @@ export default function LoadCalcPage() {
   return (
     <>
       <PageHeader title="Load Calculator" backHref="/settings" />
-      <div className="min-h-dvh pt-14 pb-8">
+      <div className="min-h-dvh pb-8" style={{paddingTop: "var(--header-h)"}}>
         <LoadCalcTool />
       </div>
     </>

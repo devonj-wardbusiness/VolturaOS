@@ -32,7 +32,7 @@ export default async function EditChangeOrderPage({
   return (
     <>
       <PageHeader title="Change Order" />
-      <div className="pt-14">
+      <div style={{paddingTop: "var(--header-h)"}}>
         <ChangeOrderBuilder
           changeOrder={co}
           originalEstimateName={co.originalEstimate?.name ?? 'Estimate'}

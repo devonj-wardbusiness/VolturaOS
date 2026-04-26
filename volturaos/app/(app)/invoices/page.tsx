@@ -16,7 +16,7 @@ export default async function InvoicesPage() {
   return (
     <>
       <PageHeader title="Money" />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
 
         {/* Quick nav: Estimates shortcut */}
         <div className="flex gap-2 mb-4">

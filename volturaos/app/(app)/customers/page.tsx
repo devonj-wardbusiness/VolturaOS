@@ -17,7 +17,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         title="Customers"
         action={<Link href="/customers/new" className="text-volturaGold text-sm pr-4">+ New</Link>}
       />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
         <CustomerSearch initialQuery={q ?? ''} />
         {customers.length === 0 ? (
           <EmptyState message="No customers yet — tap + to add one" ctaLabel="+ Add Customer" ctaHref="/customers/new" />

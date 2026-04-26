@@ -38,7 +38,7 @@ export default function SearchPage() {
   return (
     <>
       <PageHeader title="Search" backHref="back" />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
         <input
           autoFocus
           type="search"

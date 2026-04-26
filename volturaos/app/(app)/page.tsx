@@ -15,7 +15,7 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title="VOLTURA" subtitle="Power Group" />
-      <div className="px-4 pt-14 pb-6">
+      <div className="px-4 pb-6" style={{paddingTop: "var(--header-h)"}}>
         {/* Quick actions */}
         <div className="grid grid-cols-4 gap-2 mb-5 mt-4">
           <Link href="/customers/new" className="bg-transparent border border-volturaGold rounded-2xl p-3 text-center text-volturaGold font-bold text-sm">+ Customer</Link>

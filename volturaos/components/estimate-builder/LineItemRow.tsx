@@ -12,15 +12,18 @@ interface LineItemRowProps {
   onRemove: () => void
   onPriceUpdate?: (price: number, pricebookId?: string) => void
   onDescriptionUpdate?: (desc: string) => void
+  onQuantityChange?: (quantity: number, newTotal: number, unitPrice: number) => void
 }
 
-export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate }: LineItemRowProps) {
+export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, onPriceUpdate, onDescriptionUpdate, onQuantityChange }: LineItemRowProps) {
   const [expanded, setExpanded] = useState(false)
   const [editingPrice, setEditingPrice] = useState(false)
   const [draftPrice, setDraftPrice] = useState(String(item.price))
   const [savingPricebook, setSavingPricebook] = useState(false)
 
   const isFootage = pricebookEntry?.is_footage_item ?? false
+  const qty = item.quantity ?? 1
+  const unitPrice = item.unit_price ?? item.price
   const brackets = isFootage && pricebookEntry
     ? [
         { label: '0-25ft', price: pricebookEntry.price_good ?? 0 },
@@ -32,15 +35,27 @@ export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, o
   function handlePriceTap(e: React.MouseEvent) {
     if (!onPriceUpdate || isFootage) return
     e.stopPropagation()
-    setDraftPrice(String(item.price))
+    // Show unit price when editing so user sets per-unit, not total
+    setDraftPrice(String(qty > 1 ? unitPrice : item.price))
     setEditingPrice(true)
   }
 
   function handlePriceSave() {
     const parsed = parseFloat(draftPrice)
     if (isNaN(parsed) || parsed < 0) { setEditingPrice(false); return }
-    onPriceUpdate?.(parsed)
+    // If quantity > 1, price entered is unit price → total = parsed × qty
+    const newTotal = qty > 1 ? parsed * qty : parsed
+    onPriceUpdate?.(newTotal)
     setEditingPrice(false)
+  }
+
+  function handleQtyChange(delta: number) {
+    if (!onQuantityChange) return
+    const newQty = Math.max(1, qty + delta)
+    // unit_price is the current per-unit price
+    const perUnit = item.unit_price ?? item.price  // price = unit when qty was 1
+    const newTotal = perUnit * newQty
+    onQuantityChange(newQty, newTotal, perUnit)
   }
 
   async function handleSaveAndUpdatePricebook() {
@@ -64,9 +79,15 @@ export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, o
         onClick={() => isFootage ? setExpanded(!expanded) : undefined}
       >
         <div className="flex-1 min-w-0">
-          <p className="text-white text-sm truncate">{item.description}</p>
+          <p className="text-white text-sm truncate">
+            {qty > 1 ? <span className="text-volturaGold font-semibold mr-1">{qty}×</span> : null}
+            {item.description}
+          </p>
           {item.footage && (
             <p className="text-gray-500 text-xs">{item.footage}ft</p>
+          )}
+          {qty > 1 && (
+            <p className="text-gray-500 text-xs">${unitPrice.toLocaleString()} each</p>
           )}
           {item.pricebook_description !== undefined && onDescriptionUpdate && (
             <input
@@ -79,6 +100,25 @@ export function LineItemRow({ item, pricebookEntry, onFootageChange, onRemove, o
             />
           )}
         </div>
+
+        {/* Quantity stepper — only for non-footage items */}
+        {onQuantityChange && !isFootage && (
+          <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => handleQtyChange(-1)}
+              className="w-6 h-6 rounded bg-volturaNavy text-gray-400 text-sm font-bold flex items-center justify-center active:opacity-60"
+            >
+              −
+            </button>
+            <span className="text-white text-xs w-5 text-center">{qty}</span>
+            <button
+              onClick={() => handleQtyChange(1)}
+              className="w-6 h-6 rounded bg-volturaNavy text-volturaGold text-sm font-bold flex items-center justify-center active:opacity-60"
+            >
+              +
+            </button>
+          </div>
+        )}
 
         {editingPrice ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
