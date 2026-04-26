@@ -115,18 +115,28 @@ export function JobDetail({ job, checklist, photos, signedEstimateId, changeOrde
       <div className="bg-volturaNavy/50 rounded-xl p-4">
         <p className="text-white font-bold text-lg">{job.customer.name}</p>
         {job.customer.address && (
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(job.customer.address ?? '')
-              if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(40)
-            }}
-            className="text-gray-400 text-sm mt-1 text-left flex items-center gap-1.5 group w-full"
-            title="Tap to copy address"
-          >
-            <span>📍</span>
-            <span className="group-active:text-volturaGold transition-colors">{job.customer.address}</span>
-            <span className="text-gray-600 text-xs ml-1 group-active:text-volturaGold">copy</span>
-          </button>
+          <div className="mt-1 space-y-1.5">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(job.customer.address ?? '')
+                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(40)
+              }}
+              className="text-gray-400 text-sm text-left flex items-center gap-1.5 group w-full"
+              title="Tap to copy address"
+            >
+              <span>📍</span>
+              <span className="group-active:text-volturaGold transition-colors">{job.customer.address}</span>
+              <span className="text-gray-600 text-xs ml-1 group-active:text-volturaGold">copy</span>
+            </button>
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(job.customer.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-volturaGold text-xs font-semibold"
+            >
+              🗺️ Get Directions
+            </a>
+          </div>
         )}
         {job.customer.phone && (
           <a
