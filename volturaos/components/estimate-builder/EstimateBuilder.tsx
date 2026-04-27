@@ -27,6 +27,7 @@ interface EstimateBuilderProps {
   initialCustomerId?: string
   initialCustomerName?: string
   initialCustomerPhone?: string | null
+  initialCustomerEmail?: string | null
   estimateCreatedAt?: string
   proposalCount: number
   proposalEstimates: Estimate[]
@@ -57,6 +58,7 @@ export function EstimateBuilder({
   initialCustomerId,
   initialCustomerName,
   initialCustomerPhone,
+  initialCustomerEmail,
   estimateCreatedAt,
   proposalCount,
   proposalEstimates,
@@ -346,6 +348,7 @@ export function EstimateBuilder({
         estimateId={estimateId}
         total={editor.total}
         customerPhone={initialCustomerPhone ?? null}
+        customerEmail={initialCustomerEmail ?? null}
         customerName={editor.customerName ?? 'Customer'}
       />
 

@@ -53,6 +53,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
           initialCustomerId={estimate.customer.id}
           initialCustomerName={estimate.customer.name}
           initialCustomerPhone={estimate.customer.phone}
+          initialCustomerEmail={estimate.customer.email}
           estimateCreatedAt={estimate.created_at}
           proposalCount={proposal.length}
           proposalEstimates={proposal}

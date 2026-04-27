@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Zap, Wrench, Users, DollarSign } from 'lucide-react'
+import { Zap, Wrench, Users, DollarSign, MessageCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const tabs: { href: string; label: string; Icon: LucideIcon; also?: string[] }[] = [
   { href: '/',          label: 'Home',      Icon: Zap },
-  { href: '/jobs',      label: 'Today',     Icon: Wrench },
+  { href: '/jobs',      label: 'Jobs',      Icon: Wrench },
   { href: '/customers', label: 'Customers', Icon: Users },
+  { href: '/messages',  label: 'Messages',  Icon: MessageCircle },
   { href: '/invoices',  label: 'Money',     Icon: DollarSign, also: ['/estimates'] },
 ]
 

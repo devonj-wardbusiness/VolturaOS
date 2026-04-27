@@ -141,8 +141,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Store inbound + auto-reply in DB for inbox
+    const { saveSmsMessage } = await import('@/lib/actions/messages')
+    await saveSmsMessage({ customer_id: customerId, direction: 'inbound', body: messageBody, phone: fromPhone })
+
     // Send auto-reply
     await sendSMS(fromPhone, reply, false)
+    await saveSmsMessage({ customer_id: customerId, direction: 'outbound', body: reply, phone: fromPhone })
 
     // Telegram alert
     const urgencyEmoji = urgency === 'High' ? '🔴' : urgency === 'Medium' ? '🟡' : '🟢'

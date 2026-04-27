@@ -209,13 +209,13 @@ export async function approvePublicEstimate(approvedId: string): Promise<void> {
   }
 }
 
-export async function getEstimateById(id: string): Promise<Estimate & { customer: { name: string; phone: string | null; id: string } }> {
+export async function getEstimateById(id: string): Promise<Estimate & { customer: { name: string; phone: string | null; email: string | null; id: string } }> {
   await requireAuth()
   const admin = createAdminClient()
-  const { data, error } = await admin.from('estimates').select('*, customers(id, name, phone)').eq('id', id).single()
+  const { data, error } = await admin.from('estimates').select('*, customers(id, name, phone, email)').eq('id', id).single()
   if (error) throw new Error(error.message)
   const { customers, ...estimate } = data as Record<string, unknown>
-  return { ...estimate, customer: customers } as Estimate & { customer: { name: string; phone: string | null; id: string } }
+  return { ...estimate, customer: customers } as Estimate & { customer: { name: string; phone: string | null; email: string | null; id: string } }
 }
 
 export async function getPublicEstimate(id: string): Promise<{ estimates: Estimate[]; customer: { name: string; phone: string | null } } | null> {
@@ -267,6 +267,17 @@ export async function sendEstimateLinkSMS(
   const link = `${baseUrl}/estimates/${estimateId}/view`
   const message = `Hi ${customerName.split(' ')[0]}, here's your estimate from Voltura Power Group: ${link}`
   await sendSMS(customerPhone, message, smsOptOut)
+  await updateEstimateStatus(estimateId, 'Sent')
+}
+
+export async function sendEstimateLinkEmail(
+  estimateId: string,
+  toEmail: string,
+  customerName: string,
+  total: number,
+): Promise<void> {
+  const { sendEstimateEmail } = await import('@/lib/email')
+  await sendEstimateEmail({ to: toEmail, customerName, estimateId, total })
   await updateEstimateStatus(estimateId, 'Sent')
 }
 
